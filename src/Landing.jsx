@@ -106,7 +106,7 @@ export default function LandingPage() {
           <header className="flex items-center justify-between rounded-full border border-white/60 bg-white/75 px-5 py-3 backdrop-blur-xl shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl">
-                <img src="./src/assets/logo1.png" alt="Hoppity Logo" />
+                <img src="./src/assets/logo1.png" alt="" />
               </div>
               <div>
                 <p className="text-lg font-semibold tracking-tight">Hoppity</p>
