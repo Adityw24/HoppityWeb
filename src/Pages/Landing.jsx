@@ -371,6 +371,7 @@ export default function LandingPage() {
                 <button className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5">
                   Get First Access
                 </button>
+                
                 <p className="text-sm leading-6 text-slate-500">
                   No spam. Just irresistible journeys, early drops, and the occasional reminder that life is too short for generic travel.
                 </p>

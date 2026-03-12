@@ -1,32 +1,39 @@
 import React, { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Waves, Utensils, Compass, Droplets, Home, Users, MapPin, Car, ShieldCheck, Phone } from 'lucide-react';
+import { trips } from '../data/Trips.jsx';
 
-const Itinerary = () => {
+const TripDetails = () => {
+  const { slug } = useParams();
+
+  // Find trip using slug
+  const trip = trips.find((trip) => trip.slug === slug);
+
+  // Debug logs to verify data fetching
+  useEffect(() => {
+    console.log('Slug from URL:', slug);
+    console.log('All available trips:', trips);
+    console.log('Found trip:', trip);
+  }, [slug, trip]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
-    window.scrollTo(0, 0); // Scroll to top on mount
+  // If no slug in URL or trip not found
+  if (!slug || !trip) {
+    return (
+      <div style={{ padding: '40px 20px', textAlign: 'center', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>Trip Not Found</h1>
+          <p style={{ color: '#666' }}>The trip you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
 
-    // Observer for scroll animations
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px',
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0) translateX(0)';
-        }
-      });
-    }, observerOptions);
-
-    const animatedElements = document.querySelectorAll('.opacity-0');
-    animatedElements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+  // Extract duration and convert to days (e.g., "4D / 3N" → 4)
+  const days = parseInt(trip.duration.split('D')[0]) || 4;
 
   return (
     <div className="h-full font-sans text-[#1a1a1a] bg-white overflow-y-auto overflow-x-hidden selection:bg-purple-100">
@@ -150,7 +157,6 @@ const Itinerary = () => {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 cursor-pointer">
-              
               <div id='btn' onClick={() => window.history.back()}
               className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 text-white" />
@@ -177,31 +183,31 @@ const Itinerary = () => {
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-sm opacity-0 animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-sm animate-fade-in-up">
                 <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
-                <span className="text-gray-700">Monsoon Magic Awaits</span>
+                <span className="text-gray-700">{trip.tag}</span>
               </div>
               <div>
-                <h1 className="text-6xl md:text-7xl font-bold leading-tight opacity-0 animate-fade-in-up mb-4" style={{animationDelay: '0.1s'}}>
-                  Konkan Monsoon <span className="gradient-text">Secrets</span>
+                <h1 className="text-6xl md:text-7xl font-bold leading-tight animate-fade-in-up mb-4" style={{animationDelay: '0.1s'}}>
+                  {trip.title.split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{trip.title.split(' ').pop()}</span>
                 </h1>
               </div>
               <div className="space-y-4 opacity-0 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-                <p className="text-lg text-gray-600 max-w-lg leading-relaxed">Sea-facing homestays, hidden beaches, village meals, temple trails and monsoon magic.</p>
+                <p className="text-lg text-gray-600 max-w-lg leading-relaxed">{trip.blurb}</p>
                 <div className="flex flex-wrap gap-6 pt-4">
                   <div>
                     <div className="text-gray-400 text-sm mb-1">Duration</div>
-                    <div className="text-2xl font-semibold"></div>
+                    <div className="text-2xl font-semibold">{trip.duration}</div>
                   </div>
                   <div className="h-12 w-px bg-gray-200"></div>
                   <div>
                     <div className="text-gray-400 text-sm mb-1">Location</div>
-                    <div className="text-2xl font-semibold"></div>
+                    <div className="text-2xl font-semibold">{trip.location}</div>
                   </div>
                   <div className="h-12 w-px bg-gray-200"></div>
                   <div>
                     <div className="text-gray-400 text-sm mb-1">Starting From</div>
-                    <div className="gradient-text text-2xl font-semibold"></div>
+                    <div className="gradient-text text-2xl font-semibold">{trip.price}</div>
                   </div>
                 </div>
               </div>
@@ -214,21 +220,14 @@ const Itinerary = () => {
             </div>
 
             {/* SVG Visual */}
-            <div className="relative opacity-0 animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
+            <div className="relative animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
               <div className="glass-card rounded-3xl p-6 glow-border">
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
-                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 500" fill="none">
-                    <defs>
-                      <linearGradient id="konkanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#0ea5e9" />
-                        <stop offset="100%" stopColor="#3dd9d9" />
-                      </linearGradient>
-                    </defs>
-                    <rect width="400" height="500" fill="#0a1628" />
-                    <path d="M0 350 Q100 320 200 350 T400 350 L400 500 L0 500 Z" fill="url(#konkanGrad)" opacity="0.6" />
-                    <path d="M50 300 L150 180 L250 240 L350 140 L400 180 L400 500 L0 500 Z" fill="#1e7c7c" opacity="0.5" />
-                    <circle cx="350" cy="80" r="40" fill="#fbbf24" opacity="0.7" />
-                  </svg>
+                  <img 
+                    src={trip.image} 
+                    alt={trip.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>
@@ -242,10 +241,10 @@ const Itinerary = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Experience the <span className="gradient-text">Highlights</span></h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Waves, title: 'Sea Facing Homestays', desc: 'Wake up to the sound of waves', color: 'text-teal-500' },
-              { icon: Utensils, title: 'Village Food', desc: 'Authentic local cuisine', color: 'text-amber-500' },
-              { icon: Compass, title: 'Hidden Beaches', desc: 'Untouched coastal gems', color: 'text-teal-500' },
-              { icon: Droplets, title: 'Waterfalls', desc: 'Monsoon magic at its finest', color: 'text-amber-500' }
+              { icon: Waves, title: 'Unique Experiences', desc: 'Curated activities', color: 'text-teal-500' },
+              { icon: Utensils, title: 'Local Cuisine', desc: 'Authentic flavors', color: 'text-amber-500' },
+              { icon: Compass, title: 'Expert Guides', desc: 'Local knowledge', color: 'text-teal-500' },
+              { icon: Droplets, title: 'Cultural Immersion', desc: 'Real experiences', color: 'text-amber-500' }
             ].map((item, i) => (
               <div key={i} className="highlight-badge rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
                 <item.icon className={`w-12 h-12 ${item.color} mb-4`} />
@@ -261,28 +260,22 @@ const Itinerary = () => {
       <section className="py-24 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16 opacity-0 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Your <span className="gradient-text">4-Day Journey</span></h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">A carefully curated experience designed to give you the best of Konkan's monsoon season</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Your <span className="gradient-text">{days}-Day Journey</span></h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">A carefully curated experience designed to give you the best of {trip.location}</p>
           </div>
           <div className="space-y-8">
-            {[
-              { day: '01', title: 'Arrival & Beach Welcome', desc: 'Arrive at your sea-facing homestay and settle into the rhythm of the monsoon. Evening beach walk with local guide, followed by authentic Malvani dinner.', tags: ['Accommodation', 'Dinner Included'] },
-              { day: '02', title: 'Hidden Beaches & Waterfalls', desc: 'Trek through lush greenery to discover secret beaches and stunning waterfalls. Pack a picnic with village-made snacks. Visit ancient temple nestled in the hills.', tags: ['Adventure', 'Picnic Lunch'] },
-              { day: '03', title: 'Village Immersion Day', desc: 'Cook with local families in traditional Konkan kitchens. Learn to make fresh coconut oil. Visit fishing villages and interact with local artisans.', tags: ['Cultural', 'Cooking Class'] },
-              { day: '04', title: 'Departure & Memories', desc: 'Relaxed morning with last-minute beach stroll and fresh coconut breakfast. Depart with a heart full of monsoon memories and new friendships.', tags: ['Breakfast Included', 'Memories'] }
-            ].map((item, i) => (
+            {Array.from({ length: days }).map((_, i) => (
               <div key={i} className="day-card rounded-2xl p-8 opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
                 <div className="flex flex-col md:flex-row items-start gap-6">
                   <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
-                    <span className="text-3xl font-bold gradient-text">{item.day}</span>
+                    <span className="text-3xl font-bold gradient-text">{String(i+1).padStart(2, '0')}</span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
-                    <p className="text-gray-600 leading-relaxed mb-4">{item.desc}</p>
+                    <h3 className="text-2xl font-semibold mb-3">Day {i+1} - Adventure Awaits</h3>
+                    <p className="text-gray-600 leading-relaxed mb-4">Explore the beauty of {trip.location} with expert guides. Experience local culture, enjoy authentic cuisine, and create unforgettable memories.</p>
                     <div className="flex flex-wrap gap-3">
-                      {item.tags.map(tag => (
-                        <span key={tag} className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">{tag}</span>
-                      ))}
+                      <span className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">Activities Included</span>
+                      <span className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">Meals Included</span>
                     </div>
                   </div>
                 </div>
@@ -300,10 +293,10 @@ const Itinerary = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 animate-fade-in-up">
             {[
-              { icon: Home, title: '3 Nights Homestay', desc: 'Sea-facing rooms' },
+              { icon: Home, title: `${days-1} Nights Accommodation`, desc: 'Premium homestays' },
               { icon: Utensils, title: 'All Meals', desc: 'Breakfast, lunch & dinner' },
               { icon: Users, title: 'Expert Guide', desc: 'Local English speaking' },
-              { icon: MapPin, title: 'All Activities', desc: 'Treks & tours' },
+              { icon: MapPin, title: 'All Activities', desc: 'Curated experiences' },
               { icon: Car, title: 'Transfers', desc: 'Pickup & drop' },
               { icon: ShieldCheck, title: 'Insurance', desc: 'Basic coverage' }
             ].map((item, i) => (
@@ -322,9 +315,9 @@ const Itinerary = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { num: '100+', label: 'Happy Travelers' },
+              { num: '500+', label: 'Happy Travelers' },
               { num: '4.9★', label: 'Average Rating' },
-              { num: '8+', label: 'Unique Activities' },
+              { num: '20+', label: 'Unique Trips' },
               { num: '24/7', label: 'Support Available' }
             ].map((stat, i) => (
               <div key={i} className="stat-box opacity-0 animate-scale-in" style={{animationDelay: `${(i+1)*0.1}s`}}>
@@ -339,8 +332,8 @@ const Itinerary = () => {
       {/* CTA */}
       <section className="py-24 bg-[#f8f5ff]">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Discover <span className="gradient-text">Monsoon Magic</span>?</h2>
-          <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available for this season. Book now to secure your stay.</p>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Explore <span className="gradient-text">{trip.location}</span>?</h2>
+          <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available. Book now to secure your adventure.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up">
             <button className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
             <a href="tel:+919876543210" className="w-full sm:w-auto">
@@ -363,4 +356,4 @@ const Itinerary = () => {
   );
 };
 
-export default Itinerary;
+export default TripDetails;
