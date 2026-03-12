@@ -1,0 +1,366 @@
+import React, { useEffect } from 'react';
+import { ArrowLeft, Download, Waves, Utensils, Compass, Droplets, Home, Users, MapPin, Car, ShieldCheck, Phone } from 'lucide-react';
+
+const Itinerary = () => {
+
+  useEffect(() => {
+
+    window.scrollTo(0, 0); // Scroll to top on mount
+
+    // Observer for scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px',
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0) translateX(0)';
+        }
+      });
+    }, observerOptions);
+
+    const animatedElements = document.querySelectorAll('.opacity-0');
+    animatedElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="h-full font-sans text-[#1a1a1a] bg-white overflow-y-auto overflow-x-hidden selection:bg-purple-100">
+      {/* CSS Variables & Global Styles */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --bg-dark: #ffffff;
+          --surface: #f8f5ff;
+          --text-primary: #1a1a1a;
+          --accent-purple: #7c3aed;
+          --accent-light-purple: #a78bfa;
+        }
+        
+        .gradient-text {
+          background: linear-gradient(135deg, var(--accent-purple), var(--accent-light-purple));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        .glass-card {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(124, 58, 237, 0.15);
+        }
+        
+        .glow-border {
+          position: relative;
+        }
+        
+        .glow-border::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: inherit;
+          background: linear-gradient(135deg, var(--accent-purple), transparent, var(--accent-light-purple));
+          z-index: -1;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+        
+        .glow-border:hover::before {
+          opacity: 1;
+        }
+        
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+        
+        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.6s ease-out forwards; }
+        
+        .shimmer-button {
+          background: linear-gradient(90deg, var(--accent-purple), #a78bfa, var(--accent-purple));
+          background-size: 200% 100%;
+          animation: shimmer 3s linear infinite;
+          color: white;
+        }
+        
+        .hero-section {
+          background: 
+            radial-gradient(ellipse 100% 80% at 50% 0%, rgba(124, 58, 237, 0.1), transparent),
+            radial-gradient(ellipse 80% 60% at 80% 50%, rgba(167, 139, 250, 0.08), transparent),
+            var(--bg-dark);
+        }
+
+        .day-card {
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          border-left: 4px solid transparent;
+          background: linear-gradient(135deg, rgba(248, 245, 255, 0.8), rgba(248, 245, 255, 0.5));
+        }
+
+        .day-card:hover {
+          border-left-color: var(--accent-purple);
+          transform: translateX(12px);
+          background: linear-gradient(135deg, rgba(248, 245, 255, 0.95), rgba(248, 245, 255, 0.7));
+          box-shadow: 0 10px 40px rgba(124, 58, 237, 0.1);
+        }
+
+        .highlight-badge {
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(167, 139, 250, 0.08));
+          border: 1px solid rgba(124, 58, 237, 0.2);
+          transition: all 0.3s ease;
+        }
+
+        .include-item {
+          padding: 1.5rem;
+          border-radius: 1rem;
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(167, 139, 250, 0.06));
+          border: 1px solid rgba(124, 58, 237, 0.15);
+          transition: all 0.4s ease;
+        }
+
+        .stat-box {
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(167, 139, 250, 0.08));
+          border: 1px solid rgba(124, 58, 237, 0.15);
+          padding: 1.5rem;
+          border-radius: 1rem;
+          text-align: center;
+        }
+      `}} />
+
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-purple-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 cursor-pointer">
+              
+              <div id='btn' onClick={() => window.history.back()}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </div>
+              <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back to Home</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="px-6 py-2.5 rounded-full text-sm font-semibold glass-card glow-border hover:bg-white/5 transition-all cursor-pointer"> Share </button> 
+
+              <a href="https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I'm%20interested%20in%20this%20trip"target="_blank" rel="noopener noreferrer">
+              <button className="px-6 py-2.5 rounded-full text-sm font-semibold shimmer-button hover:shadow-lg transition-shadow cursor-pointer"> Book Now </button>
+              </a>
+
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="hero-section min-h-screen relative flex items-center pt-24 pb-12">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-40 right-20 w-80 h-80 rounded-full bg-purple-500/5 blur-3xl" style={{animation: 'float 6s ease-in-out infinite'}}></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-sm opacity-0 animate-fade-in-up">
+                <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+                <span className="text-gray-700">Monsoon Magic Awaits</span>
+              </div>
+              <div>
+                <h1 className="text-6xl md:text-7xl font-bold leading-tight opacity-0 animate-fade-in-up mb-4" style={{animationDelay: '0.1s'}}>
+                  Konkan Monsoon <span className="gradient-text">Secrets</span>
+                </h1>
+              </div>
+              <div className="space-y-4 opacity-0 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                <p className="text-lg text-gray-600 max-w-lg leading-relaxed">Sea-facing homestays, hidden beaches, village meals, temple trails and monsoon magic.</p>
+                <div className="flex flex-wrap gap-6 pt-4">
+                  <div>
+                    <div className="text-gray-400 text-sm mb-1">Duration</div>
+                    <div className="text-2xl font-semibold"></div>
+                  </div>
+                  <div className="h-12 w-px bg-gray-200"></div>
+                  <div>
+                    <div className="text-gray-400 text-sm mb-1">Location</div>
+                    <div className="text-2xl font-semibold"></div>
+                  </div>
+                  <div className="h-12 w-px bg-gray-200"></div>
+                  <div>
+                    <div className="text-gray-400 text-sm mb-1">Starting From</div>
+                    <div className="gradient-text text-2xl font-semibold"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
+                <button className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer"> Book Your Adventure </button>
+                <button className="px-8 py-4 rounded-full text-base font-medium glass-card glow-border hover:bg-white/5 transition-all flex items-center gap-2 cursor-pointer">
+                  <Download className="w-5 h-5" /> Download Itinerary
+                </button>
+              </div>
+            </div>
+
+            {/* SVG Visual */}
+            <div className="relative opacity-0 animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
+              <div className="glass-card rounded-3xl p-6 glow-border">
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
+                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 500" fill="none">
+                    <defs>
+                      <linearGradient id="konkanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#0ea5e9" />
+                        <stop offset="100%" stopColor="#3dd9d9" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="400" height="500" fill="#0a1628" />
+                    <path d="M0 350 Q100 320 200 350 T400 350 L400 500 L0 500 Z" fill="url(#konkanGrad)" opacity="0.6" />
+                    <path d="M50 300 L150 180 L250 240 L350 140 L400 180 L400 500 L0 500 Z" fill="#1e7c7c" opacity="0.5" />
+                    <circle cx="350" cy="80" r="40" fill="#fbbf24" opacity="0.7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Highlights */}
+      <section className="py-24 bg-[#f8f5ff]">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Experience the <span className="gradient-text">Highlights</span></h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Waves, title: 'Sea Facing Homestays', desc: 'Wake up to the sound of waves', color: 'text-teal-500' },
+              { icon: Utensils, title: 'Village Food', desc: 'Authentic local cuisine', color: 'text-amber-500' },
+              { icon: Compass, title: 'Hidden Beaches', desc: 'Untouched coastal gems', color: 'text-teal-500' },
+              { icon: Droplets, title: 'Waterfalls', desc: 'Monsoon magic at its finest', color: 'text-amber-500' }
+            ].map((item, i) => (
+              <div key={i} className="highlight-badge rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
+                <item.icon className={`w-12 h-12 ${item.color} mb-4`} />
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Itinerary */}
+      <section className="py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16 opacity-0 animate-fade-in-up">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Your <span className="gradient-text">4-Day Journey</span></h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">A carefully curated experience designed to give you the best of Konkan's monsoon season</p>
+          </div>
+          <div className="space-y-8">
+            {[
+              { day: '01', title: 'Arrival & Beach Welcome', desc: 'Arrive at your sea-facing homestay and settle into the rhythm of the monsoon. Evening beach walk with local guide, followed by authentic Malvani dinner.', tags: ['Accommodation', 'Dinner Included'] },
+              { day: '02', title: 'Hidden Beaches & Waterfalls', desc: 'Trek through lush greenery to discover secret beaches and stunning waterfalls. Pack a picnic with village-made snacks. Visit ancient temple nestled in the hills.', tags: ['Adventure', 'Picnic Lunch'] },
+              { day: '03', title: 'Village Immersion Day', desc: 'Cook with local families in traditional Konkan kitchens. Learn to make fresh coconut oil. Visit fishing villages and interact with local artisans.', tags: ['Cultural', 'Cooking Class'] },
+              { day: '04', title: 'Departure & Memories', desc: 'Relaxed morning with last-minute beach stroll and fresh coconut breakfast. Depart with a heart full of monsoon memories and new friendships.', tags: ['Breakfast Included', 'Memories'] }
+            ].map((item, i) => (
+              <div key={i} className="day-card rounded-2xl p-8 opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+                    <span className="text-3xl font-bold gradient-text">{item.day}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
+                    <p className="text-gray-600 leading-relaxed mb-4">{item.desc}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {item.tags.map(tag => (
+                        <span key={tag} className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Included Section */}
+      <section className="py-24 bg-[#f8f5ff]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16 opacity-0 animate-fade-in-up">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">What's <span className="gradient-text">Included</span></h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 animate-fade-in-up">
+            {[
+              { icon: Home, title: '3 Nights Homestay', desc: 'Sea-facing rooms' },
+              { icon: Utensils, title: 'All Meals', desc: 'Breakfast, lunch & dinner' },
+              { icon: Users, title: 'Expert Guide', desc: 'Local English speaking' },
+              { icon: MapPin, title: 'All Activities', desc: 'Treks & tours' },
+              { icon: Car, title: 'Transfers', desc: 'Pickup & drop' },
+              { icon: ShieldCheck, title: 'Insurance', desc: 'Basic coverage' }
+            ].map((item, i) => (
+              <div key={i} className="include-item">
+                <item.icon className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+                <p className="text-gray-500 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              { num: '100+', label: 'Happy Travelers' },
+              { num: '4.9★', label: 'Average Rating' },
+              { num: '8+', label: 'Unique Activities' },
+              { num: '24/7', label: 'Support Available' }
+            ].map((stat, i) => (
+              <div key={i} className="stat-box opacity-0 animate-scale-in" style={{animationDelay: `${(i+1)*0.1}s`}}>
+                <div className="text-4xl font-bold gradient-text">{stat.num}</div>
+                <div className="text-gray-500 mt-3">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 bg-[#f8f5ff]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Discover <span className="gradient-text">Monsoon Magic</span>?</h2>
+          <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available for this season. Book now to secure your stay.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up">
+            <button className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
+            <a href="tel:+919876543210" className="w-full sm:w-auto">
+              <button className="px-10 py-5 rounded-full text-lg font-medium glass-card glow-border flex items-center justify-center gap-3 cursor-pointer hover:bg-white/8 transition-all w-full">
+                <Phone className="w-5 h-5 text-teal-600" /> Call Our Experts
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-100 py-16 text-center text-gray-400">
+        <div className="max-w-7xl mx-auto px-6">
+          <p>© 2026 Hoppity - Discover Real India</p>
+          <a href="mailto:sales@hoppity.co?subject=Inquiry from Hoppity&body=Hi Hoppity team," className="mt-2 text-sm hover:underline">sales@hoppity.co </a>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Itinerary;
