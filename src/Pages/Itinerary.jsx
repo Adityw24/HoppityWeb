@@ -164,8 +164,7 @@ const TripDetails = () => {
               <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back to Home</span>
             </div>
             <div className="flex items-center gap-4">
-              <button className="px-6 py-2.5 rounded-full text-sm font-semibold glass-card glow-border hover:bg-white/5 transition-all cursor-pointer"> Share </button> 
-
+              
               <a href="https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I'm%20interested%20in%20this%20trip"target="_blank" rel="noopener noreferrer">
               <button className="px-6 py-2.5 rounded-full text-sm font-semibold shimmer-button hover:shadow-lg transition-shadow cursor-pointer"> Book Now </button>
               </a>
@@ -213,9 +212,7 @@ const TripDetails = () => {
               </div>
               <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
                 <button className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer"> Book Your Adventure </button>
-                <button className="px-8 py-4 rounded-full text-base font-medium glass-card glow-border hover:bg-white/5 transition-all flex items-center gap-2 cursor-pointer">
-                  <Download className="w-5 h-5" /> Download Itinerary
-                </button>
+                
               </div>
             </div>
 
@@ -235,55 +232,74 @@ const TripDetails = () => {
         </div>
       </section>
 
-      {/* Highlights */}
-      <section className="py-24 bg-[#f8f5ff]">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Experience the <span className="gradient-text">Highlights</span></h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Waves, title: 'Unique Experiences', desc: 'Curated activities', color: 'text-teal-500' },
-              { icon: Utensils, title: 'Local Cuisine', desc: 'Authentic flavors', color: 'text-amber-500' },
-              { icon: Compass, title: 'Expert Guides', desc: 'Local knowledge', color: 'text-teal-500' },
-              { icon: Droplets, title: 'Cultural Immersion', desc: 'Real experiences', color: 'text-amber-500' }
-            ].map((item, i) => (
-              <div key={i} className="highlight-badge rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
-                <item.icon className={`w-12 h-12 ${item.color} mb-4`} />
-                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Itinerary */}
       <section className="py-24 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-16 opacity-0 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Your <span className="gradient-text">{days}-Day Journey</span></h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">A carefully curated experience designed to give you the best of {trip.location}</p>
-          </div>
-          <div className="space-y-8">
-            {Array.from({ length: days }).map((_, i) => (
-              <div key={i} className="day-card rounded-2xl p-8 opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
-                <div className="flex flex-col md:flex-row items-start gap-6">
-                  <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
-                    <span className="text-3xl font-bold gradient-text">{String(i+1).padStart(2, '0')}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold mb-3">Day {i+1} - Adventure Awaits</h3>
-                    <p className="text-gray-600 leading-relaxed mb-4">Explore the beauty of {trip.location} with expert guides. Experience local culture, enjoy authentic cuisine, and create unforgettable memories.</p>
-                    <div className="flex flex-wrap gap-3">
-                      <span className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">Activities Included</span>
-                      <span className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full">Meals Included</span>
-                    </div>
-                  </div>
-                </div>
+  <div className="max-w-5xl mx-auto px-6">
+
+    <div className="text-center mb-16 opacity-0 animate-fade-in-up">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4">
+        Your <span className="gradient-text">{trip.itinerary.length}-Day Journey</span>
+      </h2>
+
+      <p className="text-gray-500 max-w-2xl mx-auto">
+        A carefully curated experience designed to give you the best of {trip.location}
+      </p>
+    </div>
+
+    <div className="space-y-8">
+
+      {trip.itinerary.map((day, i) => (
+        <div
+          key={i}
+          className="day-card rounded-2xl p-8 opacity-0 animate-fade-in-up"
+          style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+        >
+
+          <div className="flex flex-col md:flex-row items-start gap-6">
+
+            {/* Day Number */}
+            <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+              <span className="text-3xl font-bold gradient-text">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            </div>
+
+            {/* Day Content */}
+            <div className="flex-1">
+
+              <h3 className="text-2xl font-semibold mb-3">
+                Day {i + 1} - {day.title}
+              </h3>
+
+              <p className="text-gray-600 leading-relaxed mb-4">
+                {day.description}
+              </p>
+
+              {/* Activities */}
+              <div className="flex flex-wrap gap-3">
+
+                {day.activities?.map((activity, index) => (
+                  <span
+                    key={index}
+                    className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full"
+                  >
+                    {activity}
+                  </span>
+                ))}
+
               </div>
-            ))}
+
+            </div>
+
           </div>
+
         </div>
-      </section>
+      ))}
+
+    </div>
+
+  </div>
+</section>
 
       {/* Included Section */}
       <section className="py-24 bg-[#f8f5ff]">
@@ -310,6 +326,44 @@ const TripDetails = () => {
         </div>
       </section>
 
+       {/* Highlights */}
+      <section className="py-24 bg-[#f8f5ff]">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Experience the <span className="gradient-text">Highlights</span></h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Waves, title: 'Unique Experiences', desc: 'Curated activities', color: 'text-teal-500' },
+              { icon: Utensils, title: 'Local Cuisine', desc: 'Authentic flavors', color: 'text-amber-500' },
+              { icon: Compass, title: 'Expert Guides', desc: 'Local knowledge', color: 'text-teal-500' },
+              { icon: Droplets, title: 'Cultural Immersion', desc: 'Real experiences', color: 'text-amber-500' }
+            ].map((item, i) => (
+              <div key={i} className="highlight-badge rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
+                <item.icon className={`w-12 h-12 ${item.color} mb-4`} />
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* CTA */}
+      <section className="py-24 bg-[#f8f5ff]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Explore <span className="gradient-text">{trip.location}</span>?</h2>
+          <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available. Book now to secure your adventure.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up">
+            <button className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
+            <a href="tel:+919876543210" className="w-full sm:w-auto">
+              <button className="px-10 py-5 rounded-full text-lg font-medium glass-card glow-border flex items-center justify-center gap-3 cursor-pointer hover:bg-white/8 transition-all w-full">
+                <Phone className="w-5 h-5 text-teal-600" /> Call Our Experts
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Stats */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -329,27 +383,11 @@ const TripDetails = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 bg-[#f8f5ff]">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Explore <span className="gradient-text">{trip.location}</span>?</h2>
-          <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available. Book now to secure your adventure.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up">
-            <button className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
-            <a href="tel:+919876543210" className="w-full sm:w-auto">
-              <button className="px-10 py-5 rounded-full text-lg font-medium glass-card glow-border flex items-center justify-center gap-3 cursor-pointer hover:bg-white/8 transition-all w-full">
-                <Phone className="w-5 h-5 text-teal-600" /> Call Our Experts
-              </button>
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-16 text-center text-gray-400">
         <div className="max-w-7xl mx-auto px-6">
           <p>© 2026 Hoppity - Discover Real India</p>
-          <a href="mailto:sales@hoppity.co?subject=Inquiry from Hoppity&body=Hi Hoppity team," className="mt-2 text-sm hover:underline">sales@hoppity.co </a>
+          <a href="mailto:sales@hoppity.in?subject=Inquiry from Hoppity&body=Hi Hoppity team," className="mt-2 text-sm hover:underline">sales@hoppity.in </a>
         </div>
       </footer>
     </div>

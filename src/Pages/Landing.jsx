@@ -1,6 +1,28 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function LandingPage() {
+
+  const [form, setForm] = useState({
+  name: "",
+  email: "",
+  contact: "",
+  destination: ""
+});
+
+const handleChange = (e) => {
+  setForm({ ...form, [e.target.name]: e.target.value });
+};
+
+const handleSubmit = async () => {
+  await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
+    method: "POST",
+    body: JSON.stringify(form),
+  });
+
+  alert("You're on the early access list 🚀");
+};
+
   const itineraries = [
     {
       slug: "konkan-monsoon-secrets",
@@ -91,8 +113,8 @@ export default function LandingPage() {
   const testimonials = [
     {
       quote:
-        "For the first time in years, a trip felt like it gave me something deeper than photos. It felt like I got a new lens on life.",
-      author: "Early Hoppity Traveller",
+        "I recently booked a stay in Alibaug with Hoppity, and it was an amazing experience. We were looking for a place which was a little off-beat and not so crowded, and Hoppity turned out to be a great help with the bookings and the arrangements. The service apparent was cozy and tidy, with multiple food options nearby. It was close enough to the beach so that we could reach there in less than 10 mins, yet far enough for the smell of the sea to not bother us. If you're looking to have a seamless experience at little known locations that do not have large crowds, I would 10/10 recommend Hoppity.",
+      author: "-Subhag Dholke",
     },
     {
       quote:
@@ -345,30 +367,62 @@ export default function LandingPage() {
               </p>
             </div>
 
+{/* Early access form */}
             <div className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl">
               <div className="space-y-4">
                 <div>
+
                   <label className="mb-2 block text-sm font-semibold">Full Name</label>
                   <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
                     placeholder="Your name"
                   />
                 </div>
                 <div>
+
                   <label className="mb-2 block text-sm font-semibold">Email Address</label>
                   <input
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
                     placeholder="you@example.com"
                   />
+
+                  <label className="mb-2 block text-sm font-semibold mt-4">Contact Number</label>
+
+<input
+  name="contact"
+  value={form.contact}
+  onChange={handleChange}
+  type="tel"
+  pattern="[0-9]{10}"
+  maxLength={10}
+  onInput={(e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, "");
+  }}
+  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
+  placeholder="Your phone number"
+/>
+
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-semibold">Dream Destination</label>
                   <input
+                  name="destination"
+                  value={form.destination}
+                  onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
                     placeholder="Ladakh, Meghalaya, Konkan..."
                   />
                 </div>
-                <button className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5">
+
+                <button
+                onClick={handleSubmit}
+                className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5 cursor-pointer">
                   Get First Access
                 </button>
                 
