@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import subhag from "/src/Reviews/subhag.jpeg";
 import logo from "/src/assets/logo1.png";
-import pallavi from "/src/Reviews/pallavi.jpeg";
+import pallavi from "../Reviews/pallavi.jpeg";
 import divyansh from "/src/Reviews/divyansh.jpeg";
 import { ArrowRight } from "lucide-react";
 
