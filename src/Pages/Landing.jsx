@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import subhag from "/src/Reviews/subhag.jpeg";
 import logo from "/src/assets/logo1.png";
-import pallavi from "../Reviews/pallavi.jpeg";
 import divyansh from "/src/Reviews/divyansh.jpeg";
 import { ArrowRight } from "lucide-react";
 
@@ -168,7 +167,7 @@ const handleSubmit = async (e) => {
       quote:
         "I usually travel very spontaneously and rarely plan ahead. During our Northeast trip, while heading to Sikkim, the Hoppity team helped us find a beautiful property just two hours before we arrived. The place was peaceful, surrounded by nature, and exactly what we needed after a long drive. What stood out most was how supportive and kind the team was even on such short notice. Truly grateful for making that part of our journey so memorable..",
       author: "- Pallavi Gondane",
-      image: pallavi,
+      image: "https://i.pinimg.com/736x/1c/8e/0b/1c8e0b9a7d2f5a3c9b4c8d1e5f6a7b8.jpg",
       rating: 5,
     },
     {
