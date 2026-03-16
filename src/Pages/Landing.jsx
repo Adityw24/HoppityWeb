@@ -5,7 +5,6 @@ import pallavi from "/src/Reviews/pallavi.jpeg";
 import logo from "/src/assets/logo1.png";
 import divyansh from "/src/Reviews/divyansh.jpeg";
 import { ArrowRight } from "lucide-react";
-import { trips } from "../data/Trips";
 
 export default function LandingPage() {
 
