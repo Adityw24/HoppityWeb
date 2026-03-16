@@ -228,7 +228,9 @@ const prevImage = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
-                <button className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer"> Book Your Adventure </button>
+                <button
+                onClick={() => window.open(`https://wa.me/919999999999?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+                className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer"> Book Your Adventure </button>
                 
               </div>
             </div>
@@ -358,49 +360,62 @@ const prevImage = () => {
 
       {/* Included Section */}
       <section className="py-24 bg-[#f8f5ff]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 opacity-0 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">What's <span className="gradient-text">Included</span></h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 animate-fade-in-up">
-            {[
-              { icon: Home, title: `${days-1} Nights Accommodation`, desc: 'Premium homestays' },
-              { icon: Utensils, title: 'All Meals', desc: 'Breakfast, lunch & dinner' },
-              { icon: Users, title: 'Expert Guide', desc: 'Local English speaking' },
-              { icon: MapPin, title: 'All Activities', desc: 'Curated experiences' },
-              { icon: Car, title: 'Transfers', desc: 'Pickup & drop' },
-              { icon: ShieldCheck, title: 'Insurance', desc: 'Basic coverage' }
-            ].map((item, i) => (
-              <div key={i} className="include-item">
-                <item.icon className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-lg">{item.title}</h3>
-                <p className="text-gray-500 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+  <div className="max-w-7xl mx-auto px-6">
+
+    <div className="text-center mb-16 opacity-0 animate-fade-in-up">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4">
+        What's <span className="gradient-text">Included</span>
+      </h2>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-0 animate-fade-in-up">
+
+      {trip.inclusions?.map((item, i) => (
+        <div key={i} className="include-item flex items-start gap-4">
+
+          <ShieldCheck className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+
+          <p className="text-gray-700 leading-relaxed">
+            {item}
+          </p>
+
         </div>
-      </section>
+      ))}
+
+    </div>
+
+  </div>
+</section>
 
        {/* Highlights */}
-      <section className="py-24 bg-[#f8f5ff]">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Experience the <span className="gradient-text">Highlights</span></h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Waves, title: 'Unique Experiences', desc: 'Curated activities', color: 'text-teal-500' },
-              { icon: Utensils, title: 'Local Cuisine', desc: 'Authentic flavors', color: 'text-amber-500' },
-              { icon: Compass, title: 'Expert Guides', desc: 'Local knowledge', color: 'text-teal-500' },
-              { icon: Droplets, title: 'Cultural Immersion', desc: 'Real experiences', color: 'text-amber-500' }
-            ].map((item, i) => (
-              <div key={i} className="highlight-badge rounded-2xl p-8 flex flex-col items-center text-center cursor-pointer opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
-                <item.icon className={`w-12 h-12 ${item.color} mb-4`} />
-                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+  <section className="py-24 bg-[#f8f5ff]">
+  <div className="max-w-7xl mx-auto px-6">
+
+    <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">
+      Experience the <span className="gradient-text">Highlights</span>
+    </h2>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      {trip.highlights.map((highlight, i) => (
+        <div
+          key={i}
+          className="highlight-badge rounded-2xl p-6 flex items-start gap-3 opacity-0 animate-fade-in-up"
+          style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+        >
+          <span className="text-purple-600 text-xl">✔</span>
+
+          <p className="text-gray-700 text-sm">
+            {highlight}
+          </p>
+
         </div>
-      </section>
+      ))}
+
+    </div>
+
+  </div>
+</section>
 
 
       {/* CTA */}
@@ -409,7 +424,9 @@ const prevImage = () => {
           <h2 className="text-4xl md:text-6xl font-bold mb-6 opacity-0 animate-fade-in-up">Ready to Explore <span className="gradient-text">{trip.location}</span>?</h2>
           <p className="text-gray-500 text-lg mb-10 opacity-0 animate-fade-in-up">Limited slots available. Book now to secure your adventure.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up">
-            <button className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
+            <button
+            onClick={() => window.open(`https://wa.me/919999999999?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+            className="shimmer-button px-10 py-5 rounded-full text-lg font-semibold shadow-xl cursor-pointer"> Book Your Adventure </button>
             <a href="tel:+919876543210" className="w-full sm:w-auto">
               <button className="px-10 py-5 rounded-full text-lg font-medium glass-card glow-border flex items-center justify-center gap-3 cursor-pointer hover:bg-white/8 transition-all w-full">
                 <Phone className="w-5 h-5 text-teal-600" /> Call Our Experts

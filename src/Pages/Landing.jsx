@@ -1,5 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import subhag from "/src/Reviews/subhag.jpeg";
+import pallavi from "/src/Reviews/pallavi.jpeg";
+import logo from "/src/assets/logo1.png";
+import divyansh from "/src/Reviews/divyansh.jpeg";
+import { ArrowRight } from "lucide-react";
+import { trips } from "../data/Trips";
 
 export default function LandingPage() {
 
@@ -42,31 +48,41 @@ const handleSubmit = async (e) => {
 
   const itineraries = [
     {
-      slug: "konkan-monsoon-secrets",
-      title: "Konkan Monsoon Secrets",
-      duration: "4D / 3N",
-      location: "Maharashtra Coast",
-      price: "From ₹9,800",
-      blurb:
-        "Sea-facing homestays, hidden beaches, village meals, temple trails, and the kind of rain that makes cities feel like a bad memory.",
-      tag: "Most Saved",
+  slug: "rains-rivers-root-bridges",
+  title: "Of Rains, Rivers & Root Bridges",
+  duration: "6D / 5N",
+  location: "Meghalaya",
+  price: "Price On Request",
+  image:
+    "https://i.pinimg.com/webp/1200x/53/a1/38/53a138d65679f3c596f0307efa69f3df.webp",
+
+  blurb:
+    "A monsoon journey through the Khasi Hills where rain shapes the land, living root bridges grow from forests, and rivers carve adventure into the landscape.",
+
+  tag: "Monsoon Special",
     },
+
     {
-      slug: "ladakh-beyond-leh",
-      title: "Ladakh Beyond Leh",
-      duration: "6D / 5N",
-      location: "Ladakh",
-      price: "From ₹24,500",
-      blurb:
-        "Small villages, monastery mornings, star-heavy skies, and routes that feel discovered rather than sold.",
-      tag: "Limited Departures",
+  slug: "leh-himalayan-escape",
+  title: "Leh Himalayan Escape",
+  duration: "5D / 4N",
+  location: "Ladakh",
+  price: "Price On Request",
+  image:
+    "https://images.unsplash.com/photo-1581280445448-ab465a010046?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+
+  blurb:
+    "A high-altitude journey through the stark beauty of Ladakh — from monasteries and mountain passes to the surreal blue waters of Pangong Lake.",
+
+  tag: "Signature Journey",
     },
+
     {
       slug: "the-northeast-odyssey",
       title: "The Northeast Odyssey",
       duration: "12D / 11N",
       location: "Meghalaya • Arunachal Pradesh • Assam",
-      price: "On Request",
+      price: "Price On Request",
       image: "https://i.pinimg.com/736x/9b/6b/e0/9b6be0930e8db809d4f1667cd4096ece.jpg",
 
   blurb:
@@ -74,35 +90,46 @@ const handleSubmit = async (e) => {
 
   tag: "Signature Journey",
     },
+
     {
-      slug: "goa-quiet-side",
-      title: "Goa’s Quiet Side",
-      duration: "3D / 2N",
-      location: "South Goa + Hinterlands",
-      price: "From ₹11,400",
-      blurb:
-        "Not beach-club Goa. Think old homes, slow brunches, hidden rivers, village taverns, and the silence between adventures.",
-      tag: "Weekend Escape",
+  slug: "makers-myths-memories",
+  title: "Of Makers, Myths & Memories",
+  duration: "8D / 7N",
+  location: "Arunachal • Assam • Nagaland",
+  price: "Price On Request",
+  image:
+    "https://i.pinimg.com/736x/0c/74/a7/0c74a7dbfbc701429a1154dc8116511a.jpg",
+  blurb:
+    "From the rice valleys of Ziro to the river island of Majuli and the warrior villages of Mon, this journey traces the living cultures of the Apatani, Mising, and Konyak tribes across India’s Northeast.",
+
+  tag: "Cultural Expedition",
     },
+
     {
-      slug: "coorg-coffee-trails",
-      title: "Coffee Trails of Coorg",
-      duration: "4D / 3N",
-      location: "Karnataka",
-      price: "From ₹13,600",
-      blurb:
-        "Estate stays, forest drives, local food, misty dawns, and a version of India most people scroll past.",
-      tag: "Curated Pick",
+  slug: "of-valleys-and-warriors",
+  title: "Of Valleys & Warriors",
+  duration: "7D / 6N",
+  location: "Nagaland",
+  price: "Price On Request",
+  image:
+    "https://i.pinimg.com/736x/ee/45/d2/ee45d2c7c967e052583aac1817f70a76.jpg",
+  blurb:
+    "Walk through the Angami homeland of Nagaland, from the green village of Khonoma to the legendary Dzükoü Valley, discovering warrior histories, living traditions, and the quiet rhythm of the Naga hills.",
+
+  tag: "Cultural Expedition",
     },
+
     {
-      slug: "arunachal-road-story",
-      title: "Arunachal: Where the Road Becomes the Story",
-      duration: "7D / 6N",
-      location: "Arunachal Pradesh",
-      price: "From ₹29,900",
-      blurb:
-        "Remote valleys, tribal culture, impossible landscapes, and the thrill of going where algorithms still haven’t arrived.",
-      tag: "For the Brave",
+  slug: "sikkim-darjeeling-himalayan-journey",
+  title: "Sikkim & Darjeeling Himalayan Journey",
+  duration: "10D / 9N",
+  location: "Sikkim • West Bengal",
+  price: "Price On Request",
+  image:
+    "https://i.pinimg.com/736x/18/0f/11/180f1155643c0d1209830523b3688164.jpg",
+  blurb:
+    "A journey through the Eastern Himalayas exploring the vibrant capital of Gangtok, the alpine beauty of Lachung and Yumthang Valley, the monasteries of Pelling, and the colonial charm of Darjeeling.",
+  tag: "Himalayan Escape",
     },
   ];
 
@@ -135,22 +162,22 @@ const handleSubmit = async (e) => {
       quote:
         "I booked an Alibaug stay with Hoppity and had a fantastic experience. They helped us find a peaceful, off-beat place that wasn’t crowded. The stay was cozy, well maintained, close to the beach, and surrounded by great food options. For seamless trips to lesser-known destinations, I’d absolutely recommend Hoppity",
       author: "- Subhag Dholke",
-      image:"./src/Reviews/subhag.jpeg",
+      image: subhag,
       rating: 5,
     },
     {
       quote:
         "I usually travel very spontaneously and rarely plan ahead. During our Northeast trip, while heading to Sikkim, the Hoppity team helped us find a beautiful property just two hours before we arrived. The place was peaceful, surrounded by nature, and exactly what we needed after a long drive. What stood out most was how supportive and kind the team was even on such short notice. Truly grateful for making that part of our journey so memorable..",
       author: "- Pallavi Gondane",
-      image:"./src/Reviews/pallavi.jpeg",
+      image: pallavi,
       rating: 5,
     },
     {
       quote:
-        "Every plan looked like something I’d want to tell stories about for years. That’s rare.",
-      author: "Waitlist Explorer",
-      image:"./src/Reviews/waitlist_explorer.jpeg",
-      image:"./src/Reviews/waitlist_explorer.jpeg",
+        "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my art and travel storytelling in my own style, which made the process smooth and enjoyable. The team was supportive, clear with communication, and respectful of the creative process. For anyone passionate about creating travel content, Hoppity is definitely a platform worth exploring.",
+      author: "- Divyansh Gupta",
+      image: divyansh,
+      rating: 5,
     },
   ];
 
@@ -163,7 +190,7 @@ const handleSubmit = async (e) => {
           <header className="flex items-center justify-between rounded-full border border-white/60 bg-white/75 px-5 py-3 backdrop-blur-xl shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl">
-                <img src="./src/assets/logo1.png" alt="" />
+                <img src={logo} alt="" />
               </div>
               <div>
                 <p className="text-lg font-semibold tracking-tight">Hoppity</p>
@@ -305,15 +332,34 @@ const handleSubmit = async (e) => {
             <Link to={`/itinerary/${trip.slug}`}
             key={trip.slug}
             className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
-              <div className="h-52 bg-[linear-gradient(135deg,#0f172a_0%,#581c87_55%,#c026d3_100%)] p-6 text-white">
-                <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide backdrop-blur-sm">
-                  {trip.tag}
-                </div>
-                <div className="mt-14">
-                  <p className="text-sm uppercase tracking-[0.2em] text-violet-200">{trip.location}</p>
-                  <h3 className="mt-2 text-2xl font-bold leading-tight">{trip.title}</h3>
-                </div>
+
+              <div className="relative h-52 overflow-hidden text-white">
+  {/* Trip Image */}
+  <img
+    src={trip.image}
+    className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
+  />
+
+    {/* Dark Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+  {/* Content */}
+  <div className="relative p-6">
+    <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide backdrop-blur-sm">
+      {trip.tag}
+    </div>
+
+    <div className="mt-14">
+      <p className="text-sm uppercase tracking-[0.2em] text-violet-200">
+        {trip.location}
+      </p>
+
+      <h3 className="mt-2 text-2xl font-bold leading-tight">
+        {trip.title}
+      </h3>
+    </div>
+  </div>
               </div>
+
               <div className="p-6">
                 <div className="flex items-center justify-between text-sm text-slate-500">
                   <span>{trip.duration}</span>
@@ -321,9 +367,10 @@ const handleSubmit = async (e) => {
                 </div>
                 <p className="mt-4 text-base leading-7 text-slate-700">{trip.blurb}</p>
                 <div className="mt-6 flex items-center justify-between">
-                  <a href="#waitlist" className="text-sm font-semibold text-slate-950 transition group-hover:text-violet-700">
-                    Reserve interest →
-                  </a>
+
+                  <a href="" className="flex items-center gap-1 text-sm font-semibold text-slate-950 transition group-hover:text-violet-700">Explore
+  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+</a>
                   <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">
                     Small-group feel
                   </span>
