@@ -11,16 +11,33 @@ export default function LandingPage() {
 });
 
 const handleChange = (e) => {
-  setForm({ ...form, [e.target.name]: e.target.value });
+  let value = e.target.value;
+  if (e.target.name === 'contact') {
+    value = value.replace(/[^0-9]/g, "");
+  }
+  setForm({ ...form, [e.target.name]: value });
 };
 
-const handleSubmit = async () => {
-  await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
-    method: "POST",
-    body: JSON.stringify(form),
-  });
-
-  alert("You're on the early access list 🚀");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    });
+    if (response.ok) {
+      alert("You're on the early access list 🚀");
+      setForm({ name: "", email: "", contact: "", destination: "" });
+    } else {
+      alert("Submission failed. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("An error occurred. Please try again.");
+  }
 };
 
   const itineraries = [
@@ -45,14 +62,17 @@ const handleSubmit = async () => {
       tag: "Limited Departures",
     },
     {
-      slug: "meghalaya-after-guidebooks",
-      title: "Meghalaya After the Guidebooks",
-      duration: "5D / 4N",
-      location: "Meghalaya",
-      price: "From ₹18,200",
-      blurb:
-        "Living root bridges, cloud forests, local kitchens, and stories you cannot buy inside packaged tourism.",
-      tag: "Trending Now",
+      slug: "the-northeast-odyssey",
+      title: "The Northeast Odyssey",
+      duration: "12D / 11N",
+      location: "Meghalaya • Arunachal Pradesh • Assam",
+      price: "On Request",
+      image: "https://i.pinimg.com/736x/9b/6b/e0/9b6be0930e8db809d4f1667cd4096ece.jpg",
+
+  blurb:
+    "From the rain-kissed cliffs of Cherrapunjee to the prayer flags of Tawang and the wild grasslands of Kaziranga, this journey moves slowly through the many moods of India’s Northeast.",
+
+  tag: "Signature Journey",
     },
     {
       slug: "goa-quiet-side",
@@ -113,18 +133,24 @@ const handleSubmit = async () => {
   const testimonials = [
     {
       quote:
-        "I recently booked a stay in Alibaug with Hoppity, and it was an amazing experience. We were looking for a place which was a little off-beat and not so crowded, and Hoppity turned out to be a great help with the bookings and the arrangements. The service apparent was cozy and tidy, with multiple food options nearby. It was close enough to the beach so that we could reach there in less than 10 mins, yet far enough for the smell of the sea to not bother us. If you're looking to have a seamless experience at little known locations that do not have large crowds, I would 10/10 recommend Hoppity.",
-      author: "-Subhag Dholke",
+        "I booked an Alibaug stay with Hoppity and had a fantastic experience. They helped us find a peaceful, off-beat place that wasn’t crowded. The stay was cozy, well maintained, close to the beach, and surrounded by great food options. For seamless trips to lesser-known destinations, I’d absolutely recommend Hoppity",
+      author: "- Subhag Dholke",
+      image:"./src/Reviews/subhag.jpeg",
+      rating: 5,
     },
     {
       quote:
-        "It felt like being let in on a secret version of India. Not crowded, not fake, not rushed. Just beautiful and real.",
-      author: "Community Member",
+        "I usually travel very spontaneously and rarely plan ahead. During our Northeast trip, while heading to Sikkim, the Hoppity team helped us find a beautiful property just two hours before we arrived. The place was peaceful, surrounded by nature, and exactly what we needed after a long drive. What stood out most was how supportive and kind the team was even on such short notice. Truly grateful for making that part of our journey so memorable..",
+      author: "- Pallavi Gondane",
+      image:"./src/Reviews/pallavi.jpeg",
+      rating: 5,
     },
     {
       quote:
         "Every plan looked like something I’d want to tell stories about for years. That’s rare.",
       author: "Waitlist Explorer",
+      image:"./src/Reviews/waitlist_explorer.jpeg",
+      image:"./src/Reviews/waitlist_explorer.jpeg",
     },
   ];
 
@@ -308,28 +334,66 @@ const handleSubmit = async () => {
         </div>
       </section>
 
+{/* Customer Reviews */}
       <section id="stories" className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-16">
-        <div className="rounded-[2rem] border border-violet-100 bg-white p-8 shadow-sm lg:p-12">
-          <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-700">What this unlocks</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 md:text-5xl">
-              Not escape. Expansion.
-            </h2>
-            <p className="mt-5 text-lg leading-8 text-slate-700">
-              A great journey does not help you run away from life. It helps you return to life with more perspective, more courage, more gratitude, and more story in your bloodstream. This is travel as renewal. Travel as identity. Travel as proof that the world is still larger and more beautiful than your routine.
-            </p>
+  <div className="rounded-[2rem] border border-violet-100 bg-white p-8 shadow-sm lg:p-12">
+
+    <div className="max-w-3xl">
+      <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-700">
+        What this unlocks
+      </p>
+
+      <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 md:text-5xl">
+        Not escape. Expansion.
+      </h2>
+
+      <p className="mt-5 text-lg leading-8 text-slate-700">
+        A great journey does not help you run away from life. It helps you return
+        to life with more perspective, more courage, more gratitude, and more
+        story in your bloodstream.
+      </p>
+    </div>
+
+    <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+      {testimonials.map((item) => (
+        <div
+          key={item.author}
+          className="rounded-[1.75rem] bg-[#faf7ff] p-6 shadow-sm transition hover:shadow-lg hover:-translate-y-1"
+        >
+
+          {/* User Info */}
+          <div className="flex items-center gap-4 mb-4">
+
+            <img
+              src={item.image}
+              alt={item.author}
+              className="h-25 w-20 rounded-xl "
+            />
+
+            <div>
+              <p className="font-semibold text-slate-900">{item.author}</p>
+              <p className="text-sm text-slate-500">{item.location}</p>
+            </div>
+
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {testimonials.map((item) => (
-              <div key={item.author} className="rounded-[1.75rem] bg-[#faf7ff] p-6">
-                <p className="text-base leading-7 text-slate-700">“{item.quote}”</p>
-                <p className="mt-5 text-sm font-semibold text-slate-950">{item.author}</p>
-              </div>
-            ))}
+          {/* Rating */}
+          <div className="mb-3 text-yellow-500">
+            {"⭐".repeat(item.rating)}
           </div>
+
+          {/* Review */}
+          <p className="text-base leading-7 text-slate-700">
+            “{item.quote}”
+          </p>
+
         </div>
-      </section>
+      ))}
+
+    </div>
+  </div>
+</section>
 
       <section className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-16">
         <div className="grid gap-6 lg:grid-cols-2">
@@ -368,7 +432,7 @@ const handleSubmit = async () => {
             </div>
 
 {/* Early access form */}
-            <div className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl">
+            <form onSubmit={handleSubmit} className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl">
               <div className="space-y-4">
                 <div>
 
@@ -401,9 +465,6 @@ const handleSubmit = async () => {
   type="tel"
   pattern="[0-9]{10}"
   maxLength={10}
-  onInput={(e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, "");
-  }}
   className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
   placeholder="Your phone number"
 />
@@ -421,7 +482,7 @@ const handleSubmit = async () => {
                 </div>
 
                 <button
-                onClick={handleSubmit}
+                type="submit"
                 className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5 cursor-pointer">
                   Get First Access
                 </button>
@@ -430,7 +491,7 @@ const handleSubmit = async () => {
                   No spam. Just irresistible journeys, early drops, and the occasional reminder that life is too short for generic travel.
                 </p>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </section>

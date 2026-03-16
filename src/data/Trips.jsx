@@ -6,7 +6,11 @@ export const trips = [
       duration: "4D / 3N",
       location: "Maharashtra Coast",
       price: "From ₹9,800",
-      image: "https://i.pinimg.com/736x/dc/83/98/dc8398f97b3b47def0b3f52cace97de2.jpg",
+      image: ["https://i.pinimg.com/736x/dc/83/98/dc8398f97b3b47def0b3f52cace97de2.jpg",
+        "https://i.pinimg.com/736x/38/37/17/38371793610b9ee0db934fc944747c7c.jpg",
+        "https://i.pinimg.com/1200x/4b/2a/f7/4b2af7b8ace02357cffc34197552d27b.jpg",
+
+      ],
       blurb:
         "Sea-facing homestays, hidden beaches, village meals, temple trails, and the kind of rain that makes cities feel like a bad memory.",
       tag: "Most Saved",
@@ -88,50 +92,163 @@ export const trips = [
   }
 ]
     },
-    {
-      slug: "meghalaya-after-guidebooks",
-      title: "Meghalaya After the Guidebooks",
-      duration: "5D / 4N",
-      location: "Meghalaya",
-      price: "From ₹18,200",
-      image: "https://images.unsplash.com/photo-1521437620269-f477f5437820?q=80&w=1073&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      blurb:
-        "Living root bridges, cloud forests, local kitchens, and stories you cannot buy inside packaged tourism.",
-      tag: "Trending Now",
+   {
+  slug: "the-northeast-odyssey",
+  title: "The Northeast Odyssey",
+  duration: "12D / 11N",
+  location: "Meghalaya • Arunachal Pradesh • Assam",
+  price: "On Request",
+  image: "https://i.pinimg.com/736x/9b/6b/e0/9b6be0930e8db809d4f1667cd4096ece.jpg",
 
-      itinerary: [
+  blurb:
+    "From the rain-kissed cliffs of Cherrapunjee to the prayer flags of Tawang and the wild grasslands of Kaziranga, this journey moves slowly through the many moods of India’s Northeast.",
+
+  tag: "Signature Journey",
+
+  itinerary: [
+
   {
-    title: "Arrival in Shillong",
+    title: "Arrival in Guwahati • Drive to Shillong",
     description:
-      "Arrive in Shillong and explore the charming hill town with cafes and viewpoints.",
-    activities: ["Hotel Check-in", "Police Bazaar Walk", "Shillong Peak View"]
+      "Arrive in Guwahati and begin the scenic drive into the Khasi hills. Pause at the calm waters of Umium Lake before reaching Shillong, the pine-covered hill capital often called the Scotland of the East.",
+    activities: [
+      "Airport Pickup",
+      "Umium Lake Stop",
+      "Shillong Arrival",
+      "Evening Leisure"
+    ]
   },
+
   {
-    title: "Cherrapunji Waterfalls",
+    title: "Cherrapunjee Waterfalls & Caves",
     description:
-      "Drive to Cherrapunji through cloud forests and witness spectacular waterfalls.",
-    activities: ["Seven Sisters Falls", "Nohkalikai Falls", "Mawsmai Caves"]
+      "Drive to Cherrapunjee, one of the wettest places on earth. Explore dramatic cliffs, waterfalls and limestone caves before returning to Shillong.",
+    activities: [
+      "Arwah Cave",
+      "Nohkalikai Falls",
+      "Mawsmai Cave",
+      "Seven Sisters Falls",
+      "Garden of Caves",
+      "Elephant Falls"
+    ]
   },
+
   {
-    title: "Living Root Bridges Trek",
+    title: "Shillong to Tezpur",
     description:
-      "Trek through dense forests to reach the iconic living root bridges built by Khasi tribes.",
-    activities: ["Forest Trek", "Double Decker Root Bridge", "Natural Pools"]
+      "Leave the Meghalaya hills behind and drive to Tezpur, a quiet town along the banks of the Brahmaputra known for its lakes, parks and river views.",
+    activities: [
+      "Scenic Highway Drive",
+      "Brahmaputra Views",
+      "Tezpur Arrival"
+    ]
   },
+
   {
-    title: "Dawki & Umngot River",
+    title: "Into Arunachal • Tezpur to Dirang",
     description:
-      "Visit Dawki for the crystal clear Umngot River and a peaceful boat ride.",
-    activities: ["Umngot Boat Ride", "Indo-Bangladesh Border View", "Riverside Lunch"]
+      "Enter Arunachal Pradesh and drive through mountain landscapes to reach Dirang, a charming Himalayan town with stone houses and Buddhist monasteries.",
+    activities: [
+      "Mountain Drive",
+      "Dirang Valley Views",
+      "Monpa Village Walk"
+    ]
   },
+
   {
-    title: "Shillong Culture & Departure",
+    title: "High Himalayan Pass • Dirang to Tawang",
     description:
-      "Enjoy a relaxed morning exploring Shillong before heading back.",
-    activities: ["Local Market", "Cafe Visit", "Departure"]
+      "Cross the dramatic Sela Pass at nearly 14,000 feet. Stop at the Jaswant Garh War Memorial before descending into the spiritual town of Tawang.",
+    activities: [
+      "Sela Pass",
+      "High Altitude Lakes",
+      "Jaswant Garh Memorial",
+      "Tawang Arrival"
+    ]
+  },
+
+  {
+    title: "Exploring Tawang",
+    description:
+      "Spend the day discovering Tawang’s cultural and spiritual landmarks including the famous 17th century monastery.",
+    activities: [
+      "Tawang Monastery",
+      "Tawang War Memorial",
+      "Town Walk",
+      "Local Markets"
+    ]
+  },
+
+  {
+    title: "Tawang to Bomdila",
+    description:
+      "Drive back through mountain roads to Bomdila, a peaceful hill town known for its monasteries and views of the eastern Himalayas.",
+    activities: [
+      "Mountain Road Journey",
+      "Bomdila Monastery",
+      "Himalayan Views"
+    ]
+  },
+
+  {
+    title: "Bomdila to Kaziranga",
+    description:
+      "Descend from the mountains into the wild grasslands of Assam and reach Kaziranga National Park, home of the one-horned rhinoceros.",
+    activities: [
+      "Forest Landscapes",
+      "Kaziranga Arrival",
+      "Evening Leisure"
+    ]
+  },
+
+  {
+    title: "Kaziranga Wildlife Safari",
+    description:
+      "Experience the wilderness of Kaziranga with an early morning elephant safari followed by a jeep safari through the park’s grasslands.",
+    activities: [
+      "Elephant Safari",
+      "Jeep Safari",
+      "Kaziranga Orchid Park"
+    ]
+  },
+
+  {
+    title: "Kaziranga to Guwahati",
+    description:
+      "Drive back to Guwahati, the gateway city of Northeast India and a cultural hub of Assam.",
+    activities: [
+      "Highway Journey",
+      "City Arrival",
+      "Evening Leisure"
+    ]
+  },
+
+  {
+    title: "Guwahati Temples & Culture",
+    description:
+      "Visit the sacred Kamakhya Temple and explore Guwahati’s spiritual landmarks overlooking the Brahmaputra river.",
+    activities: [
+      "Kamakhya Temple",
+      "Navagraha Temple",
+      "Umananda Temple",
+      "Assam State Zoo"
+    ]
+  },
+
+  {
+    title: "Departure",
+    description:
+      "After breakfast, transfer to the airport or railway station for your onward journey.",
+    activities: [
+      "Breakfast",
+      "Airport Transfer",
+      "Departure"
+    ]
   }
-]
-    },
+
+  ]
+},
+    
     {
       slug: "goa-quiet-side",
       title: "Goa’s Quiet Side",

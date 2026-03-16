@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Waves, Utensils, Compass, Droplets, Home, Users, MapPin, Car, ShieldCheck, Phone } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { trips } from '../data/Trips.jsx';
 
 const TripDetails = () => {
@@ -31,6 +32,22 @@ const TripDetails = () => {
       </div>
     );
   }
+
+const [currentImage, setCurrentImage] = useState(0);
+
+const nextImage = () => {
+  if (Array.isArray(trip.image)) {
+    setCurrentImage((prev) => (prev + 1) % trip.image.length);
+  }
+};
+
+const prevImage = () => {
+  if (Array.isArray(trip.image)) {
+    setCurrentImage((prev) =>
+      prev === 0 ? trip.image.length - 1 : prev - 1
+    );
+  }
+};
 
   // Extract duration and convert to days (e.g., "4D / 3N" → 4)
   const days = parseInt(trip.duration.split('D')[0]) || 4;
@@ -216,18 +233,56 @@ const TripDetails = () => {
               </div>
             </div>
 
-            {/* SVG Visual */}
+            {/* Image Slider */}
             <div className="relative animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
               <div className="glass-card rounded-3xl p-6 glow-border">
+
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
-                  <img 
-                    src={trip.image} 
+
+                  <img
+                    src={Array.isArray(trip.image) ? trip.image[currentImage] : trip.image}
                     alt={trip.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition duration-500"
                   />
+
+                  {/* Left Arrow */}
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/40 backdrop-blur rounded-full p-2 shadow cursor-pointer"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  {/* Right Arrow */}
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/40 backdrop-blur rounded-full p-2 shadow cursor-pointer"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+
                 </div>
+
+                {/* Image Indicators */}
+              {Array.isArray(trip.image) && trip.image.length > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    {trip.image.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImage(index)}
+                        className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+                          index === currentImage
+                            ? "bg-violet-600 scale-125"
+                            : "bg-slate-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+)}
+
               </div>
             </div>
+
           </div>
         </div>
       </section>
