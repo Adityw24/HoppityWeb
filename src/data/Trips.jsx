@@ -265,6 +265,7 @@ export const trips = [
   location: "Meghalaya • Arunachal Pradesh • Assam",
   price: "On Request",
   image:[
+    "https://i.pinimg.com/736x/9b/6b/e0/9b6be0930e8db809d4f1667cd4096ece.jpg",
     "https://images.unsplash.com/photo-1668437824006-1be44600774b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1589808015717-a626de258af0?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1628070018796-a9f4e2dd482a?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -463,8 +464,8 @@ export const trips = [
   location: "Arunachal Pradesh • Assam • Nagaland",
   price: "On Request",
   image:[
-    "https://images.unsplash.com/photo-1531252582519-2d7e6795be96?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://i.pinimg.com/736x/0c/74/a7/0c74a7dbfbc701429a1154dc8116511a.jpg",
+    "https://images.unsplash.com/photo-1531252582519-2d7e6795be96?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1759738103476-9abb3b59458e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
   ],
   blurb:

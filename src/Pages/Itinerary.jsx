@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Waves, Utensils, Compass, Droplets, Home, Users, MapPin, Car, ShieldCheck, Phone } from 'lucide-react';
+import { XCircle } from "lucide-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { trips } from '../data/Trips.jsx';
 
@@ -51,6 +52,7 @@ const prevImage = () => {
 
   // Extract duration and convert to days (e.g., "4D / 3N" → 4)
   const days = parseInt(trip.duration.split('D')[0]) || 4;
+
 
   return (
     <div className="h-full font-sans text-[#1a1a1a] bg-white overflow-y-auto overflow-x-hidden selection:bg-purple-100">
@@ -182,9 +184,9 @@ const prevImage = () => {
             </div>
             <div className="flex items-center gap-4">
               
-              <a href="https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I'm%20interested%20in%20this%20trip"target="_blank" rel="noopener noreferrer">
-              <button className="px-6 py-2.5 rounded-full text-sm font-semibold shimmer-button hover:shadow-lg transition-shadow cursor-pointer"> Book Now </button>
-              </a>
+              <button
+              onClick={() => window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold shimmer-button hover:shadow-lg transition-shadow cursor-pointer"> Book Now </button>
 
             </div>
           </div>
@@ -227,10 +229,10 @@ const prevImage = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
+            <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
                 <button
-                onClick={() => window.open(`https://wa.me/919999999999?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
-                className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer"> Book Your Adventure </button>
+                onClick={() => window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+                className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl  transition-all cursor-pointer"> Book Your Adventure </button>
                 
               </div>
             </div>
@@ -358,29 +360,70 @@ const prevImage = () => {
   </div>
 </section>
 
-      {/* Included Section */}
+      {/* Route Section */}
+      <RouteSection trip={trip} />
+
       <section className="py-24 bg-[#f8f5ff]">
   <div className="max-w-7xl mx-auto px-6">
 
+    {/* Heading */}
     <div className="text-center mb-16 opacity-0 animate-fade-in-up">
       <h2 className="text-4xl md:text-5xl font-bold mb-4">
-        What's <span className="gradient-text">Included</span>
+        Trip <span className="gradient-text">Details</span>
       </h2>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-0 animate-fade-in-up">
+    {/* Card */}
+    <div className="bg-white rounded-3xl shadow-sm p-10 opacity-0 animate-fade-in-up">
 
-      {trip.inclusions?.map((item, i) => (
-        <div key={i} className="include-item flex items-start gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative">
 
-          <ShieldCheck className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+        {/* Vertical Divider */}
+        <div className="hidden md:block absolute left-1/2 top-0 h-full w-px bg-gray-200"></div>
 
-          <p className="text-gray-700 leading-relaxed">
-            {item}
-          </p>
+        {/* Included */}
+        <div>
+          <h3 className="text-2xl font-semibold mb-6 text-purple-700">
+            What's Included
+          </h3>
 
+          <div className="space-y-4">
+            {trip.inclusions?.map((item, i) => (
+              <div key={i} className="flex items-start gap-4">
+
+                <ShieldCheck className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+
+                <p className="text-gray-700 leading-relaxed">
+                  {item}
+                </p>
+
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+
+        {/* Excluded */}
+        <div>
+          <h3 className="text-2xl font-semibold mb-6 text-red-600">
+            What's Excluded
+          </h3>
+
+          <div className="space-y-4">
+            {trip.exclusions?.map((item, i) => (
+              <div key={i} className="flex items-start gap-4">
+
+                <span className="text-red-500 text-lg mt-1">✖</span>
+
+                <p className="text-gray-700 leading-relaxed">
+                  {item}
+                </p>
+
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
 
     </div>
 
@@ -463,6 +506,45 @@ const prevImage = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+const RouteSection = ({ trip }) => {
+  const stops = trip.route.split(" → ");
+
+  return (
+    <section className="py-16 ml-32">
+      <h2 className="text-3xl font-bold mb-8">Journey Route</h2>
+
+      {/* Route Path */}
+      <div className="flex flex-wrap items-center gap-3 text-lg text-gray-700 mb-10">
+        {stops.map((stop, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <span className="bg-gray-100 px-4 py-2 rounded-xl">
+              {stop}
+            </span>
+            {index !== stops.length - 1 && (
+              <span className="text-violet-500 font-semibold">→</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Night Stays */}
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Night Stays</h3>
+        <div className="flex flex-wrap gap-4">
+          {trip.cityStops.map((city, index) => (
+            <div
+              key={index}
+              className="bg-violet-50 text-violet-700 px-5 py-3 rounded-xl font-medium"
+            >
+              {city}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
