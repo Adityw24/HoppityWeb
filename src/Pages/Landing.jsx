@@ -5,6 +5,7 @@ import logo from "/src/assets/logo1.png";
 import pallavi from "/src/Reviews/pallavi1.jpeg";
 import divyansh from "/src/Reviews/divyansh.jpeg";
 import { ArrowRight } from "lucide-react";
+import { trips } from "../data/Trips";
 
 export default function LandingPage() {
 
@@ -45,7 +46,7 @@ const handleSubmit = async (e) => {
   }
 };
 
-  const itineraries = [
+{/* const itineraries = [
     {
   slug: "rains-rivers-root-bridges",
   title: "Of Rains, Rivers & Root Bridges",
@@ -130,7 +131,7 @@ const handleSubmit = async (e) => {
     "A journey through the Eastern Himalayas exploring the vibrant capital of Gangtok, the alpine beauty of Lachung and Yumthang Valley, the monasteries of Pelling, and the colonial charm of Darjeeling.",
   tag: "Himalayan Escape",
     },
-  ];
+  ]; */}
 
   const pillars = [
     {
@@ -326,16 +327,17 @@ const handleSubmit = async (e) => {
           </a>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {itineraries.map((trip) => (
+          {trips.slice(0,6).map((trip) => (
 //cards
             <Link to={`/itinerary/${trip.slug}`}
             key={trip.slug}
             className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
 
               <div className="relative h-52 overflow-hidden text-white">
+
   {/* Trip Image */}
   <img
-    src={trip.image}
+    src={trip.image[0]}
     className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
   />
 
@@ -377,6 +379,15 @@ const handleSubmit = async (e) => {
               </div>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <Link
+            to="/itineraries"
+            className="rounded-2xl bg-slate-950 px-8 py-4 text-white font-semibold shadow-lg hover:-translate-y-0.5 transition"
+          >
+            See All Itineraries →
+          </Link>
         </div>
       </section>
 

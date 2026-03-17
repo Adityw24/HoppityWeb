@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Waves, Utensils, Compass, Droplets, Home, Users, MapPin, Car, ShieldCheck, Phone } from 'lucide-react';
 import { XCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { trips } from '../data/Trips.jsx';
 
@@ -360,6 +361,13 @@ const prevImage = () => {
   </div>
 </section>
 
+      {/* Tips Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <TipsSection tips={trip.tips} />
+        </div>
+      </section>
+
       {/* Route Section */}
       <RouteSection trip={trip} />
 
@@ -547,5 +555,41 @@ const RouteSection = ({ trip }) => {
     </section>
   );
 };
+
+{/* Tips Section Component */}
+function TipsSection({ tips }) {
+  if (!tips || tips.length === 0) return null;
+
+  return (
+    <div className="mt-12 rounded-[2rem] border border-violet-100 bg-white p-6 shadow-sm">
+      
+      {/* Heading */}
+      <div className="flex items-center gap-2 mb-6">
+        <Info className="text-violet-600 w-5 h-5" />
+        <h3 className="text-xl font-bold text-slate-900">
+          Things to Keep in Mind
+        </h3>
+      </div>
+
+      {/* Tips List */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {tips.map((tip, index) => (
+          <div
+            key={index}
+            className="flex items-start gap-3 rounded-xl bg-[#faf7ff] p-4 transition hover:shadow-md"
+          >
+            {/* Bullet */}
+            <div className="mt-1 h-2 w-2 rounded-full bg-violet-600 flex-shrink-0" />
+
+            {/* Text */}
+            <p className="text-sm text-slate-700 leading-6">
+              {tip}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default TripDetails;
