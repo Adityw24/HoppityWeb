@@ -6,6 +6,7 @@ import pallavi from "/src/Reviews/pallavi1.jpeg";
 import divyansh from "/src/Reviews/divyansh.jpeg";
 import { ArrowRight } from "lucide-react";
 import { trips } from "../data/Trips";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube } from "react-icons/fa";
 
 export default function LandingPage() {
 
@@ -549,6 +550,47 @@ const handleSubmit = async (e) => {
                 </p>
               </div>
             </form>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 py-16 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          
+          {/* Heading */}
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800">
+            Connect With Us
+          </h2>
+          <p className="mt-3 text-slate-500">
+            Follow our journey across platforms 🌍
+          </p>
+
+          {/* Social Icons */}
+          <div className="mt-10 flex justify-center gap-6 flex-wrap">
+            <a
+              href="https://www.instagram.com/hoppity_in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-pink-500"
+            >
+              <FaInstagram />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/triffair/posts/?feedView=all"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-blue-600"
+            >
+              <FaLinkedin />
+            </a>
+            <a
+              href="https://www.facebook.com/Hoppityin?rdid=t08JKONEJFLqaR0M&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F18KwrVyfLr%2F#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-blue-600"
+            >
+              <FaFacebook />
+            </a>
           </div>
         </div>
       </section>

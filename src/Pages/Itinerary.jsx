@@ -215,17 +215,17 @@ const prevImage = () => {
                 <p className="text-lg text-gray-600 max-w-lg leading-relaxed">{trip.blurb}</p>
                 <div className="flex flex-wrap gap-6 pt-4">
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Duration</div>
+                    <div className="text-gray-500 text-sm mb-1 font-semibold">Duration</div>
                     <div className="text-2xl font-semibold">{trip.duration}</div>
                   </div>
                   <div className="h-12 w-px bg-gray-200"></div>
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Location</div>
+                    <div className="text-gray-500 text-sm mb-1 font-semibold">Location</div>
                     <div className="text-2xl font-semibold">{trip.location}</div>
                   </div>
                   <div className="h-12 w-px bg-gray-200"></div>
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Starting From</div>
+                    <div className="text-gray-500 font-semibold text-sm mb-1">Price</div>
                     <div className="gradient-text text-2xl font-semibold">{trip.price}</div>
                   </div>
                 </div>

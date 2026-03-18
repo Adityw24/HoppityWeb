@@ -1565,7 +1565,7 @@ export const trips = [
   title: "Northeast India Grand Expedition with Hornbill Festival",
   duration: "16D / 15N",
   location: "Assam • Arunachal • Nagaland",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1700042628124-85da94fa0990?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -1739,7 +1739,7 @@ export const trips = [
   title: "Dree Festival – Ziro Valley Experience",
   duration: "4D / 3N",
   location: "Arunachal Pradesh",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1531252582519-2d7e6795be96?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -1826,7 +1826,7 @@ export const trips = [
   title: "Extended MP Wildlife & Heritage Tour",
   duration: "8D / 7N",
   location: "Madhya Pradesh",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1672215051880-7594629a2ffb?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -1943,7 +1943,7 @@ export const trips = [
   title: "Leh Extended Circuit – Nubra, Pangong, Hanle & Tso Moriri",
   duration: "8D / 7N",
   location: "Ladakh",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1577809497158-073b1f0f8187?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Leh
@@ -2066,7 +2066,7 @@ export const trips = [
   title: "Varanasi, Prayagraj & Ayodhya Spiritual Journey",
   duration: "5D / 4N",
   location: "Uttar Pradesh",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1565354785692-9e7523e5a87b?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Varanasi ghats
@@ -2170,7 +2170,7 @@ export const trips = [
   title: "Kerala Escape – Munnar, Thekkady, Alleppey & Kovalam",
   duration: "6D / 5N",
   location: "Kerala",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://plus.unsplash.com/premium_photo-1697729438401-fcb4ff66d9a8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Munnar tea gardens
@@ -2274,7 +2274,7 @@ export const trips = [
   title: "Where Time Pauses – Bundelkhand Slow Travel Experience",
   duration: "7D / 6N",
   location: "Delhi • Agra • Orchha • Chanderi • Gwalior",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1176&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Taj Mahal
@@ -2386,7 +2386,7 @@ export const trips = [
   title: "Assam Wildlife & Birding Expedition",
   duration: "10D / 9N",
   location: "Assam",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1589882485484-c073e3742e60?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // rhino
@@ -2518,7 +2518,7 @@ export const trips = [
   title: "Offbeat Kumaon – Sustainable & Responsible Travel",
   duration: "7D / 6N",
   location: "Delhi • Kaladhungi • Binsar • Peora",
-  price: "On Request (Delhi add-on)",
+  price: "Price On Request (Delhi add-on)",
 
   image: [
     "https://images.unsplash.com/photo-1667029839141-057b1c445e4e?q=80&w=1225&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // forest
@@ -2637,7 +2637,7 @@ export const trips = [
   title: "Gwalior, Orchha & Khajuraho Heritage Trail",
   duration: "4D / 3N",
   location: "Madhya Pradesh",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1578148771262-2969a5614d6b?q=80&w=1096&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Gwalior fort
@@ -2723,7 +2723,7 @@ export const trips = [
   title: "Uttarakhand Kumaon Circuit – Corbett, Nainital, Mukteshwar & Kausani",
   duration: "8D / 7N",
   location: "Uttarakhand",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1547453155-ae5be9428a4f?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // hills
@@ -2842,7 +2842,7 @@ export const trips = [
   title: "Offbeat Udaipur – Rural & Cultural Experience",
   duration: "4D / 3N",
   location: "Rajasthan",
-  price: "On Request",
+  price: "Price On Request",
 
   image: [
     "https://images.unsplash.com/photo-1715405155995-61757307e065?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // udaipur
@@ -2921,6 +2921,879 @@ export const trips = [
       title: "Departure",
       description:
         "Temple visit and checkout with transfer to Udaipur."
+    }
+  ]
+},
+
+{
+  slug: "leh-nimmu-nubra-monastery-trail",
+  title: "Ladakh Monastery Trail – Leh, Nimmu & Nubra",
+  duration: "8D / 7N",
+  location: "Ladakh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1577809497158-073b1f0f8187?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1632194754249-ba2805ae7049?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1634741966820-2dec12e860b8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1641599592732-0028d03116bf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1636803396010-a4d2fa5c4eef?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "A spiritual and scenic journey through Ladakh covering ancient monasteries, remote villages, and dramatic Himalayan landscapes across Leh, Nimmu, and Nubra Valley.",
+
+  tag: "Adventure + Spiritual",
+
+  route:
+    "Leh → Nimmu → Lamayuru → Nubra → Leh",
+
+  cityStops: [
+    "2N Leh",
+    "2N Nimmu",
+    "2N Nubra",
+    "1N Leh"
+  ],
+
+  highlights: [
+    "Visit Hemis, Thiksey & Shey Monasteries",
+    "Explore Spituk & Phyang Monasteries",
+    "Lamayuru ‘Moonland’ monastery experience",
+    "Alchi Monastery with ancient murals",
+    "Likir Monastery and Maitreya Buddha statue",
+    "Basgo Fort heritage exploration",
+    "Khardung La – one of the highest motorable passes",
+    "Diskit Monastery in Nubra Valley",
+    "Village walk and cultural interaction in Nubra",
+    "Scenic drives along Indus & Zanskar rivers"
+  ],
+
+  inclusions: [
+    "Accommodation in hotels/camps",
+    "All transfers and transportation",
+    "Sightseeing as per itinerary",
+    "Local guide assistance"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Entry fees at monuments",
+    "Meals not mentioned",
+    "Travel insurance",
+    "GST"
+  ],
+
+  tips: [
+    "Acclimatize properly on arrival in Leh",
+    "Carry warm clothing and sunscreen",
+    "Stay hydrated at high altitudes",
+    "Avoid heavy activity on first day",
+    "Carry valid ID and permits"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Arrival in Leh",
+      description:
+        "Arrival, transfer to hotel, and rest for acclimatization."
+    },
+    {
+      day: "Day 02",
+      title: "Leh Monastery Tour",
+      description:
+        "Visit Hemis, Thiksey, and Shey monasteries."
+    },
+    {
+      day: "Day 03",
+      title: "Leh to Nimmu",
+      description:
+        "Drive via Spituk & Phyang monasteries, visit Chilling village and Alchi monastery."
+    },
+    {
+      day: "Day 04",
+      title: "Nimmu to Lamayuru & Back",
+      description:
+        "Visit Lamayuru monastery, Alchi, Likir monastery, and Basgo Fort."
+    },
+    {
+      day: "Day 05",
+      title: "Nimmu to Nubra Valley",
+      description:
+        "Drive via Khardung La pass to Nubra. Visit Diskit monastery."
+    },
+    {
+      day: "Day 06",
+      title: "Nubra Exploration",
+      description:
+        "Visit Ensa and Samstanling monasteries and explore local village life."
+    },
+    {
+      day: "Day 07",
+      title: "Nubra to Leh",
+      description:
+        "Drive back to Leh via Khardung La pass."
+    },
+    {
+      day: "Day 08",
+      title: "Departure",
+      description:
+        "Transfer to Leh airport for departure."
+    }
+  ]
+},
+
+  {
+  slug: "leh-zanskar-trans-himalayan-expedition",
+  title: "Trans-Himalayan Expedition – Leh, Zanskar & Tsomoriri",
+  duration: "13D / 12N",
+  location: "Ladakh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1559194128-0cfbb39ee73c?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1756535193517-c2e679acc6d2?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1565610340067-73645dba2caf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1621114410742-f886ab91e6f4?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://plus.unsplash.com/premium_photo-1698350499345-e99a2456632d?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "A rugged trans-Himalayan journey through Ladakh and the remote Zanskar Valley, featuring high mountain passes, hidden monasteries, remote villages, and the surreal beauty of Tsomoriri Lake.",
+
+  tag: "Hardcore Expedition",
+
+  route:
+    "Leh → Uleytokpo → Kargil → Zanskar (Padum) → Purney → Jispa → Tsomoriri → Leh",
+
+  cityStops: [
+    "2N Leh",
+    "1N Uleytokpo",
+    "1N Kargil",
+    "2N Padum (Zanskar)",
+    "2N Purney",
+    "1N Jispa",
+    "1N Tsomoriri",
+    "2N Leh"
+  ],
+
+  highlights: [
+    "Hemis, Thiksey & Shey monasteries",
+    "Spituk, Phyang & Alchi monasteries",
+    "Lamayuru Moonland landscapes",
+    "Mulbek rock Buddha & high passes (Fotu La, Namika La)",
+    "Rangdum Monastery & Drang Drung Glacier",
+    "Zanskar Valley remote exploration",
+    "Sani Gompa & Zangla Fort",
+    "Phugtal Monastery trek (cave monastery)",
+    "Gombo Rangjon sacred peak",
+    "Shinkula Pass adventure route",
+    "Tso Moriri high altitude lake",
+    "Leh heritage walk & Shanti Stupa"
+  ],
+
+  inclusions: [
+    "Accommodation in hotels / camps / homestays",
+    "All transfers and transport",
+    "Sightseeing as per itinerary",
+    "Local guide support"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Entry fees",
+    "Meals not mentioned",
+    "Travel insurance",
+    "GST"
+  ],
+
+  tips: [
+    "This is a high-altitude expedition – proper acclimatization required",
+    "Carry heavy woolens and trekking shoes",
+    "Be prepared for limited connectivity",
+    "Good fitness level is recommended",
+    "Carry essentials for remote travel"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Arrival in Leh",
+      description: "Arrival and acclimatization."
+    },
+    {
+      day: "Day 02",
+      title: "Leh Monastery Tour",
+      description: "Visit Hemis, Thiksey, and Shey monasteries."
+    },
+    {
+      day: "Day 03",
+      title: "Leh to Uleytokpo",
+      description: "Drive via Spituk, Phyang, Chilling & Alchi."
+    },
+    {
+      day: "Day 04",
+      title: "Uleytokpo to Kargil",
+      description: "Visit Lamayuru Moonland, Mulbek & high passes."
+    },
+    {
+      day: "Day 05",
+      title: "Kargil to Padum (Zanskar)",
+      description: "Drive via Pensi La, Rangdum & glacier views."
+    },
+    {
+      day: "Day 06",
+      title: "Zanskar Exploration",
+      description: "Visit Sani Gompa, Pibiting & Zangla Fort."
+    },
+    {
+      day: "Day 07",
+      title: "Padum to Purney",
+      description: "Drive to remote Purney village."
+    },
+    {
+      day: "Day 08",
+      title: "Phugtal Trek",
+      description: "Trek to Phugtal cave monastery and return."
+    },
+    {
+      day: "Day 09",
+      title: "Purney to Jispa",
+      description: "Cross Shinkula Pass via Gombo Rangjon."
+    },
+    {
+      day: "Day 10",
+      title: "Jispa to Tsomoriri",
+      description: "Drive via high passes to Tso Moriri Lake."
+    },
+    {
+      day: "Day 11",
+      title: "Tsomoriri to Leh",
+      description: "Scenic return via Mahe Bridge."
+    },
+    {
+      day: "Day 12",
+      title: "Leh Exploration",
+      description: "Heritage walk, Leh Palace, Shanti Stupa."
+    },
+    {
+      day: "Day 13",
+      title: "Departure",
+      description: "Transfer to airport."
+    }
+  ]
+},
+
+  {
+  slug: "anini-dibang-valley-expedition",
+  title: "Tales, Traditions & Tributaries of Anini",
+  duration: "8D / 7N",
+  location: "Arunachal Pradesh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1648963798678-a921079b98b9?q=80&w=1202&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1638192431428-1d5d3c68d742?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1648963799320-d6a143c6f83b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1672399452706-1ccca37ab495?q=80&w=1026&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "An immersive journey into Arunachal’s remote Dibang Valley, blending tribal culture, adventure activities, and raw Himalayan landscapes with local community experiences.",
+
+  tag: "Offbeat Expedition",
+
+  route:
+    "Dibrugarh → Roing → Anini → Dri Valley → Anini → Dibrugarh",
+
+  cityStops: [
+    "1N Roing",
+    "2N Anini",
+    "2N Dri Valley (Camping)",
+    "1N Anini",
+    "1N Dibrugarh"
+  ],
+
+  highlights: [
+    "Drive through Eastern Himalayas & Mayodia Pass",
+    "Experience Idu Mishmi tribal culture",
+    "Food workshop with local community",
+    "Traditional weaving experience",
+    "Camping in Dri Valley under stars",
+    "Rafting in Dri River (seasonal)",
+    "Cycling through waterfall valleys",
+    "Visit remote Gipulin village",
+    "Explore Mehao Wildlife Sanctuary region"
+  ],
+
+  inclusions: [
+    "Stay on twin sharing basis",
+    "Breakfast (Day 2–8)",
+    "Lunch on select days",
+    "Dinner on select days",
+    "All transportation from/to Dibrugarh",
+    "Inner Line Permit for Indians",
+    "All activities (workshop, rafting, cycling)",
+    "Local guides",
+    "Trip leader throughout journey"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Meals not mentioned",
+    "Protected Area Permit (for foreigners)",
+    "Tips, shopping, snacks",
+    "Camera fees",
+    "Anything not mentioned in inclusions"
+  ],
+
+  tips: [
+    "Best visited outside monsoon (avoid April–September)",
+    "Carry cash for remote areas",
+    "Basic fitness required for hikes",
+    "Expect limited connectivity",
+    "Respect local tribal culture"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Dibrugarh to Roing",
+      description:
+        "Drive crossing Bhupen Hazarika Setu, arrival in Roing, evening leisure."
+    },
+    {
+      day: "Day 02",
+      title: "Roing to Anini",
+      description:
+        "Scenic drive via Mayodia Pass and Mehao Wildlife Sanctuary."
+    },
+    {
+      day: "Day 03",
+      title: "Anini Cultural Immersion",
+      description:
+        "Viewpoint visit, food workshop, traditional cooking and weaving experience."
+    },
+    {
+      day: "Day 04",
+      title: "Anini to Dri Valley",
+      description:
+        "Visit Gipulin village, forest trails, waterfalls, and campsite stay."
+    },
+    {
+      day: "Day 05",
+      title: "Dri Valley Adventure",
+      description:
+        "Rafting (or hiking in winter), picnic and bonfire evening."
+    },
+    {
+      day: "Day 06",
+      title: "Cycling Experience",
+      description:
+        "Cycle through valley with waterfalls, return to Anini."
+    },
+    {
+      day: "Day 07",
+      title: "Anini to Dibrugarh",
+      description:
+        "Long scenic drive back, farewell dinner."
+    },
+    {
+      day: "Day 08",
+      title: "Departure",
+      description:
+        "Transfer to airport."
+    }
+  ]
+},
+
+  {
+  slug: "ultimate-ladakh-expedition",
+  title: "Ultimate Ladakh Expedition – Leh, Uleytokpo, Nubra & Pangong",
+  duration: "14D / 13N",
+  location: "Ladakh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1641599592732-0028d03116bf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1652204598207-ce07f6dd5224?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3Dp",
+    "https://images.unsplash.com/photo-1593118845043-359e5f628214?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1709554565257-6eeea817ea82?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1536289444758-1a89cd14499e?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "An extensive Ladakh journey covering monasteries, remote Himalayan villages, high mountain passes, Nubra Valley, Turtuk, and the breathtaking Pangong Lake.",
+
+  tag: "Ultimate Expedition",
+
+  route:
+    "Leh → Uleytokpo → Leh → Nubra → Turtuk → Pangong → Leh",
+
+  cityStops: [
+    "4N Leh",
+    "3N Uleytokpo",
+    "1N Leh",
+    "3N Nubra",
+    "1N Pangong",
+    "1N Leh"
+  ],
+
+  highlights: [
+    "Leh heritage walk and Shanti Stupa",
+    "Hemis, Thiksey & Shey monasteries",
+    "Matho Monastery & Stok Palace",
+    "Chilling village and Alchi monastery",
+    "Lamayuru Moonland landscape",
+    "Likir Monastery & Basgo Fort",
+    "Saspol caves exploration",
+    "Khardung La – iconic high altitude pass",
+    "Diskit Monastery & Nubra sand dunes",
+    "Turtuk village near Indo-Pak border",
+    "Camel ride in Nubra Valley",
+    "Ensa & Samstanling monasteries",
+    "Pangong Lake experience",
+    "Changla Pass scenic drive",
+    "Takthok & Chemrey monasteries"
+  ],
+
+  inclusions: [
+    "Accommodation in hotels/camps",
+    "All transfers and transportation",
+    "Sightseeing as per itinerary",
+    "Local guide assistance"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Entry fees",
+    "Meals not mentioned",
+    "Travel insurance",
+    "GST"
+  ],
+
+  tips: [
+    "Proper acclimatization is crucial",
+    "Carry heavy woolens and sunscreen",
+    "Stay hydrated at high altitudes",
+    "Avoid overexertion in initial days",
+    "Carry ID and required permits"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Arrival in Leh",
+      description: "Arrival and acclimatization."
+    },
+    {
+      day: "Day 02",
+      title: "Leh Heritage Walk",
+      description: "Visit Leh Palace, Shanti Stupa, and local markets."
+    },
+    {
+      day: "Day 03",
+      title: "Monastery Circuit",
+      description: "Visit Hemis, Thiksey, and Shey monasteries."
+    },
+    {
+      day: "Day 04",
+      title: "Matho & Stok Exploration",
+      description: "Visit Matho monastery, Stok Palace, and heritage home."
+    },
+    {
+      day: "Day 05",
+      title: "Leh to Uleytokpo",
+      description: "Drive via Spituk, Phyang, Chilling & Alchi."
+    },
+    {
+      day: "Day 06",
+      title: "Temisgam & Rizong",
+      description: "Visit Temisgam Palace and Rizong monastery."
+    },
+    {
+      day: "Day 07",
+      title: "Lamayuru Excursion",
+      description: "Explore Moonland and Wanla monastery."
+    },
+    {
+      day: "Day 08",
+      title: "Uleytokpo to Leh",
+      description: "Visit Likir monastery, Basgo Fort, and Saspol caves."
+    },
+    {
+      day: "Day 09",
+      title: "Leh to Nubra Valley",
+      description: "Drive via Khardung La, visit Diskit monastery."
+    },
+    {
+      day: "Day 10",
+      title: "Turtuk Excursion",
+      description: "Visit Turtuk village and Indo-Pak border viewpoints."
+    },
+    {
+      day: "Day 11",
+      title: "Nubra Exploration",
+      description: "Visit Ensa and Samstanling monasteries."
+    },
+    {
+      day: "Day 12",
+      title: "Nubra to Pangong",
+      description: "Drive via Shyok route to Pangong Lake."
+    },
+    {
+      day: "Day 13",
+      title: "Pangong to Leh",
+      description: "Return via Changla Pass, visit Takthok & Chemrey."
+    },
+    {
+      day: "Day 14",
+      title: "Departure",
+      description: "Transfer to airport."
+    }
+  ]
+},
+
+{
+  slug: "leh-nubra-pangong-hanle-escape",
+  title: "Leh, Nubra, Pangong & Hanle Expedition",
+  duration: "9D / 8N",
+  location: "Ladakh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1712260900959-09f614e7ff45?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1649590797231-863589b2a08c?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1510908072721-6fbd31199630?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1495552304912-3e63193f3f0e?q=80&w=1150&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1538794324396-ebe928942e74?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "A balanced Ladakh journey covering monasteries, Nubra Valley, Pangong Lake, and the remote beauty of Hanle, blending culture, landscapes, and high-altitude adventure.",
+
+  tag: "Explorer Journey",
+
+  route:
+    "Leh → Nubra → Pangong → Hanle → Leh",
+
+  cityStops: [
+    "3N Leh",
+    "2N Nubra",
+    "1N Pangong",
+    "1N Hanle",
+    "1N Leh"
+  ],
+
+  highlights: [
+    "Hemis, Thiksey & Shey monasteries",
+    "Alchi, Spituk & Phyang monasteries",
+    "Khardung La high mountain pass",
+    "Diskit Monastery & Nubra sand dunes",
+    "Bactrian camel experience in Nubra",
+    "Ensa & Samstanling monasteries",
+    "Pangong Lake exploration",
+    "Scenic Shyok route drive",
+    "Hanle village & observatory region",
+    "Remote high-altitude landscapes"
+  ],
+
+  inclusions: [
+    "Accommodation in hotels/camps",
+    "All transfers and transportation",
+    "Sightseeing as per itinerary",
+    "Local assistance"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Entry fees",
+    "Meals not mentioned",
+    "Travel insurance",
+    "GST"
+  ],
+
+  tips: [
+    "Acclimatize properly on Day 1",
+    "Carry warm clothing and sunscreen",
+    "Stay hydrated at high altitude",
+    "Keep ID and permits ready",
+    "Mobile network may be limited"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Arrival in Leh",
+      description: "Arrival and acclimatization."
+    },
+    {
+      day: "Day 02",
+      title: "Leh Monastery Tour",
+      description:
+        "Visit Hemis, Thiksey, and Shey monasteries."
+    },
+    {
+      day: "Day 03",
+      title: "Alchi Excursion",
+      description:
+        "Visit Spituk, Phyang, and Alchi monastery."
+    },
+    {
+      day: "Day 04",
+      title: "Leh to Nubra",
+      description:
+        "Drive via Khardung La, visit Diskit monastery and sand dunes."
+    },
+    {
+      day: "Day 05",
+      title: "Nubra Exploration",
+      description:
+        "Visit Ensa and Samstanling monasteries and local village walk."
+    },
+    {
+      day: "Day 06",
+      title: "Nubra to Pangong",
+      description:
+        "Drive via Shyok route to Pangong Lake."
+    },
+    {
+      day: "Day 07",
+      title: "Pangong to Hanle",
+      description:
+        "Early drive to Hanle, explore fort and remote landscapes."
+    },
+    {
+      day: "Day 08",
+      title: "Hanle to Leh",
+      description:
+        "Drive via Chumathang back to Leh."
+    },
+    {
+      day: "Day 09",
+      title: "Departure",
+      description:
+        "Transfer to airport."
+    }
+  ]
+},
+
+  {
+  slug: "leh-nubra-pangong-hanle-tsomoriri-expedition",
+  title: "Grand Ladakh Circuit – Nubra, Pangong, Hanle & Tsomoriri",
+  duration: "10D / 9N",
+  location: "Ladakh",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1538794324396-ebe928942e74?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://plus.unsplash.com/premium_photo-1661947451659-cbb917ed7bf6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://plus.unsplash.com/premium_photo-1697730119074-1bebeb4811c9?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1624890261377-2707bf40ab3d?q=80&w=715&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1706330427632-c51b39ec6357?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  ],
+
+  blurb:
+    "A comprehensive Ladakh expedition covering monasteries, Nubra Valley, Pangong Lake, the remote landscapes of Hanle, and the pristine beauty of Tsomoriri Lake.",
+
+  tag: "Grand Expedition",
+
+  route:
+    "Leh → Nubra → Pangong → Hanle → Tsomoriri → Leh",
+
+  cityStops: [
+    "3N Leh",
+    "2N Nubra",
+    "1N Pangong",
+    "1N Hanle",
+    "1N Tsomoriri",
+    "1N Leh"
+  ],
+
+  highlights: [
+    "Hemis, Thiksey & Shey monasteries",
+    "Spituk, Phyang & Alchi monasteries",
+    "Khardung La high altitude pass",
+    "Diskit Monastery & Nubra sand dunes",
+    "Bactrian camel experience",
+    "Ensa & Samstanling monasteries",
+    "Pangong Lake exploration",
+    "Hanle village & observatory region",
+    "Tsomoriri high altitude lake",
+    "Tsokar Lake & Puga hot springs",
+    "Tanglang La – one of the highest motorable passes"
+  ],
+
+  inclusions: [
+    "Accommodation in hotels/camps",
+    "All transportation and transfers",
+    "Sightseeing as per itinerary",
+    "Local assistance"
+  ],
+
+  exclusions: [
+    "Flights",
+    "Personal expenses",
+    "Entry fees",
+    "Meals not mentioned",
+    "Travel insurance",
+    "GST"
+  ],
+
+  tips: [
+    "Proper acclimatization is crucial",
+    "Carry heavy woolens and sunscreen",
+    "Stay hydrated",
+    "Keep permits and ID ready",
+    "Expect limited connectivity in remote regions"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Arrival in Leh",
+      description: "Arrival and acclimatization."
+    },
+    {
+      day: "Day 02",
+      title: "Leh Monastery Tour",
+      description:
+        "Visit Hemis, Thiksey, and Shey monasteries."
+    },
+    {
+      day: "Day 03",
+      title: "Alchi Excursion",
+      description:
+        "Visit Spituk, Phyang, and Alchi monastery."
+    },
+    {
+      day: "Day 04",
+      title: "Leh to Nubra",
+      description:
+        "Drive via Khardung La, visit Diskit monastery and sand dunes."
+    },
+    {
+      day: "Day 05",
+      title: "Nubra Exploration",
+      description:
+        "Visit Ensa and Samstanling monasteries and local village."
+    },
+    {
+      day: "Day 06",
+      title: "Nubra to Pangong",
+      description:
+        "Drive via Shyok route to Pangong Lake."
+    },
+    {
+      day: "Day 07",
+      title: "Pangong to Hanle",
+      description:
+        "Early drive to Hanle, explore fort and landscapes."
+    },
+    {
+      day: "Day 08",
+      title: "Hanle to Tsomoriri",
+      description:
+        "Scenic drive via Mahe village to Tsomoriri Lake."
+    },
+    {
+      day: "Day 09",
+      title: "Tsomoriri to Leh",
+      description:
+        "Visit Tsokar Lake, Puga hot springs, Tanglang La pass."
+    },
+    {
+      day: "Day 10",
+      title: "Departure",
+      description:
+        "Transfer to airport."
+    }
+  ]
+},
+
+  {
+  slug: "sunderban-wildlife-escape",
+  title: "Sunderban Wildlife Escape",
+  duration: "3D / 2N",
+  location: "West Bengal",
+  price: "On Request",
+
+  image: [
+    "https://images.unsplash.com/photo-1626198226928-617fc6c6203e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://plus.unsplash.com/premium_photo-1719922570565-b2c059fab2ee?q=80&w=1132&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1549300461-11c5b94e8855?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://imgs.search.brave.com/ctAjnVv9YVdeEMRIWfCygkPdm-uzlkpToY6tKKkDbpY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aGV0/ZXJudHJhdmVsbGVy/cy5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMjIvMDYvZnJp/ZGEtYnJlZGVzZW4t/cHNTc3NKbDUwbGct/dW5zcGxhc2gtNzY4/eDUxMi5qcGc"
+  ],
+
+  blurb:
+    "A short yet immersive journey into the mystical mangrove forests of Sunderbans, home to the Royal Bengal Tiger and a rich ecosystem of wildlife and waterways.",
+
+  tag: "Wildlife Escape",
+
+  route:
+    "Kolkata → Sunderban → Kolkata",
+
+  cityStops: [
+    "2N Sunderban"
+  ],
+
+  highlights: [
+    "Boat safari through Sunderban mangrove forests",
+    "Sajnekhali watchtower & interpretation centre",
+    "Dobanki canopy walk experience",
+    "Sunset cruise in river channels",
+    "Spotting Royal Bengal Tiger habitat",
+    "Rich birdlife and estuarine ecosystem",
+    "Village and rural Bengal experience"
+  ],
+
+  inclusions: [
+    "Accommodation in resort",
+    "All transfers from Kolkata",
+    "Motorized boat safaris",
+    "Guide / naturalist",
+    "Sightseeing as per itinerary"
+  ],
+
+  exclusions: [
+    "GST",
+    "Entry fees",
+    "Personal expenses",
+    "Meals not mentioned",
+    "Additional activities"
+  ],
+
+  tips: [
+    "Carry binoculars for wildlife spotting",
+    "Avoid bright colors during safaris",
+    "Follow forest guidelines strictly",
+    "National park remains closed on Tuesdays",
+    "Keep camera ready for birdlife and landscapes"
+  ],
+
+  itinerary: [
+    {
+      day: "Day 01",
+      title: "Kolkata to Sunderban",
+      description:
+        "Transfer to Godkhali jetty, boat ride to resort, evening sunset cruise."
+    },
+    {
+      day: "Day 02",
+      title: "Sunderban Exploration",
+      description:
+        "Visit Sajnekhali watchtower, Dobanki canopy walk, boat safari through creeks."
+    },
+    {
+      day: "Day 03",
+      title: "Return to Kolkata",
+      description:
+        "Boat transfer back to Godkhali and onward journey to Kolkata."
     }
   ]
 },
