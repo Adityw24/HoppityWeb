@@ -3,7 +3,6 @@ import LandingPage from './Pages/Landing'
 import Itinerary from './Pages/Itinerary'
 import Itineraries from './Pages/Itineraries'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import Navbar from './Components/Navbar'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
