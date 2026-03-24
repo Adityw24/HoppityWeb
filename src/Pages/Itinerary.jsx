@@ -181,12 +181,21 @@ const prevImage = () => {
               className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </div>
-              <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back to Home</span>
+              <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back</span>
             </div>
             <div className="flex items-center gap-4">
               
               <button
-              onClick={() => window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+              onClick={() =>
+                {
+                  window.gtag('event', 'book_now_click', {
+                    event_category: 'engagement',
+                    event_label: trip.title,
+                    value: trip.price,
+                  });
+                  window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank");
+                }
+              }
               className="px-6 py-2.5 rounded-full text-sm font-semibold shimmer-button hover:shadow-lg transition-shadow cursor-pointer"> Book Now </button>
 
             </div>
@@ -231,8 +240,16 @@ const prevImage = () => {
                 </div>
               </div>
             <div className="flex flex-wrap gap-4 opacity-0 animate-fade-in-up pt-4" style={{animationDelay: '0.3s'}}>
+              
                 <button
-                onClick={() => window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank")}
+                onClick={() => {
+                  window.gtag('event', 'book_now_click', {
+                    event_category: 'engagement',
+                    event_label: trip.title,
+                    value: trip.price,
+                  });
+                  window.open(`https://wa.me/919752377323?text=Hi Hoppity!, I want to book the trip: ${trip.title}`,"_blank");
+                }}
                 className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl  transition-all cursor-pointer"> Book Your Adventure </button>
                 
               </div>

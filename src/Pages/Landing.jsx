@@ -28,111 +28,21 @@ const handleChange = (e) => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
       method: "POST",
+      mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(form),
     });
-    if (response.ok) {
-      alert("You're on the early access list 🚀");
-      setForm({ name: "", email: "", contact: "", destination: "" });
-    } else {
-      alert("Submission failed. Please try again.");
-    }
+    alert("You're on the early access list 🚀");
+    setForm({ name: "", email: "", contact: "", destination: "" });
   } catch (error) {
     console.error("Error submitting form:", error);
     alert("An error occurred. Please try again.");
   }
 };
-
-{/* const itineraries = [
-    {
-  slug: "rains-rivers-root-bridges",
-  title: "Of Rains, Rivers & Root Bridges",
-  duration: "6D / 5N",
-  location: "Meghalaya",
-  price: "Price On Request",
-  image:
-    "https://i.pinimg.com/webp/1200x/53/a1/38/53a138d65679f3c596f0307efa69f3df.webp",
-
-  blurb:
-    "A monsoon journey through the Khasi Hills where rain shapes the land, living root bridges grow from forests, and rivers carve adventure into the landscape.",
-
-  tag: "Monsoon Special",
-    },
-
-    {
-  slug: "leh-himalayan-escape",
-  title: "Leh Himalayan Escape",
-  duration: "5D / 4N",
-  location: "Ladakh",
-  price: "Price On Request",
-  image:
-    "https://images.unsplash.com/photo-1581280445448-ab465a010046?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-
-  blurb:
-    "A high-altitude journey through the stark beauty of Ladakh — from monasteries and mountain passes to the surreal blue waters of Pangong Lake.",
-
-  tag: "Signature Journey",
-    },
-
-    {
-      slug: "the-northeast-odyssey",
-      title: "The Northeast Odyssey",
-      duration: "12D / 11N",
-      location: "Meghalaya • Arunachal Pradesh • Assam",
-      price: "Price On Request",
-      image: "https://i.pinimg.com/736x/9b/6b/e0/9b6be0930e8db809d4f1667cd4096ece.jpg",
-
-  blurb:
-    "From the rain-kissed cliffs of Cherrapunjee to the prayer flags of Tawang and the wild grasslands of Kaziranga, this journey moves slowly through the many moods of India’s Northeast.",
-
-  tag: "Signature Journey",
-    },
-
-    {
-  slug: "makers-myths-memories",
-  title: "Of Makers, Myths & Memories",
-  duration: "8D / 7N",
-  location: "Arunachal • Assam • Nagaland",
-  price: "Price On Request",
-  image:
-    "https://i.pinimg.com/736x/0c/74/a7/0c74a7dbfbc701429a1154dc8116511a.jpg",
-  blurb:
-    "From the rice valleys of Ziro to the river island of Majuli and the warrior villages of Mon, this journey traces the living cultures of the Apatani, Mising, and Konyak tribes across India’s Northeast.",
-
-  tag: "Cultural Expedition",
-    },
-
-    {
-  slug: "of-valleys-and-warriors",
-  title: "Of Valleys & Warriors",
-  duration: "7D / 6N",
-  location: "Nagaland",
-  price: "Price On Request",
-  image:
-    "https://i.pinimg.com/736x/ee/45/d2/ee45d2c7c967e052583aac1817f70a76.jpg",
-  blurb:
-    "Walk through the Angami homeland of Nagaland, from the green village of Khonoma to the legendary Dzükoü Valley, discovering warrior histories, living traditions, and the quiet rhythm of the Naga hills.",
-
-  tag: "Cultural Expedition",
-    },
-
-    {
-  slug: "sikkim-darjeeling-himalayan-journey",
-  title: "Sikkim & Darjeeling Himalayan Journey",
-  duration: "10D / 9N",
-  location: "Sikkim • West Bengal",
-  price: "Price On Request",
-  image:
-    "https://i.pinimg.com/736x/18/0f/11/180f1155643c0d1209830523b3688164.jpg",
-  blurb:
-    "A journey through the Eastern Himalayas exploring the vibrant capital of Gangtok, the alpine beauty of Lachung and Yumthang Valley, the monasteries of Pelling, and the colonial charm of Darjeeling.",
-  tag: "Himalayan Escape",
-    },
-  ]; */}
 
   const pillars = [
     {
@@ -188,6 +98,7 @@ const handleSubmit = async (e) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.20),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-6 lg:px-10">
 
+{/* Navbar */}
           <header className="flex items-center justify-between rounded-full border border-white/60 bg-white/75 px-5 py-3 backdrop-blur-xl shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl">
@@ -554,7 +465,7 @@ const handleSubmit = async (e) => {
         </div>
       </section>
 
-      <section className="bg-slate-50 py-16 px-6">
+      <section className="bg-[#f7f1ff] py-16 px-6 border-violet-100">
         <div className="max-w-6xl mx-auto text-center">
           
           {/* Heading */}
@@ -596,7 +507,7 @@ const handleSubmit = async (e) => {
       </section>
 
       <footer className="mx-auto max-w-7xl px-6 pb-12 lg:px-10">
-        <div className="flex flex-col gap-4 border-t border-violet-100 pt-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 border-violet-100 pt-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
           <div>
             <span className="font-semibold text-slate-900">Hoppity</span> — Discover Real Travel
           </div>

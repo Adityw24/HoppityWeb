@@ -17,13 +17,14 @@ export default function Itineraries() {
         {/* Back Button */}
         <Link
           to="/"
-          className="absolute left-6 top-4 w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shadow-md hover:scale-105 transition"
+          aria-label="Go back to home"
+          className="absolute left-3 top-3 z-10 h-11 w-11 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shadow-md transition hover:scale-105 sm:left-6 sm:top-4 sm:h-10 sm:w-10"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </Link>
 
         {/* Centered Content */}
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto pt-14 text-center sm:pt-0">
           <h1 className="text-4xl md:text-6xl font-black text-slate-950">
             All Journeys
           </h1>
