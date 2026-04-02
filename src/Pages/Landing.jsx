@@ -17,16 +17,52 @@ export default function LandingPage() {
   destination: ""
 });
 
+const [errors, setErrors] = useState({});
+const [loading, setLoading] = useState(false);
+
 const handleChange = (e) => {
   let value = e.target.value;
   if (e.target.name === 'contact') {
     value = value.replace(/[^0-9]/g, "");
   }
+  if (e.target.name === 'name') {
+    value = value.replace(/[^a-zA-Z\s]/g, "");
+  }
   setForm({ ...form, [e.target.name]: value });
+  setErrors({ ...errors, [e.target.name]: "" });
+};
+
+const validate = () => {
+  const newErrors = {};
+  if (!form.name.trim()) {
+    newErrors.name = "Name is required.";
+  } else if (!/^[a-zA-Z\s]+$/.test(form.name)) {
+    newErrors.name = "Name can only contain letters.";
+  }
+  if (!form.email.trim()) {
+    newErrors.email = "Email is required.";
+  } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(form.email)) {
+    newErrors.email = "Only @gmail.com email addresses are allowed.";
+  }
+  if (!form.contact.trim()) {
+    newErrors.contact = "Contact number is required.";
+  } else if (!/^[0-9]{10}$/.test(form.contact)) {
+    newErrors.contact = "Enter a valid 10-digit phone number.";
+  }
+  if (!form.destination.trim()) {
+    newErrors.destination = "Please enter your dream destination.";
+  }
+  return newErrors;
 };
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+  setLoading(true);
   try {
     await fetch("https://script.google.com/macros/s/AKfycbyLWOKG9HJ6eCbqd2wQZgR9yOuzthb5kZ2XHd1Wxbz2j2bKxIKGISyUm2rRRhuhNV6L/exec", {
       method: "POST",
@@ -38,9 +74,12 @@ const handleSubmit = async (e) => {
     });
     alert("You're on the early access list 🚀");
     setForm({ name: "", email: "", contact: "", destination: "" });
+    setErrors({});
   } catch (error) {
     console.error("Error submitting form:", error);
     alert("An error occurred. Please try again.");
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -410,9 +449,10 @@ const handleSubmit = async (e) => {
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
+                    className={`w-full rounded-2xl border px-4 py-3 outline-none ring-0 transition focus:border-violet-400 ${errors.name ? "border-red-400" : "border-slate-200"}`}
                     placeholder="Your name"
                   />
+                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                 </div>
                 <div>
 
@@ -421,9 +461,10 @@ const handleSubmit = async (e) => {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
+                    className={`w-full rounded-2xl border px-4 py-3 outline-none ring-0 transition focus:border-violet-400 ${errors.email ? "border-red-400" : "border-slate-200"}`}
                     placeholder="you@example.com"
                   />
+                  {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
 
                   <label className="mb-2 block text-sm font-semibold mt-4">Contact Number</label>
 
@@ -432,11 +473,11 @@ const handleSubmit = async (e) => {
   value={form.contact}
   onChange={handleChange}
   type="tel"
-  pattern="[0-9]{10}"
   maxLength={10}
-  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
+  className={`w-full rounded-2xl border px-4 py-3 outline-none ring-0 transition focus:border-violet-400 ${errors.contact ? "border-red-400" : "border-slate-200"}`}
   placeholder="Your phone number"
 />
+{errors.contact && <p className="mt-1 text-xs text-red-500">{errors.contact}</p>}
 
                 </div>
                 <div>
@@ -445,15 +486,23 @@ const handleSubmit = async (e) => {
                   name="destination"
                   value={form.destination}
                   onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-0 transition focus:border-violet-400"
+                    className={`w-full rounded-2xl border px-4 py-3 outline-none ring-0 transition focus:border-violet-400 ${errors.destination ? "border-red-400" : "border-slate-200"}`}
                     placeholder="Ladakh, Meghalaya, Konkan..."
                   />
+                  {errors.destination && <p className="mt-1 text-xs text-red-500">{errors.destination}</p>}
                 </div>
 
                 <button
                 type="submit"
-                className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5 cursor-pointer">
-                  Get First Access
+                disabled={loading}
+                className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-base font-semibold text-white shadow-xl transition hover:-translate-y-0.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {loading && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                  )}
+                  {loading ? "Submitting..." : "Get First Access"}
                 </button>
                 
                 <p className="text-sm leading-6 text-slate-500">
