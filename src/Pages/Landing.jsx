@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import emailjs from "@emailjs/browser";
 import subhag from "/src/Reviews/subhag.jpeg";
 import logo from "/src/assets/logo1.png";
 import pallavi from "/src/Reviews/pallavi1.jpeg";
@@ -75,6 +76,19 @@ const handleSubmit = async (e) => {
     alert("You're on the early access list 🚀");
     setForm({ name: "", email: "", contact: "", destination: "" });
     setErrors({});
+
+    // Send email notification — replace with your EmailJS credentials
+    emailjs.send(
+      "YOUR_SERVICE_ID",      // e.g. "service_abc123"
+      "YOUR_TEMPLATE_ID",     // e.g. "template_xyz456"
+      {
+        from_name: form.name,
+        from_email: form.email,
+        contact: form.contact,
+        destination: form.destination,
+      },
+      "YOUR_PUBLIC_KEY"       // e.g. "abcDEFghiJKL"
+    ).catch((err) => console.error("EmailJS error:", err));
   } catch (error) {
     console.error("Error submitting form:", error);
     alert("An error occurred. Please try again.");
@@ -193,9 +207,9 @@ const handleSubmit = async (e) => {
             <div className="relative">
               <div className="absolute -left-10 top-10 hidden h-40 w-40 rounded-full bg-violet-300/30 blur-3xl lg:block" />
               <div className="absolute -right-6 bottom-0 hidden h-52 w-52 rounded-full bg-fuchsia-300/30 blur-3xl lg:block" />
-              <div className="relative rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="relative rounded-4xl border border-white/60 bg-white/80 p-5 shadow-2xl backdrop-blur-xl">
                 <div className="grid gap-4">
-                  <div className="rounded-[1.5rem] bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 p-6 text-white shadow-xl">
+                  <div className="rounded-3xl bg-linear-to-br from-slate-950 via-violet-900 to-fuchsia-700 p-6 text-white shadow-xl">
                     <p className="text-sm uppercase tracking-[0.18em] text-violet-200">Why people choose Hoppity</p>
                     <p className="mt-4 text-2xl font-bold leading-tight">
                       Because ordinary trips make memories. Extraordinary trips change the person who comes back.
@@ -203,13 +217,13 @@ const handleSubmit = async (e) => {
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {stats.map((stat) => (
-                      <div key={stat.label} className="rounded-[1.25rem] border border-violet-100 bg-[#fcfaff] p-4 shadow-sm">
+                      <div key={stat.label} className="rounded-2xl border border-violet-100 bg-[#fcfaff] p-4 shadow-sm">
                         <div className="text-2xl font-black tracking-tight text-slate-950">{stat.value}</div>
                         <div className="mt-2 text-xs leading-5 text-slate-600">{stat.label}</div>
                       </div>
                     ))}
                   </div>
-                  <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5">
+                  <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">The quiet fear no one says out loud</p>
                     <p className="mt-3 text-base leading-7 text-slate-800">
                       That life will become a loop of tabs, traffic, deadlines, and familiar places — while the most magical corners of the world remain unseen.
@@ -235,7 +249,7 @@ const handleSubmit = async (e) => {
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {pillars.map((item) => (
-            <div key={item.title} className="rounded-[1.75rem] border border-violet-100 bg-white p-7 shadow-sm">
+            <div key={item.title} className="rounded-3xl border border-violet-100 bg-white p-7 shadow-sm">
               <h3 className="text-xl font-bold tracking-tight text-slate-950">{item.title}</h3>
               <p className="mt-4 text-base leading-7 text-slate-700">{item.text}</p>
             </div>
@@ -244,7 +258,7 @@ const handleSubmit = async (e) => {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-4 lg:px-10 lg:py-10">
-        <div className="rounded-[2rem] bg-slate-950 px-8 py-10 text-white shadow-2xl lg:px-12 lg:py-14">
+        <div className="rounded-4xl bg-slate-950 px-8 py-10 text-white shadow-2xl lg:px-12 lg:py-14">
           <div className="grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-300">The promise</p>
@@ -282,7 +296,7 @@ const handleSubmit = async (e) => {
 //cards
             <Link to={`/itinerary/${trip.slug}`}
             key={trip.slug}
-            className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
+            className="group overflow-hidden rounded-4xl border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
 
               <div className="relative h-52 overflow-hidden text-white">
 
@@ -293,7 +307,7 @@ const handleSubmit = async (e) => {
   />
 
     {/* Dark Gradient Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent"></div>
   {/* Content */}
   <div className="relative p-6">
     <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide backdrop-blur-sm">
@@ -344,7 +358,7 @@ const handleSubmit = async (e) => {
 
 {/* Reviews */}
       <section id="stories" className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-16">
-  <div className="rounded-[2rem] border border-violet-100 bg-white p-8 shadow-sm lg:p-12">
+  <div className="rounded-4xl border border-violet-100 bg-white p-8 shadow-sm lg:p-12">
 
     <div className="max-w-3xl">
       <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-700">
@@ -367,7 +381,7 @@ const handleSubmit = async (e) => {
       {testimonials.map((item) => (
         <div
           key={item.author}
-          className="rounded-[1.75rem] bg-[#faf7ff] p-6 shadow-sm transition hover:shadow-lg hover:-translate-y-1"
+          className="rounded-3xl bg-[#faf7ff] p-6 shadow-sm transition hover:shadow-lg hover:-translate-y-1"
         >
 
           {/* User Info */}
@@ -405,7 +419,7 @@ const handleSubmit = async (e) => {
 
       <section className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-16">
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-[2rem] border border-violet-100 bg-white p-8 shadow-sm">
+          <div className="rounded-4xl border border-violet-100 bg-white p-8 shadow-sm">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-700">Why now</p>
             <h3 className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-4xl">
               The world is not getting less crowded.
@@ -414,7 +428,7 @@ const handleSubmit = async (e) => {
               The hidden places will not stay hidden forever. The quiet stays will get discovered. The magical routes will get turned into listicles. The best time to experience the unexplored is before everyone else does.
             </p>
           </div>
-          <div className="rounded-[2rem] border border-violet-100 bg-gradient-to-br from-violet-700 to-fuchsia-600 p-8 text-white shadow-xl">
+          <div className="rounded-4xl border border-violet-100 bg-linear-to-br from-violet-700 to-fuchsia-600 p-8 text-white shadow-xl">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-200">The feeling we’re selling</p>
             <h3 className="mt-3 text-2xl font-black tracking-tight md:text-4xl">
               One day you’ll either remember the trip you took — or the one you kept postponing.
@@ -427,7 +441,7 @@ const handleSubmit = async (e) => {
       </section>
 
       <section id="waitlist" className="mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-24">
-        <div className="rounded-[2.25rem] bg-gradient-to-br from-slate-950 via-violet-950 to-fuchsia-800 p-8 text-white shadow-2xl lg:p-14">
+        <div className="rounded-4xl bg-linear-to-br from-slate-950 via-violet-950 to-fuchsia-800 p-8 text-white shadow-2xl lg:p-14">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-300">Early access</p>
@@ -440,7 +454,7 @@ const handleSubmit = async (e) => {
             </div>
 
 {/* Early access form */}
-            <form onSubmit={handleSubmit} className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl">
+            <form onSubmit={handleSubmit} className="rounded-4xl bg-white p-6 text-slate-900 shadow-2xl">
               <div className="space-y-4">
                 <div>
 
@@ -564,6 +578,7 @@ const handleSubmit = async (e) => {
             <a href="#catalog" className="hover:text-violet-700">Catalog</a>
             <a href="#why" className="hover:text-violet-700">Why Hoppity</a>
             <a href="#waitlist" className="hover:text-violet-700">Join Early Access</a>
+            <Link to="/privacy-policy" className="hover:text-violet-700">Privacy Policy</Link>
           </div>
         </div>
       </footer>

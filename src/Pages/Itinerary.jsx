@@ -178,7 +178,7 @@ const prevImage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 cursor-pointer">
               <div id='btn' onClick={() => window.history.back()}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
+              className="w-10 h-10 rounded-xl bg-linear-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </div>
               <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back</span>
@@ -259,7 +259,7 @@ const prevImage = () => {
             <div className="relative animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
               <div className="glass-card rounded-3xl p-6 glow-border">
 
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
+                <div className="aspect-4/5 rounded-2xl overflow-hidden bg-slate-900 relative">
 
                   <img
                     src={Array.isArray(trip.image) ? trip.image[currentImage] : trip.image}
@@ -335,7 +335,7 @@ const prevImage = () => {
           <div className="flex flex-col md:flex-row items-start gap-6">
 
             {/* Day Number */}
-            <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+            <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center shrink-0 border border-purple-100">
               <span className="text-3xl font-bold gradient-text">
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -416,7 +416,7 @@ const prevImage = () => {
             {trip.inclusions?.map((item, i) => (
               <div key={i} className="flex items-start gap-4">
 
-                <ShieldCheck className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+                <ShieldCheck className="w-6 h-6 text-purple-600 mt-1 shrink-0" />
 
                 <p className="text-gray-700 leading-relaxed">
                   {item}
@@ -578,7 +578,7 @@ function TipsSection({ tips }) {
   if (!tips || tips.length === 0) return null;
 
   return (
-    <div className="mt-12 rounded-[2rem] border border-violet-100 bg-white p-6 shadow-sm">
+    <div className="mt-12 rounded-4xl border border-violet-100 bg-white p-6 shadow-sm">
       
       {/* Heading */}
       <div className="flex items-center gap-2 mb-6">
@@ -596,7 +596,7 @@ function TipsSection({ tips }) {
             className="flex items-start gap-3 rounded-xl bg-[#faf7ff] p-4 transition hover:shadow-md"
           >
             {/* Bullet */}
-            <div className="mt-1 h-2 w-2 rounded-full bg-violet-600 flex-shrink-0" />
+            <div className="mt-1 h-2 w-2 rounded-full bg-violet-600 shrink-0" />
 
             {/* Text */}
             <p className="text-sm text-slate-700 leading-6">

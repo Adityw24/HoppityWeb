@@ -18,7 +18,7 @@ export default function Itineraries() {
         <Link
           to="/"
           aria-label="Go back to home"
-          className="absolute left-3 top-3 z-10 h-11 w-11 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shadow-md transition hover:scale-105 sm:left-6 sm:top-4 sm:h-10 sm:w-10"
+          className="absolute left-3 top-3 z-10 h-11 w-11 rounded-xl bg-linear-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shadow-md transition hover:scale-105 sm:left-6 sm:top-4 sm:h-10 sm:w-10"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </Link>
@@ -41,14 +41,14 @@ export default function Itineraries() {
           <Link
             to={`/itinerary/${trip.slug}`}
             key={trip.slug}
-            className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
+            className="group overflow-hidden rounded-4xl border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
           >
             <div className="relative h-52 overflow-hidden text-white">
               <img
                 src={trip.image[0]}
                 className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent"></div>
 
               <div className="relative p-6">
                 <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide backdrop-blur-sm">

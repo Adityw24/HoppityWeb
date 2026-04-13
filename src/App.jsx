@@ -2,7 +2,9 @@ import React from 'react'
 import LandingPage from './Pages/Landing'
 import Itinerary from './Pages/Itinerary'
 import Itineraries from './Pages/Itineraries'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import PrivacyPolicy from './Pages/Privacy'
+
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -32,6 +34,7 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/itinerary/:slug" element={<Itinerary />} />
         <Route path="/itineraries" element={<Itineraries />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </BrowserRouter>
   )

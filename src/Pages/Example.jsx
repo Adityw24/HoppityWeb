@@ -158,7 +158,7 @@ const TripDetails = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 cursor-pointer">
               <div id='btn' onClick={() => window.history.back()}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
+              className="w-10 h-10 rounded-xl bg-linear-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </div>
               <span id='btn' onClick={() => window.history.back()} className="text-lg font-semibold text-gray-700">Back to Home</span>
@@ -222,7 +222,7 @@ const TripDetails = () => {
             {/* SVG Visual */}
             <div className="relative animate-scale-in hidden lg:block" style={{animationDelay: '0.2s'}}>
               <div className="glass-card rounded-3xl p-6 glow-border">
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
+                <div className="aspect-4/5 rounded-2xl overflow-hidden bg-slate-900 relative">
                   <img 
                     src={trip.image} 
                     alt={trip.title}
@@ -267,7 +267,7 @@ const TripDetails = () => {
             {Array.from({ length: days }).map((_, i) => (
               <div key={i} className="day-card rounded-2xl p-8 opacity-0 animate-fade-in-up" style={{animationDelay: `${(i+1)*0.1}s`}}>
                 <div className="flex flex-col md:flex-row items-start gap-6">
-                  <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+                  <div className="w-24 h-24 rounded-xl bg-purple-50 flex items-center justify-center shrink-0 border border-purple-100">
                     <span className="text-3xl font-bold gradient-text">{String(i+1).padStart(2, '0')}</span>
                   </div>
                   <div className="flex-1">
