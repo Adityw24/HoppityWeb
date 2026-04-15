@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Sparkles, ArrowLeft, ArrowRight, X, TrendingUp, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import Navbar from '../components/Navbar'
 
 // ── AI search via Supabase edge function ─────────────────────────────
 async function aiSearch(query, history = []) {
@@ -91,15 +92,12 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
+      <Navbar />
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-[#f7f1ff]/95 backdrop-blur border-b border-violet-100 px-4 py-4">
+      <div className="sticky top-20 z-30 bg-[#f7f1ff]/95 backdrop-blur border-b border-violet-100 px-4 py-4 mt-20">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <Link to="/" className="flex-shrink-0 w-9 h-9 rounded-xl bg-white border border-violet-100 flex items-center justify-center shadow-sm hover:shadow-md transition">
-              <ArrowLeft className="w-4 h-4 text-slate-700" />
-            </Link>
-
-            {/* Search input */}
+            {/* Search input */
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input

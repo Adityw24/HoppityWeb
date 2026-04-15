@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Users, CheckCircle, MessageCircle, Shield } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import Navbar from '../components/Navbar'
 
 const SUPABASE_URL = 'https://wenhudcyvlhilpgazylg.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlbmh1ZGN5dmxoaWxwZ2F6eWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0OTY0MTgsImV4cCI6MjA4NTA3MjQxOH0.Jdx993pFvb0JC87NaYhOQ6UR_7UIJBA1mkFQUeoK7bA'
@@ -225,8 +226,9 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
+      <Navbar />
       {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3">
+      <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3 mt-20">
         <Link to={`/itinerary/${slug}`} className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition">
           <ArrowLeft className="w-4 h-4" />
         </Link>

@@ -1,61 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Clock, Heart, MessageCircle, Search, X } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
+import Navbar from '../components/Navbar'
 
 const CATEGORIES = ['Heritage', 'Trekking', 'Adventure', 'Wildlife', 'Culinary', 'Spiritual', 'Cultural']
 
-// Mock blog posts data
-const MOCK_POSTS = [
-  {
-    id: 1,
-    slug: 'himalayan-hidden-gems',
-    title: 'Hidden Gems of the Himalayas: A Trek Beyond Guides',
-    excerpt: 'Discover the lesser-known trails and villages that make the Himalayas truly magical.',
-    category: 'Trekking',
-    cover_image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000&auto=format&fit=crop',
-    author_name: 'Arun Sharma',
-    author_avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Arun',
-    author_is_creator: true,
-    read_time_minutes: 8,
-    likes_count: 234,
-    is_featured: true,
-    content: 'Full article content here...'
-  },
-  {
-    id: 2,
-    slug: 'kerala-backwaters-food',
-    title: 'Kerala\'s Backwaters: Where Every Meal Tells a Story',
-    excerpt: 'A culinary journey through Kerala\'s waterways and traditional houseboat cuisine.',
-    category: 'Culinary',
-    cover_image_url: 'https://images.unsplash.com/photo-1590080876614-7267e1d03d9c?q=80&w=1000&auto=format&fit=crop',
-    author_name: 'Priya Nair',
-    author_avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Priya',
-    author_is_creator: false,
-    read_time_minutes: 6,
-    likes_count: 189,
-    is_featured: false,
-    content: 'Full article content here...'
-  },
-  {
-    id: 3,
-    slug: 'wildcat-safari-rajasthan',
-    title: 'Tigers, Leopards & Serenity: Ranthambore Unveiled',
-    excerpt: 'A wildlife photographer\'s guide to spotting big cats and experiencing untamed India.',
-    category: 'Wildlife',
-    cover_image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000&auto=format&fit=crop',
-    author_name: 'Vikram Singh',
-    author_avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram',
-    author_is_creator: true,
-    read_time_minutes: 10,
-    likes_count: 456,
-    is_featured: true,
-    content: 'Full article content here...'
-  },
-]
-
 export default function BlogPage() {
+  const { user } = useAuth()
   const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(null)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
@@ -63,23 +18,23 @@ export default function BlogPage() {
 
   useEffect(() => {
     setPage(0)
-    loadPosts(category, 0)
-  }, [category])
+    load(category, 0)
+  }, [category, user])
 
-  const loadPosts = (cat, offset = 0) => {
+  const load = async (cat, offset = 0) => {
     setLoading(true)
-    setTimeout(() => {
-      const filtered = cat 
-        ? MOCK_POSTS.filter(p => p.category === cat)
-        : MOCK_POSTS
-      
-      if (offset === 0) {
-        setPosts(filtered)
-      } else {
-        setPosts(prev => [...prev, ...filtered])
-      }
-      setLoading(false)
-    }, 300)
+    const { data } = await supabase.rpc('personalized_blog_feed', {
+      p_user_id:  user?.id ?? null,
+      p_limit:    PER_PAGE,
+      p_offset:   offset,
+      p_category: cat ?? null,
+    })
+    if (offset === 0) {
+      setPosts(data || [])
+    } else {
+      setPosts(prev => [...prev, ...(data || [])])
+    }
+    setLoading(false)
   }
 
   const filtered = search.trim()
@@ -93,9 +48,10 @@ export default function BlogPage() {
   const regular  = filtered.filter(p => !p.is_featured)
 
   return (
-    <div className="min-h-screen bg-[#ede5ff]">
+    <div className="min-h-screen bg-[#f7f1ff]">
+      <Navbar />
       {/* Header */}
-      <div className="bg-white border-b border-violet-100">
+      <div className="bg-white border-b border-violet-100 pt-20">
         <div className="max-w-6xl mx-auto px-6 py-10">
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-violet-700 mb-6 transition">
             <ArrowLeft className="w-4 h-4" /> Back to home
@@ -207,7 +163,7 @@ export default function BlogPage() {
                   onClick={() => {
                     const next = page + 1
                     setPage(next)
-                    loadPosts(category, next * PER_PAGE)
+                    load(category, next * PER_PAGE)
                   }}
                   disabled={loading}
                   className="rounded-2xl bg-white border border-violet-200 px-8 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 transition disabled:opacity-50 cursor-pointer"
@@ -335,4 +291,3 @@ function categoryEmoji(cat) {
     Culinary: '🍛', Spiritual: '🕉️', Cultural: '🎭' }
   return map[cat] || '📝'
 }
-

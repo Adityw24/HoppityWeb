@@ -2,31 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./src/assets/logo1.png" />
+    <link rel="icon" type="image/png" href="./src/assets/logo1.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hoppity - Discover Real India</title>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q8G6TX2EE"></script>
+    <title>Hoppity – Discover Real India</title>
+    <meta name="description" content="Expert-led guided tours across India. Heritage, trekking, wildlife, culinary and spiritual experiences in 20+ states." />
+
+    <!-- Google Analytics + Ads — single dataLayer init -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
       gtag('js', new Date());
-      gtag('config', 'G-2Q8G6TX2EE', { send_page_view: false });
     </script>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18035212140"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-18035212140');
-</script>
-
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q8G6TX2EE"></script>
+    <script>
+      gtag('config', 'G-2Q8G6TX2EE', { send_page_view: false });
+      gtag('config', 'AW-18035212140');
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
-</html> 
+</html>

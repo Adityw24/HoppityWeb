@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Heart, MessageCircle, Clock, Share2, BookOpen } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import Navbar from '../components/Navbar'
 
 const SUPABASE_URL = 'https://wenhudcyvlhilpgazylg.supabase.co'
 
@@ -130,8 +131,9 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Navbar />
       {/* Back nav */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-0 z-30 flex items-center gap-3">
+      <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-20 z-30 flex items-center gap-3">
         <Link to="/blog" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-700 transition flex-shrink-0">
           <ArrowLeft className="w-4 h-4" /> Stories
         </Link>

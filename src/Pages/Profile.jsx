@@ -38,6 +38,7 @@ export default function ProfilePage() {
   const [editForm, setEditForm]     = useState({ full_name: '', bio: '', location: '' })
   const [savingProfile, setSavingProfile] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [toast, setToast] = useState(null) // { msg, type: 'ok'|'err' }
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth')
@@ -81,42 +82,91 @@ export default function ProfilePage() {
     setLoading(false)
   }
 
+  const showToast = (msg, type = 'ok') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3500)
+  }
+
   const saveProfile = async () => {
     setSavingProfile(true)
-    await supabase.from('Users').update({
-      full_name: editForm.full_name.trim() || null,
-      bio:       editForm.bio.trim() || null,
-      location:  editForm.location.trim() || null,
-    }).eq('user_id', user.id)
-    setProfile(p => ({ ...p, ...editForm }))
-    setEditing(false)
-    setSavingProfile(false)
+    try {
+      const { error } = await supabase.from('Users').update({
+        full_name: editForm.full_name.trim() || null,
+        bio:       editForm.bio.trim() || null,
+        location:  editForm.location.trim() || null,
+      }).eq('user_id', user.id)
+      if (error) throw error
+      setProfile(p => ({ ...p, ...editForm }))
+      setEditing(false)
+      showToast('Profile updated ✓')
+    } catch (e) {
+      console.error('saveProfile:', e)
+      showToast('Could not save profile. Try again.', 'err')
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   const uploadAvatar = async (file) => {
     if (!file) return
+    // Validate file type and size client-side before hitting Supabase
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file.', 'err'); return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Image too large. Please pick one under 10 MB.', 'err'); return
+    }
     setAvatarUploading(true)
-    const blob = await new Promise(res => {
-      const reader = new FileReader()
-      reader.onload = e => {
-        const img = new window.Image()
-        img.onload = () => {
-          const s = Math.min(400, img.width, img.height)
-          const c = document.createElement('canvas')
-          c.width = s; c.height = s
-          c.getContext('2d').drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, s, s)
-          c.toBlob(b => res(b), 'image/jpeg', 0.82)
+    try {
+      // Compress + crop to 400×400 square via canvas
+      const blob = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onerror = () => reject(new Error('Could not read file'))
+        reader.onload = e => {
+          const img = new window.Image()
+          img.onerror = () => reject(new Error('Could not decode image'))
+          img.onload = () => {
+            const s = Math.min(400, img.width, img.height)
+            const canvas = document.createElement('canvas')
+            canvas.width = s; canvas.height = s
+            canvas.getContext('2d').drawImage(
+              img,
+              (img.width - s) / 2, (img.height - s) / 2, s, s,
+              0, 0, s, s
+            )
+            canvas.toBlob(b => {
+              if (!b) reject(new Error('Canvas produced empty blob'))
+              else resolve(b)
+            }, 'image/jpeg', 0.85)
+          }
+          img.src = e.target.result
         }
-        img.src = e.target.result
-      }
-      reader.readAsDataURL(file)
-    })
-    const path = `avatars/${user.id}.jpg`
-    await supabase.storage.from('user-media').upload(path, blob, { contentType: 'image/jpeg', upsert: true })
-    const url = `${SUPABASE_URL}/storage/v1/object/public/user-media/${path}?t=${Date.now()}`
-    await supabase.from('Users').update({ profile_pic: url }).eq('user_id', user.id)
-    setProfile(p => ({ ...p, profile_pic: url }))
-    setAvatarUploading(false)
+        reader.readAsDataURL(file)
+      })
+
+      const storagePath = `avatars/${user.id}.jpg`
+      const { error: uploadError } = await supabase.storage
+        .from('user-media')
+        .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: true })
+      if (uploadError) throw uploadError
+
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/user-media/${storagePath}?t=${Date.now()}`
+      const { error: dbError } = await supabase
+        .from('Users')
+        .update({ profile_pic: publicUrl })
+        .eq('user_id', user.id)
+      if (dbError) throw dbError
+
+      setProfile(p => ({ ...p, profile_pic: publicUrl }))
+      showToast('Photo updated ✓')
+    } catch (e) {
+      console.error('uploadAvatar:', e)
+      showToast(e.message || 'Upload failed. Try again.', 'err')
+    } finally {
+      setAvatarUploading(false)
+      // Reset the input so same file can be re-selected
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+    }
   }
 
   const cancelBooking = async (id) => {
@@ -159,6 +209,17 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold transition-all animate-fade-in ${
+          toast.type === 'err'
+            ? 'bg-red-600 text-white'
+            : 'bg-slate-900 text-white'
+        }`}>
+          {toast.type === 'err' ? '✗' : '✓'} {toast.msg}
+        </div>
+      )}
       <div className="max-w-3xl mx-auto px-4 pt-28 pb-20">
 
         {/* Profile card */}
@@ -171,13 +232,15 @@ export default function ProfilePage() {
                   : initials}
               </div>
               <button onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading}
-                className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-violet-700 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:bg-violet-800 transition shadow-sm disabled:opacity-50">
+                className="absolute -bottom-1.5 -right-1.5 w-8 h-8 bg-violet-700 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:bg-violet-800 active:scale-95 transition shadow-md disabled:opacity-50"
+                title="Change profile photo">
                 {avatarUploading
-                  ? <div className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
-                  : <Camera className="w-3.5 h-3.5 text-white" />}
+                  ? <div className="w-3.5 h-3.5 border border-white/50 border-t-white rounded-full animate-spin" />
+                  : <Camera className="w-4 h-4 text-white" />}
               </button>
-              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
-                onChange={e => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
+              {/* No capture attribute — lets user choose from their photo library on mobile */}
+              <input ref={avatarInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                className="hidden" onChange={e => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
             </div>
 
             <div className="flex-1 min-w-0">
