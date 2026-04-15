@@ -117,10 +117,7 @@ export default function HubPage() {
             {loading ? (
               <StoriesSkeleton />
             ) : stories.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-5xl mb-4">📝</div>
-                <p className="text-slate-500">No stories yet in this category.</p>
-              </div>
+              <ComingSoon icon="✍️" title="Stories — Coming Soon" sub="Travel stories, guides and first-hand accounts from Hoppity explorers. The first stories are on their way." />
             ) : (
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {stories.map(post => (
@@ -192,13 +189,7 @@ export default function HubPage() {
                 ))}
               </div>
             ) : creators.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-5xl mb-4">🎬</div>
-                <p className="text-slate-500">No creators yet — be the first!</p>
-                <Link to="/auth" className="mt-4 inline-block bg-violet-700 text-white rounded-2xl px-6 py-3 text-sm font-semibold hover:bg-violet-800 transition">
-                  Join as Creator
-                </Link>
-              </div>
+              <ComingSoon icon="🎬" title="Creator Network — Coming Soon" sub="Meet the travel storytellers and photography explorers behind Hoppity's most inspiring journeys." />
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
                 {creators.map(creator => (
@@ -248,10 +239,7 @@ export default function HubPage() {
                 ))}
               </div>
             ) : trending.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-5xl mb-4">🔥</div>
-                <p className="text-slate-500">Trending destinations coming soon.</p>
-              </div>
+              <ComingSoon icon="🔥" title="Trending — Coming Soon" sub="Curated trending destinations based on what the Hoppity community is booking and exploring." />
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
                 {trending.map(dest => (
@@ -325,4 +313,19 @@ function StoriesSkeleton() {
 function categoryEmoji(cat) {
   const map = { Heritage: '🏛️', Trekking: '🥾', Adventure: '🏄', Wildlife: '🐘', Culinary: '🍛', Spiritual: '🕉️', Cultural: '🎭' }
   return map[cat] || '📝'
+}
+
+
+function ComingSoon({ icon, title, sub }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-4xl mb-5 shadow-sm">{icon}</div>
+      <h3 className="text-xl font-black text-slate-900 mb-2">{title}</h3>
+      <p className="text-slate-500 text-sm max-w-xs leading-relaxed">{sub}</p>
+      <div className="mt-5 flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-3">
+        <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+        <span className="text-xs font-semibold text-violet-700">Launching soon</span>
+      </div>
+    </div>
+  )
 }

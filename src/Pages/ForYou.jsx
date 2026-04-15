@@ -164,12 +164,14 @@ export default function ForYouPage() {
           </div>
 
           {tours.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-violet-100">
-              <div className="text-5xl mb-4">🗺️</div>
-              <p className="text-slate-500">No recommendations yet — explore our itineraries!</p>
-              <Link to="/itineraries" className="mt-4 inline-block bg-violet-700 text-white rounded-2xl px-6 py-3 text-sm font-semibold hover:bg-violet-800 transition">
-                Browse tours
-              </Link>
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center col-span-full">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-4xl mb-5 shadow-sm">✨</div>
+              <h3 className="text-xl font-black text-slate-900 mb-2">Personalised Picks — Coming Soon</h3>
+              <p className="text-slate-500 text-sm max-w-xs leading-relaxed">AI-curated itineraries matched to your travel style. Sign in and book a trip to unlock your personal feed.</p>
+              <div className="mt-5 flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-3">
+                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                <span className="text-xs font-semibold text-violet-700">Personalisation launching soon</span>
+              </div>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

@@ -125,10 +125,24 @@ export default function BlogPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📖</div>
-            <h3 className="text-xl font-bold text-slate-900">No stories found</h3>
-            <p className="text-slate-500 mt-2">Try a different category or search term</p>
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-4xl mb-5 shadow-sm">
+              {search || category ? '🔍' : '✍️'}
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">
+              {search || category ? 'No stories found' : 'Stories — Coming Soon'}
+            </h3>
+            <p className="text-slate-500 text-sm max-w-xs leading-relaxed">
+              {search || category
+                ? 'Try a different category or clear your search.'
+                : 'First-hand accounts, hidden discoveries, and honest guides from India\'s most curious travellers. Our first stories are on their way.'}
+            </p>
+            {!search && !category && (
+              <div className="mt-5 flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-3">
+                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                <span className="text-xs font-semibold text-violet-700">Launching soon</span>
+              </div>
+            )}
           </div>
         ) : (
           <>

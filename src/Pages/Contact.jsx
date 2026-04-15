@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, MessageCircle, Mail, Phone, Send, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -15,10 +15,6 @@ const SUBJECTS = [
 ]
 
 export default function ContactPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: SUBJECTS[0], message: '' })
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -51,7 +47,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#ede5ff]">
+    <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
       <div className="max-w-4xl mx-auto px-6 pt-32 pb-20">
 
