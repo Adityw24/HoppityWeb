@@ -207,7 +207,7 @@ function FeaturedCard({ post, large }) {
             <span className="text-7xl">📝</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" pointer-events-none" />
         <div className="absolute top-4 left-4">
           <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">⭐ Featured</span>
         </div>
@@ -242,7 +242,7 @@ function PostCard({ post }) {
             <span className="text-5xl">{categoryEmoji(post.category)}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" pointer-events-none" />
         {post.category && (
           <div className="absolute top-3 left-3">
             <span className="bg-white/15 backdrop-blur border border-white/25 text-white text-xs font-semibold px-2.5 py-1 rounded-full">

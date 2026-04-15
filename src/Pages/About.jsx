@@ -92,15 +92,15 @@ export default function AboutPage() {
       {/* ── ORIGIN STORY ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-28 pb-16">
         {/* Deep atmospheric background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-violet-950 to-slate-900" />
-        <div className="absolute inset-0 opacity-30"
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-violet-950 to-slate-900 pointer-events-none" />
+        <div className="absolute inset-0 opacity-30 pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124,58,237,0.4), transparent), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139,92,246,0.3), transparent)' }} />
 
         {/* Grain texture */}
-        <div className="absolute inset-0 opacity-[0.03]"
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
-        <div className="relative mx-auto max-w-4xl px-6 lg:px-10 text-center text-white">
+        <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-10 text-center text-white">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-200 mb-10 backdrop-blur-sm">
             Built by operators, not observers
           </div>
@@ -284,7 +284,7 @@ export default function AboutPage() {
                 icon: '🤝',
                 title: 'The Industry Mind',
                 who: 'Ajay',
-                desc: '30 years of trust is not something you raise in a funding round. It's already here. The partner network, the distribution, the market knowledge — Ajay brought it on day one.',
+                desc: "30 years of trust is not something you raise in a funding round. It's already here. The partner network, the distribution, the market knowledge — Ajay brought it on day one.",
               },
             ].map(item => (
               <div key={item.title} className="rounded-2xl bg-white/5 border border-white/10 p-7 hover:bg-white/8 transition">

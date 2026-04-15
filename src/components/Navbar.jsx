@@ -30,7 +30,7 @@ export default function Navbar() {
       </Link>
 
       <nav className="hidden items-center gap-5 text-sm text-slate-700 md:flex">
-        <a href="/#why" className="hover:text-violet-700 font-semibold">Why Hoppity</a>
+        <Link to="/blog" className="hover:text-violet-700 font-semibold">Blog</Link>
         <Link to="/itineraries" className="hover:text-violet-700 font-semibold">Itineraries</Link>
         <Link to="/hub" className="hover:text-violet-700 font-semibold">Stories</Link>
         <Link to="/for-you" className="hover:text-violet-700 font-semibold flex items-center gap-1">
@@ -77,7 +77,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-white/60 p-4 space-y-1 md:hidden">
           {[
-            { to: '/#why', label: 'Why Hoppity' },
+            { to: '/blog', label: '📝 Blog' },
             { to: '/itineraries', label: 'Itineraries' },
             { to: '/search', label: '🔍 Search' },
             { to: '/search?mode=ai', label: '✨ Ask AI' },

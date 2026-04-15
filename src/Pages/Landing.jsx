@@ -178,7 +178,7 @@ export default function LandingPage() {
                   <img src={trip.image[0]} alt={trip.title}
                     className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" pointer-events-none" />
                 <div className="relative p-5 h-full flex flex-col justify-between">
                   {trip.tag && (
                     <div className="inline-flex self-start rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">{trip.tag}</div>

@@ -293,7 +293,7 @@ function TourCard({ tour }) {
         {img
           ? <img src={img} alt={tour.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
           : <div className="w-full h-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center"><span className="text-4xl">🗺️</span></div>}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" pointer-events-none" />
         <div className="absolute bottom-3 left-3">
           <span className="inline-block bg-white/15 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
             {tour.tag || tour.category}
