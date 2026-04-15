@@ -124,7 +124,7 @@ const handleSubmit = async (e) => {
   const testimonials = [
     {
       quote:
-        "I booked an Alibaug stay with Hoppity and had a fantastic experience. They helped us find a peaceful, off-beat place that wasn’t crowded. The stay was cozy, well maintained, close to the beach, and surrounded by great food options. For seamless trips to lesser-known destinations, I’d absolutely recommend Hoppity",
+        "I booked an Alibaug stay with Hoppity and had a fantastic experience. They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach, and surrounded by great food options. For seamless trips to lesser-known destinations, I'd absolutely recommend Hoppity",
       author: "- Subhag Dholke",
       image: subhag,
       rating: 5,
@@ -146,7 +146,7 @@ const handleSubmit = async (e) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f1ff] text-slate-900">
+    <div className="min-h-screen bg-[#ede5ff] text-slate-900">
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.20),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-6 lg:px-10">
@@ -166,8 +166,8 @@ const handleSubmit = async (e) => {
               <a href="#why" className="hover:text-violet-700 font-semibold">Why Hoppity</a>
               <a href="#catalog" className="hover:text-violet-700 font-semibold">Itineraries</a>
               <a href="#stories" className="hover:text-violet-700 font-semibold">Stories</a>
-              <a href="#waitlist" className="hover:text-violet-700 font-semibold">Join Waitlist</a>
-              <a href="https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I'm%20interested%20in%20this%20trip" target="_blank" rel="noopener noreferrer" className="hover:text-violet-700 font-semibold">Contact Us</a>
+              <a href="/about" className="hover:text-violet-700 font-semibold">About</a>
+              <a href="/contact" target="_blank" rel="noopener noreferrer" className="hover:text-violet-700 font-semibold">Contact Us</a>
             </nav>
           </header>
 
@@ -293,7 +293,6 @@ const handleSubmit = async (e) => {
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {trips.slice(0,6).map((trip) => (
-//cards
             <Link to={`/itinerary/${trip.slug}`}
             key={trip.slug}
             className="group overflow-hidden rounded-4xl border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
@@ -407,7 +406,7 @@ const handleSubmit = async (e) => {
 
           {/* Review */}
           <p className="text-base leading-7 text-slate-700">
-            “{item.quote}”
+            "{item.quote}"
           </p>
 
         </div>
@@ -429,9 +428,9 @@ const handleSubmit = async (e) => {
             </p>
           </div>
           <div className="rounded-4xl border border-violet-100 bg-linear-to-br from-violet-700 to-fuchsia-600 p-8 text-white shadow-xl">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-200">The feeling we’re selling</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-violet-200">The feeling we're selling</p>
             <h3 className="mt-3 text-2xl font-black tracking-tight md:text-4xl">
-              One day you’ll either remember the trip you took — or the one you kept postponing.
+              One day you'll either remember the trip you took — or the one you kept postponing.
             </h3>
             <p className="mt-4 text-base leading-8 text-violet-50">
               Choose the story. Choose the detour. Choose the road that gives something back.
@@ -528,61 +527,52 @@ const handleSubmit = async (e) => {
         </div>
       </section>
 
-      <section className="bg-[#f7f1ff] py-16 px-6 border-violet-100">
-        <div className="max-w-6xl mx-auto text-center">
-          
-          {/* Heading */}
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-800">
-            Connect With Us
-          </h2>
-          <p className="mt-3 text-slate-500">
-            Follow our journey across platforms 🌍
-          </p>
+      
 
-          {/* Social Icons */}
-          <div className="mt-10 flex justify-center gap-6 flex-wrap">
-            <a
-              href="https://www.instagram.com/hoppity_in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-pink-500"
-            >
-              <FaInstagram />
-            </a>
-            <a
-              href="https://www.linkedin.com/company/triffair/posts/?feedView=all"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-blue-600"
-            >
-              <FaLinkedin />
-            </a>
-            <a
-              href="https://www.facebook.com/Hoppityin?rdid=t08JKONEJFLqaR0M&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F18KwrVyfLr%2F#"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-3xl text-slate-600 transition transform hover:scale-125 hover:text-blue-600"
-            >
-              <FaFacebook />
-            </a>
-          </div>
-        </div>
-      </section>
+      <footer className="border-t border-violet-100 bg-[#ede5ff]">
+        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
 
-      <footer className="mx-auto max-w-7xl px-6 pb-12 lg:px-10">
-        <div className="flex flex-col gap-4 border-violet-100 pt-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
-          <div>
-            <span className="font-semibold text-slate-900">Hoppity</span> — Discover Real Travel
+            <div>
+              <p className="font-bold text-black-400 text-lg">Hoppity</p>
+              <p className="text-xs text-slate-500 mt-0.5">Discover Real Travel · India</p>
+            </div>
+
+            <nav className="flex flex-wrap gap-5 text-sm text-slate-600">
+              <a href="#catalog" className="hover:text-violet-700 transition">Itineraries</a>
+              <Link to="/itineraries" className="hover:text-violet-700 transition">All Tours</Link>
+              <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
+              <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
+              <Link to="/blogs" className="hover:text-violet-700 transition">Blogs</Link>
+              <Link to="/privacy-policy" className="hover:text-violet-700 transition">Privacy Policy</Link>
+            </nav>
+
+            <div className="flex items-center gap-4">
+              <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer"
+                className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110">
+                <FaInstagram />
+              </a>
+              <a href="https://www.linkedin.com/company/triffair/posts/?feedView=all" target="_blank" rel="noopener noreferrer"
+                className="text-slate-400 hover:text-blue-600 text-xl transition hover:scale-110">
+                <FaLinkedin />
+              </a>
+              <a href="https://www.facebook.com/Hoppityin" target="_blank" rel="noopener noreferrer"
+                className="text-slate-400 hover:text-blue-500 text-xl transition hover:scale-110">
+                <FaFacebook />
+              </a>
+              <a href="https://wa.me/919752377323" target="_blank" rel="noopener noreferrer"
+                className="ml-2 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 hover:bg-green-100 transition">
+                💬 WhatsApp us
+              </a>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-5">
-            <a href="#catalog" className="hover:text-violet-700">Catalog</a>
-            <a href="#why" className="hover:text-violet-700">Why Hoppity</a>
-            <a href="#waitlist" className="hover:text-violet-700">Join Early Access</a>
-            <Link to="/privacy-policy" className="hover:text-violet-700">Privacy Policy</Link>
+
+          <div className="mt-6 pt-5 border-t border-violet-200 text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <span>© 2026 Hoppity (Triffair). All rights reserved.</span>
+            <a href="mailto:sales@hoppity.in" className="hover:text-violet-600 transition">sales@hoppity.in</a>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

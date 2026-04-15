@@ -5,7 +5,9 @@ import Itineraries from './Pages/Itineraries'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import PrivacyPolicy from './Pages/Privacy'
 import DeleteAccount from './Pages/DeleteAccount'
-
+import About from './Pages/About'
+import Contact from './Pages/Contact'
+import Blog from './Pages/Blog'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -35,10 +37,13 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/itinerary/:slug" element={<Itinerary />} />
         <Route path="/itineraries" element={<Itineraries />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/deletemyaccount" element={<DeleteAccount />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/blogs" element={<Blog />} />
+
       </Routes>
     </BrowserRouter>
   )
