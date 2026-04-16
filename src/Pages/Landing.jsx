@@ -322,6 +322,7 @@ export default function LandingPage() {
               <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
               <Link to="/about" className="hover:text-violet-700 transition">About</Link>
               <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
+              <Link to="/privacy" className="hover:text-violet-700 transition">Privacy Policy</Link>
             </nav>
             <div className="flex items-center gap-4">
               <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110"><FaInstagram /></a>
