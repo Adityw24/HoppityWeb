@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useState, useEffect, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import React from "react"
 import { ArrowRight, Search, Clock, Star } from "lucide-react"
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
