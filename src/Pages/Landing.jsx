@@ -118,7 +118,7 @@ export default function LandingPage() {
             Discover Real India — offbeat, curated, unforgettable
           </div>
 
-          <h1 className="font-black leading-[1.05] tracking-[-0.03em] text-slate-950 text-3xl sm:text-4xl md:text-5xl mb-5">
+          <h1 className="font-black leading-[1.05] tracking-[-0.03em] text-slate-950 text-2xl sm:text-3xl md:text-4xl mb-5">
             The trips you remember forever,<br className="hidden sm:block" />
             are rarely the ones everyone else is taking.
           </h1>
