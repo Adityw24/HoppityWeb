@@ -1,9 +1,6 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import React from "react"
-import subhag from "../assets/subhag.jpeg"
-import pallavi from "../assets/pallavi1.jpeg"
-import divyansh from "../assets/divyansh.jpeg"
 import { ArrowRight, Search, Clock, Star } from "lucide-react"
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
 import { supabase } from "../lib/supabase"
@@ -42,9 +39,9 @@ export default function LandingPage() {
   }, [])
 
   const [testimonials, setTestimonials] = React.useState([
-    { quote: "They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: subhag, rating: 5, location: "Mumbai" },
-    { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: pallavi, rating: 5, location: "Pune" },
-    { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: divyansh, rating: 5, location: "Delhi" },
+    { quote: "They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: null, rating: 5, location: "Mumbai" },
+    { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: null, rating: 5, location: "Pune" },
+    { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: null, rating: 5, location: "Delhi" },
   ])
 
   React.useEffect(() => {
