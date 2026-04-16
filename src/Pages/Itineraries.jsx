@@ -138,23 +138,27 @@ function TripCard({ trip }) {
     <Link to={`/itinerary/${trip.slug}`}
       className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer flex flex-col">
 
-      {/* Image area — fixed 56 (224px) so text always has room */}
+      {/* Image area */}
       <div className="relative h-56 overflow-hidden flex-shrink-0">
 
-        {hasImage ? (
+        {/* Gradient fallback — always the base layer */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+          <span className="text-6xl opacity-40">{emoji}</span>
+        </div>
+
+        {/* Photo on top — hides itself if URL broken or missing */}
+        {hasImage && (
           <img
             src={trip.image[0]}
             alt={trip.title}
             className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
-            onError={e => { e.currentTarget.style.display = 'none' }}
+            onError={e => {
+              e.currentTarget.style.display = 'none'
+            }}
           />
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-            <span className="text-6xl opacity-60">{emoji}</span>
-          </div>
         )}
 
-        {/* Gradient overlay — always present for text readability */}
+        {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
 
         {/* Tag pill — top left */}

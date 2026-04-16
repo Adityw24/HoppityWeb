@@ -170,10 +170,14 @@ export default function LandingPage() {
           {trips.slice(0, 6).map(trip => (
             <Link to={`/itinerary/${trip.slug}`} key={trip.slug}
               className="group overflow-hidden rounded-[1.75rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer">
-              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-violet-100 to-purple-100">
+              <div className="relative h-48 overflow-hidden">
+                {/* Gradient fallback base */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-700 to-purple-900" />
+                {/* Photo overlay */}
                 {trip.image?.[0] && (
                   <img src={trip.image[0]} alt={trip.title}
-                    className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105" />
+                    className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                    onError={e => { e.currentTarget.style.display = 'none' }} />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none" />
                 <div className="relative p-5 h-full flex flex-col justify-between">
