@@ -30,13 +30,12 @@ export default function Navbar() {
       </Link>
 
       <nav className="hidden items-center gap-5 text-sm text-slate-700 md:flex">
-        <Link to="/blog" className="hover:text-violet-700 font-semibold">Blog</Link>
         <Link to="/itineraries" className="hover:text-violet-700 font-semibold">Itineraries</Link>
-        <Link to="/hub" className="hover:text-violet-700 font-semibold">Stories</Link>
+        <Link to="/about" className="hover:text-violet-700 font-semibold">About Us</Link>
+        <Link to="/blog" className="hover:text-violet-700 font-semibold">Blog</Link>
         <Link to="/for-you" className="hover:text-violet-700 font-semibold flex items-center gap-1">
           <Sparkles className="w-3 h-3" />For You
         </Link>
-        <Link to="/about" className="hover:text-violet-700 font-semibold">About Us</Link>
         <Link to="/contact" className="hover:text-violet-700 font-semibold">Contact</Link>
       </nav>
 
@@ -77,15 +76,15 @@ export default function Navbar() {
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-white/60 p-4 space-y-1 md:hidden">
           {[
-            { to: '/blog', label: '📝 Blog' },
-            { to: '/itineraries', label: 'Itineraries' },
-            { to: '/search', label: '🔍 Search' },
+            { to: '/itineraries', label: '🗺️ Itineraries' },
+            { to: '/about',       label: '🌿 About Us' },
+            { to: '/blog',        label: '📝 Blog' },
+            { to: '/for-you',     label: '⭐ For You' },
+            { to: '/contact',     label: '💬 Contact' },
+            { to: '/search',      label: '🔍 Search' },
             { to: '/search?mode=ai', label: '✨ Ask AI' },
-            { to: '/hub', label: '📖 Stories' },
-            { to: '/for-you', label: '⭐ For You' },
-            { to: '/write',   label: '✍️ Write a Story' },
-            { to: '/about',   label: '🌿 About Us' },
-            { to: '/contact', label: '💬 Contact' },
+            { to: '/hub',         label: '📖 Stories' },
+            { to: '/write',       label: '✍️ Write a Story' },
           ].map(item => (
             <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
               className="block px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition">{item.label}</Link>
