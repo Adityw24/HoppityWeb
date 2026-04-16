@@ -59,7 +59,7 @@ export default function HubPage() {
       <Navbar />
 
       {/* Header */}
-      <div className="max-w-6xl mx-auto px-6 pt-32 pb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-8">
         <p className="text-sm font-bold uppercase tracking-widest text-violet-600 mb-2">Community</p>
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-950 mb-4">
           The Hub

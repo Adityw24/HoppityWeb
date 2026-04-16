@@ -85,7 +85,7 @@ export default function ForYouPage() {
     return (
       <div className="min-h-screen bg-[#f7f1ff]">
         <Navbar />
-        <div className="max-w-6xl mx-auto px-6 pt-32">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28">
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-violet-200 rounded-full w-48" />
             <div className="grid md:grid-cols-3 gap-6">
@@ -108,7 +108,7 @@ export default function ForYouPage() {
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-6 pt-32 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-20">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">

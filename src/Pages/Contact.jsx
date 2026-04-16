@@ -112,7 +112,7 @@ export default function ContactPage() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="p-7 space-y-5">
+              <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-5">
                 <div>
                   <h2 className="text-xl font-black text-slate-900 mb-1">Send us a message</h2>
                   <p className="text-sm text-slate-500">We read every message. No bots.</p>

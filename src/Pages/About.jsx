@@ -109,7 +109,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E\")" }} />
 
-        <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-10 text-center text-white">
+        <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 text-center text-white">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-300 mb-5">Our Story</p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.05] mb-6">
             Built by people who got lost<br className="hidden sm:block" /> in India and loved it.
@@ -133,7 +133,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── FOUNDERS ──────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-6 lg:px-10 py-16">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 py-16">
         <div className="text-center mb-12">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-600 mb-3">The team</p>
           <h2 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight">
@@ -244,7 +244,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── PARTNER NETWORK ──────────────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-6 lg:px-10 py-14">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 py-14">
         <div className="bg-white rounded-3xl border border-violet-100 p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
             <div>
@@ -270,7 +270,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-6 lg:px-10 pb-16">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 pb-16">
         <div className="bg-gradient-to-br from-violet-700 to-purple-800 rounded-3xl p-8 md:p-12 text-white text-center shadow-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-200 mb-4">Ready to go?</p>
           <h2 className="text-3xl md:text-4xl font-black mb-4">Find your India.</h2>
