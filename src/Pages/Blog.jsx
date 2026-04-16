@@ -147,9 +147,25 @@ export default function BlogPage() {
                 : 'First-hand accounts, hidden discoveries, and honest guides from India\'s most curious travellers. Our first stories are on their way.'}
             </p>
             {!search && !category && (
-              <div className="mt-5 flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-3">
-                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                <span className="text-xs font-semibold text-violet-700">Launching soon</span>
+              <div className="mt-6 flex flex-col items-center gap-3 w-full max-w-sm">
+                {/* Launching soon badge */}
+                <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-3">
+                  <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                  <span className="text-xs font-semibold text-violet-700">Launching soon</span>
+                </div>
+                {/* Write your first story CTA */}
+                <div className="w-full bg-gradient-to-br from-slate-900 to-violet-950 rounded-2xl px-6 py-5 text-center shadow-lg">
+                  <p className="text-xs font-bold uppercase tracking-widest text-violet-300 mb-1">Be the first</p>
+                  <p className="text-sm font-semibold text-white mb-4 leading-relaxed">
+                    Log in or sign up to write<br/>your first travel story.
+                  </p>
+                  <Link
+                    to="/auth"
+                    className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition shadow-md"
+                  >
+                    ✍️ Write a Story
+                  </Link>
+                </div>
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ import HubPage       from './Pages/Hub'
 import ForYouPage    from './Pages/ForYou'
 import ContactPage   from './Pages/Contact'
 import AboutPage     from './Pages/About'
+import FloatingActions from './components/FloatingActions'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -33,6 +34,7 @@ const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <AnalyticsTracker />
+      <FloatingActions />
       <Routes>
         <Route path="/"                 element={<LandingPage />} />
         <Route path="/itinerary/:slug"  element={<Itinerary />} />
