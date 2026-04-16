@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
 import { setPageSEO } from '../lib/seo'
 
-export default function Cont
+export default function ContactPage() {
   useEffect(() => {
     setPageSEO({
       title: 'Contact Us – Plan Your India Journey',
@@ -14,7 +14,6 @@ export default function Cont
       canonical: '/contact',
     })
   }, [])
-actPage() {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', subject: '', message: ''
   })
