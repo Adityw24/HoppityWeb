@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 // ── Photos — add these files to src/assets/ when ready ──────────────────────
 import sabyPhoto from '../assets/saby.jpg'
 import ajayPhoto from '../assets/ajay.jpg'
+import { setPageSEO } from '../lib/seo'
 // import dipakPhoto from '../assets/dipak.jpg'
 // Then set photo: sabyPhoto, photo: ajayPhoto, photo: dipakPhoto below
 
@@ -87,6 +88,14 @@ When Sab came to him with Hoppity, Dipak saw something most people miss: this is
 ]
 
 export default function AboutPage() {
+  useEffect(() => {
+    setPageSEO({
+      title: 'About Us – The Team Behind Hoppity',
+      description: "Meet Sab, AJ, and Dipak — the founders behind Hoppity. A decade in tech, 30 years in travel, and an architecture career in the UK. Building the platform India's extraordinary places deserve.",
+      canonical: '/about',
+    })
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />

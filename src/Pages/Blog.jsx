@@ -4,10 +4,19 @@ import { ArrowLeft, ArrowRight, Clock, Heart, MessageCircle, Search, X } from 'l
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
+import { setPageSEO } from '../lib/seo'
 
 const CATEGORIES = ['Heritage', 'Trekking', 'Adventure', 'Wildlife', 'Culinary', 'Spiritual', 'Cultural']
 
 export default function BlogPage() {
+  useEffect(() => {
+    setPageSEO({
+      title: 'Travel Stories – First-Hand India Travel Guides',
+      description: "First-hand travel stories, honest guides, and hidden discoveries from India's most curious travellers. Real experiences from Northeast India, Ladakh, Rajasthan, and beyond.",
+      canonical: '/blog',
+    })
+  }, [])
+
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)

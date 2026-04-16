@@ -3,6 +3,7 @@ import { ArrowRight, ArrowLeft, Star } from "lucide-react"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import { setPageSEO } from '../lib/seo'
 
 function normalise(row) {
   return {
@@ -41,6 +42,11 @@ export default function Itineraries() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    setPageSEO({
+      title: 'All Itineraries – Curated India Travel Experiences',
+      description: 'Browse Hoppity\'s full catalogue of curated India travel experiences — tribal Northeast India, Ladakh expeditions, wildlife safaris, heritage trails, spiritual journeys, and more.',
+      canonical: '/itineraries',
+    })
     supabase
       .from("Itineraries")
       .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")

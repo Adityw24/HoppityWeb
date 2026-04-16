@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useEffect, useRef } from "react"
 import React from "react"
 import { ArrowRight, Search, Clock, Star } from "lucide-react"
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import { setPageSEO } from '../lib/seo'
 
 function normaliseLanding(row) {
   return {
@@ -22,7 +23,15 @@ const VIBE_CHIPS = [
   { label: '⚡ Weekend getaway', q: 'weekend short trip' },
 ]
 
-export default function LandingPage() {
+export default function Land
+  useEffect(() => {
+    setPageSEO({
+      title: 'Discover Real India – Curated Offbeat Travel',
+      description: "Hoppity curates India's most extraordinary travel experiences — Northeast tribal journeys, Ladakh expeditions, wildlife safaris, and spiritual trails. Expert-guided, small-group, authentic.",
+      canonical: '/',
+    })
+  }, [])
+ingPage() {
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [searchQuery, setSearchQuery] = useState('')

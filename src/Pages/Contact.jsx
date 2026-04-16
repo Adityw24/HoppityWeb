@@ -1,11 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, MessageSquare, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
+import { setPageSEO } from '../lib/seo'
 
-export default function ContactPage() {
+export default function Cont
+  useEffect(() => {
+    setPageSEO({
+      title: 'Contact Us – Plan Your India Journey',
+      description: 'Get in touch with the Hoppity team to plan your India trip, ask about custom itineraries, group travel, or B2B partnerships. We reply to every message.',
+      canonical: '/contact',
+    })
+  }, [])
+actPage() {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', subject: '', message: ''
   })

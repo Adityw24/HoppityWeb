@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Search, Sparkles, X, TrendingUp, Clock, MapPin, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
+import { setPageSEO } from '../lib/seo'
 
 const SUPABASE_URL = 'https://wenhudcyvlhilpgazylg.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlbmh1ZGN5dmxoaWxwZ2F6eWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0OTY0MTgsImV4cCI6MjA4NTA3MjQxOH0.Jdx993pFvb0JC87NaYhOQ6UR_7UIJBA1mkFQUeoK7bA'
@@ -36,6 +37,14 @@ async function aiSearch(query, history = []) {
 }
 
 export default function SearchPage() {
+  useEffect(() => {
+    setPageSEO({
+      title: 'Search – Find Your Perfect India Trip',
+      description: "Search Hoppity's curated catalogue of India travel experiences. Use AI search to find trips by vibe, destination, or activity — from tribal northeast to Himalayan expeditions.",
+      canonical: '/search',
+    })
+  }, [])
+
   const [searchParams] = useSearchParams()
   const initialQ = searchParams.get('q') || ''
   

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 import Navbar from '../components/Navbar';
+import { setPageSEO, buildTourLD } from '../lib/seo'
 
 // ── Normalise Supabase row ────────────────────────────────────────────
 function normalise(row) {
@@ -59,6 +60,30 @@ export default function TripDetails() {
   };
 
   // ── Loading ─────────────────────────────────────────────────────────
+
+  // Dynamic SEO — runs once trip data loads
+  useEffect(() => {
+    if (!trip) return
+    const img = trip.images?.[0] || trip.cover_image_url
+    setPageSEO({
+      title: `${trip.title} – ${trip.location || trip.state || 'India'}`,
+      description: trip.blurb || `${trip.title} — an extraordinary guided journey through ${trip.location || 'India'} with Hoppity.`,
+      canonical: `/itinerary/${trip.slug}`,
+      image: img,
+      type: 'article',
+      jsonLd: buildTourLD({
+        title: trip.title,
+        description: trip.blurb,
+        url: `/itinerary/${trip.slug}`,
+        image: img,
+        price: trip.price_per_person,
+        location: trip.location,
+        category: trip.category,
+        duration: trip.duration_display || trip.duration,
+      }),
+    })
+  }, [trip])
+
   if (loading) return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
       <div className="text-center">
