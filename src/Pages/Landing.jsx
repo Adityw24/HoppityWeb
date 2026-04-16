@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import subhagImg from "../assets/subhag.jpeg"
 import pallaviImg from "../assets/pallavi1.jpeg"
-import divyanshImg from "../assets/divyansh.jpeg" 
+import divyanshImg from "../assets/divyansh.jpeg"
 import { setPageSEO } from '../lib/seo'
 
 function normaliseLanding(row) {
@@ -26,7 +26,7 @@ const VIBE_CHIPS = [
   { label: '⚡ Weekend getaway', q: 'weekend short trip' },
 ]
 
-export default function Land
+export default function LandingPage() {
   useEffect(() => {
     setPageSEO({
       title: 'Discover Real India – Curated Offbeat Travel',
@@ -34,7 +34,6 @@ export default function Land
       canonical: '/',
     })
   }, [])
-ingPage() {
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
