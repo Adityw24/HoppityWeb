@@ -5,6 +5,9 @@ import { ArrowRight, Search, Clock, Star } from "lucide-react"
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import subhagImg from "../assets/subhag.jpeg"
+import pallaviImg from "../assets/pallavi1.jpeg"
+import divyanshImg from "../assets/divyansh.jpeg" 
 import { setPageSEO } from '../lib/seo'
 
 function normaliseLanding(row) {
@@ -48,9 +51,9 @@ ingPage() {
   }, [])
 
   const [testimonials, setTestimonials] = React.useState([
-    { quote: "They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: null, rating: 5, location: "Mumbai" },
-    { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: null, rating: 5, location: "Pune" },
-    { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: null, rating: 5, location: "Delhi" },
+    { quote: "They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: subhagImg, rating: 5, location: "Mumbai" },
+    { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: pallaviImg, rating: 5, location: "Pune" },
+    { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: divyanshImg, rating: 5, location: "Delhi" },
   ])
 
   React.useEffect(() => {
@@ -116,8 +119,9 @@ ingPage() {
             Discover Real India — offbeat, curated, unforgettable
           </div>
 
-          <h1 className="font-black leading-[1.0] tracking-[-0.035em] text-slate-950 text-4xl sm:text-5xl md:text-6xl mb-5">
-            The trips you remember forever are rarely the ones everyone else is taking.
+          <h1 className="font-black leading-[1.05] tracking-[-0.03em] text-slate-950 text-3xl sm:text-4xl md:text-5xl mb-5">
+            The trips you remember forever,<br className="hidden sm:block" />
+            are rarely the ones everyone else is taking.
           </h1>
 
           {/* ── Search bar ─────────────────────────────────────────── */}
