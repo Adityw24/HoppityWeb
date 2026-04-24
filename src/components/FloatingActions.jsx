@@ -4,22 +4,20 @@ import { ArrowUp, Home } from 'lucide-react'
 
 export default function FloatingActions() {
   const [visible, setVisible] = useState(false)
-  const [atTop, setAtTop] = useState(true)
   const location = useLocation()
-
-  // Don't show on auth page — would clutter the login form
-  if (location.pathname === '/auth') return null
 
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY
       setVisible(y > 320)
-      setAtTop(y < 20)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Don't show on auth page - would clutter the login form
+  if (location.pathname === '/auth') return null
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })

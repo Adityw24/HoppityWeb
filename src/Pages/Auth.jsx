@@ -1,23 +1,28 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import logo from '../assets/logo1.png'
 
+const getAuthRedirectUrl = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return window.location.origin
+  }
+
+  return 'https://www.hoppity.in'
+}
+
 export default function AuthPage() {
   const [tab, setTab] = useState('signin')
   const navigate = useNavigate()
-  const location = useLocation()
   const { user } = useAuth()
 
-  // If already signed in, redirect to profile
+  // If already signed in, redirect to the homepage.
   useEffect(() => {
-    if (user) navigate('/profile', { replace: true })
-  }, [user])
+    if (user) navigate('/', { replace: true })
+  }, [user, navigate])
 
-  // Read ?next= param to redirect after auth
-  const next = new URLSearchParams(location.search).get('next') || '/profile'
-  const onSuccess = () => navigate(next, { replace: true })
+  const onSuccess = () => navigate('/', { replace: true })
 
   return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center px-4 py-12">
@@ -33,7 +38,7 @@ export default function AuthPage() {
 
           {/* Google — most prominent, top of card */}
           <div className="p-6 pb-4">
-            <GoogleButton onSuccess={onSuccess} />
+            <GoogleButton />
           </div>
 
           {/* Divider */}
@@ -66,7 +71,7 @@ export default function AuthPage() {
 
           <div className="p-6">
             {tab === 'signin' && <SignInForm onSuccess={onSuccess} />}
-            {tab === 'signup' && <SignUpForm onSuccess={onSuccess} />}
+            {tab === 'signup' && <SignUpForm />}
             {tab === 'phone'  && <PhoneForm  onSuccess={onSuccess} />}
           </div>
         </div>
@@ -81,7 +86,7 @@ export default function AuthPage() {
 }
 
 // ── Google ────────────────────────────────────────────────────────────
-function GoogleButton({ onSuccess }) {
+function GoogleButton() {
   const [loading, setLoading] = useState(false)
 
   const signIn = async () => {
@@ -89,7 +94,7 @@ function GoogleButton({ onSuccess }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: getAuthRedirectUrl(),
         queryParams: { prompt: 'select_account' },
       },
     })
@@ -114,6 +119,7 @@ function GoogleButton({ onSuccess }) {
 }
 
 // ── Sign In ────────────────────────────────────────────────────────────
+// eslint-disable-next-line react/prop-types
 function SignInForm({ onSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -172,7 +178,7 @@ function SignInForm({ onSuccess }) {
 }
 
 // ── Sign Up ────────────────────────────────────────────────────────────
-function SignUpForm({ onSuccess }) {
+function SignUpForm() {
   const [form, setForm] = useState({ fullName: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -230,6 +236,7 @@ function SignUpForm({ onSuccess }) {
 }
 
 // ── Phone OTP ─────────────────────────────────────────────────────────
+// eslint-disable-next-line react/prop-types
 function PhoneForm({ onSuccess }) {
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')

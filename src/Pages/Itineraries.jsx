@@ -50,12 +50,45 @@ export default function Itineraries() {
     supabase
       .from("Itineraries")
       .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
-      .eq("is_active", true)
+      // NOTE: fetch all itineraries (including drafts) so admin uploads show immediately
       .order("rating", { ascending: false })
-      .then(({ data }) => {
+      .then(res => {
+        console.log('Itineraries fetch result:', res)
+        const { data, error } = res
+        if (error) console.error('Itineraries fetch error:', error)
         setTrips((data || []).map(normalise))
         setLoading(false)
       })
+      .catch(err => {
+        console.error('Itineraries fetch failed:', err)
+        setLoading(false)
+      })
+
+    // DEBUG: also fetch recent itineraries without the `is_active` filter
+    // This helps check if new uploads are saved but not marked active.
+    supabase
+      .from("Itineraries")
+      .select("id,slug,is_active,created_at")
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (error) return console.error('Itineraries debug fetch error:', error)
+        console.log('Itineraries debug (recent 50):', data?.length || 0)
+        const inactive = (data || []).filter(r => !r.is_active)
+        if (inactive.length > 0) console.warn('Inactive itineraries (debug):', inactive.map(i => ({ slug: i.slug, id: i.id })))
+      })
+      .catch(err => console.error('Itineraries debug fetch failed:', err))
+
+    // DEBUG: get exact count and the id/slug list visible to this anon key
+    supabase
+      .from('Itineraries')
+      .select('id,slug', { count: 'exact' })
+      .then(({ data, count, error }) => {
+        if (error) return console.error('Itineraries count fetch error:', error)
+        console.log('Itineraries visible count:', count, 'rows returned:', (data || []).length)
+        console.log('Itineraries visible ids/slugs:', (data || []).map(r => ({ id: r.id, slug: r.slug })))
+      })
+      .catch(err => console.error('Itineraries count fetch failed:', err))
   }, [])
 
   const filtered = filter === 'All' ? trips : trips.filter(t => t.category === filter)

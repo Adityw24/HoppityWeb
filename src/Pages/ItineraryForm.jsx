@@ -32,7 +32,9 @@ const EMPTY = {
   title: '', slug: '', location: '', state: '', category: 'Cultural',
   difficulty: 'Moderate', duration: '', duration_display: '', price: 'Price On Request',
   price_per_person: '', tag: '', blurb: '', route: '', meeting_point: '',
-  max_group_size: 12, min_group_size: 1, is_active: false,
+  max_group_size: 12, min_group_size: 1, is_active: true,
+    // NOTE: defaulting new itineraries to live makes uploads visible to the public site immediately.
+    // Change this to false if you prefer drafts by default.
   highlights: [], inclusions: [], exclusions: [], tips: [], city_stops: [],
   cover_image_url: '', images: [], video_url: '', itinerary_days: [],
   vendor_name: '', vendor_contact: '', vendor_notes: '', guide_id: '',
