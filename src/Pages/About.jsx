@@ -103,7 +103,7 @@ export default function AboutPage() {
 
       {/* ── HERO ───────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-28 pb-16">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-violet-950 to-slate-900 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-950 to-fuchsia-900 pointer-events-none" />
         <div className="absolute inset-0 opacity-30 pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124,58,237,0.4), transparent), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139,92,246,0.3), transparent)' }} />
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -121,7 +121,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/itineraries"
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm px-6 py-3 rounded-2xl transition shadow-lg">
+              className="inline-flex items-center gap-2 bg-white text-violet-700 hover:bg-violet-50 font-bold text-sm px-6 py-3 rounded-2xl transition shadow-xl shadow-violet-900/20">
               Explore Itineraries
             </Link>
             <Link to="/contact"
@@ -255,7 +255,7 @@ export default function AboutPage() {
               </h2>
             </div>
             <Link to="/itineraries"
-              className="flex-shrink-0 bg-violet-700 text-white font-semibold text-sm px-6 py-3 rounded-2xl hover:bg-violet-800 transition shadow-md">
+              className="flex-shrink-0 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white font-semibold text-sm px-6 py-3 rounded-2xl transition shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-300">
               Browse Itineraries →
             </Link>
           </div>
@@ -271,7 +271,7 @@ export default function AboutPage() {
 
       {/* ── CTA ───────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 pb-16">
-        <div className="bg-gradient-to-br from-violet-700 to-purple-800 rounded-3xl p-8 md:p-12 text-white text-center shadow-2xl">
+        <div className="bg-gradient-to-br from-violet-700 to-purple-900 rounded-3xl p-8 md:p-12 text-white text-center shadow-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-200 mb-4">Ready to go?</p>
           <h2 className="text-3xl md:text-4xl font-black mb-4">Find your India.</h2>
           <p className="text-violet-200 max-w-lg mx-auto mb-8">

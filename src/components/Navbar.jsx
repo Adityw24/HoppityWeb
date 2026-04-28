@@ -25,7 +25,7 @@ export default function Navbar() {
         <img src={logo} alt="Hoppity" className="h-10 w-10" />
         <div>
           <p className="text-lg font-semibold tracking-tight leading-none">Hoppity</p>
-          <p className="text-xs text-slate-500 font-medium">Discover Real Travel</p>
+          <p className="text-xs text-slate-500 font-medium">Discover Real India</p>
         </div>
       </Link>
 

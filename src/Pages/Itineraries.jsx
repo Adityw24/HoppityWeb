@@ -51,7 +51,7 @@ export default function Itineraries() {
       .from("Itineraries")
       .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
       // NOTE: fetch all itineraries (including drafts) so admin uploads show immediately
-      .order("rating", { ascending: false })
+      .order("id", { ascending: true })
       .then(res => {
         console.log('Itineraries fetch result:', res)
         const { data, error } = res
@@ -83,6 +83,7 @@ export default function Itineraries() {
     supabase
       .from('Itineraries')
       .select('id,slug', { count: 'exact' })
+      .order('id', { ascending: true })
       .then(({ data, count, error }) => {
         if (error) return console.error('Itineraries count fetch error:', error)
         console.log('Itineraries visible count:', count, 'rows returned:', (data || []).length)
@@ -106,13 +107,18 @@ export default function Itineraries() {
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
       <div className="px-6 pt-24 pb-16 lg:px-10">
+        <div className="max-w-7xl mx-auto mb-6">
+          <Link to="/"
+            aria-label="Back to home"
+            title="Back to home"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#f7f1ff]">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="sr-only">Back to home</span>
+          </Link>
+        </div>
 
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-10">
-          <Link to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-700 mb-5 transition">
-            <ArrowLeft className="w-4 h-4" /> Back to home
-          </Link>
           <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight">
             All Journeys
           </h1>
@@ -155,7 +161,7 @@ export default function Itineraries() {
         ) : (
           <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map(trip => (
-              <TripCard key={trip.slug} trip={trip} />
+              <TripCard key={trip.id} trip={trip} />
             ))}
           </div>
         )}

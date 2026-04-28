@@ -44,7 +44,7 @@ export default function LandingPage() {
       .from("Itineraries")
       .select("id,slug,title,location,duration,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating")
       .eq("is_active", true)
-      .order("rating", { ascending: false })
+      .order("id", { ascending: true })
       .limit(6)
       .then(({ data }) => setTrips((data || []).map(normaliseLanding)))
   }, [])
@@ -172,15 +172,17 @@ export default function LandingPage() {
               Itineraries that make ordinary weekends feel too small.
             </h2>
           </div>
+          {/*
           <Link to="/itineraries"
             className="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-violet-700 transition flex-shrink-0 ml-8">
             See all <ArrowRight className="w-3.5 h-3.5" />
           </Link>
+          */}
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {trips.slice(0, 6).map(trip => (
-            <Link to={`/itinerary/${trip.slug}`} key={trip.slug}
+            <Link to={`/itinerary/${trip.slug}`} key={trip.id}
               className="group overflow-hidden rounded-[1.75rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer">
               <div className="relative h-48 overflow-hidden">
                 {/* Gradient fallback base */}
@@ -205,7 +207,7 @@ export default function LandingPage() {
               <div className="px-5 py-4">
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="flex items-center gap-1 text-slate-500"><Clock className="w-3.5 h-3.5" /> {trip.duration}</span>
-                  <span className="font-black text-violet-700">
+                  <span className={`${trip.price_per_person ? 'font-black' : 'font-semibold'} text-violet-700`}>
                     {trip.price_per_person ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')}` : trip.price}
                   </span>
                 </div>

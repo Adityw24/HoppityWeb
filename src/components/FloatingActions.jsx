@@ -33,7 +33,7 @@ export default function FloatingActions() {
       <button
         onClick={scrollToTop}
         title="Back to top"
-        className="group w-11 h-11 rounded-2xl bg-white border border-violet-200 shadow-lg hover:shadow-violet-200/60 hover:border-violet-400 hover:bg-violet-50 transition-all duration-200 flex items-center justify-center cursor-pointer"
+        className="group w-11 h-11 rounded-xl bg-white border border-violet-200 shadow-lg hover:-translate-y-0.5 hover:shadow-violet-200/60  hover:bg-violet-50 transition-all duration-200 flex items-center justify-center cursor-pointer"
       >
         <ArrowUp className="w-4 h-4 text-violet-600 transition-transform duration-200 group-hover:-translate-y-0.5" />
       </button>
@@ -42,7 +42,7 @@ export default function FloatingActions() {
       <Link
         to="/"
         title="Go home"
-        className="group w-11 h-11 rounded-2xl bg-violet-700 hover:bg-violet-800 shadow-lg hover:shadow-violet-400/40 transition-all duration-200 flex items-center justify-center"
+        className="group w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 transition-all duration-200 flex items-center justify-center hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#f7f1ff]"
       >
         <Home className="w-4 h-4 text-white transition-transform duration-200 group-hover:scale-110" />
       </Link>
