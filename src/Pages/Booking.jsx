@@ -186,12 +186,12 @@ export default function BookingPage() {
     </div>
   )
 
-  // On Request tours → WhatsApp
+ {/* // On Request tours → WhatsApp
   if (pricePerPerson === 0) {
     const msg = encodeURIComponent(`Hi Hoppity! I want to enquire about: ${tour.title}`)
     window.location.href = `https://wa.me/919752377323?text=${msg}`
     return null
-  }
+  } */}
 
   // Success screen
   if (success) return (

@@ -17,6 +17,7 @@ import ContactPage   from './Pages/Contact'
 import AboutPage     from './Pages/About'
 import FloatingActions from './components/FloatingActions'
 import Privacy from './Pages/Privacy'
+import CheckoutPage from './Pages/Checkout'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -42,7 +43,7 @@ const App = () => (
         <Route path="/itineraries"      element={<Itineraries />} />
         <Route path="/auth"             element={<AuthPage />} />
         <Route path="/search"           element={<SearchPage />} />
-        <Route path="/booking/:slug"    element={<BookingPage />} />
+        <Route path="/booking/:slug"    element={<CheckoutPage />} />
         <Route path="/profile"          element={<ProfilePage />} />
         <Route path="/privacy"          element={<Privacy />} />
         <Route path="/blog"              element={<BlogPage />} />

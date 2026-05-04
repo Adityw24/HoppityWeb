@@ -52,6 +52,15 @@ export default function TripDetails() {
       });
   }, [slug]);
 
+  // Preload all images so slider feels instant
+  useEffect(() => {
+  if (!trip?.image?.length) return;
+  trip.image.forEach((src) => {
+    const img = new Image();
+    img.src = src;
+  });
+  }, [trip]);
+
   const nextImage = () => {
     if (trip?.image?.length > 1) setCurrentImage(p => (p + 1) % trip.image.length);
   };
