@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 import Navbar from '../components/Navbar';
-import { setPageSEO, buildTourLD } from '../lib/seo'
+import { setPageSEO, buildTourLD } from '../lib/seo';
+import { PhoneCall } from "lucide-react";
 
 // ── Normalise Supabase row ────────────────────────────────────────────
 function normalise(row) {
@@ -263,9 +264,10 @@ export default function TripDetails() {
                   className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer">
                   Book This Trip
                 </button>
-                <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"
+                <a href="tel:+919752377323" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-7 py-4 rounded-full border border-green-300 bg-green-50 text-green-800 text-sm font-semibold hover:bg-green-100 transition cursor-pointer">
-                  💬 Ask on WhatsApp
+                  <PhoneCall className="w-5 h-5 text-green-500" />
+                  Talk with our Expert Before Booking
                 </a>
               </div>
             </div>

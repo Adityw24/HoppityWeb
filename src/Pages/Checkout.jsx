@@ -3,12 +3,14 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, Info, CheckCircle2, Lock } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import { createClient } from '@supabase/supabase-js'
+
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
 const PLATFORM_FEE_PERCENT = 2.5        // 2.5% platform fee
 const GST_PERCENT          = 5          // 5% GST on base price
 const CONVENIENCE_FEE_FLAT = 99         // flat ₹99 convenience fee per booking
-const ADVANCE_PERCENT      = 1         // 30% advance to confirm booking
+const ADVANCE_PERCENT      = 30       // 30% advance to confirm booking
 
 // ─── Razorpay config ──────────────────────────────────────────────────────────
 const RAZORPAY_KEY_ID = "rzp_live_SlFUTb4rlS6gOz" // replace with your key
@@ -85,6 +87,7 @@ export default function Checkout() {
 
     const grandTotal    = baseTotal + platformFee + gst + convFee
     const advanceAmount = Math.round((grandTotal * ADVANCE_PERCENT) / 100)
+    const amountPaise    = Math.round(grandTotal * 100)
     const balanceDue    = grandTotal - advanceAmount
 
     const payNow = payMode === "advance" ? advanceAmount : grandTotal
@@ -93,9 +96,11 @@ export default function Checkout() {
       basePerPerson, baseTotal,
       platformFee, gst, convFee,
       grandTotal, advanceAmount, balanceDue, payNow,
+      amountPaise,
     }
   }, [trip, travelers, payMode])
 
+  
   // ─── Validation ───────────────────────────────────────────────────────────
   function validate() {
     const e = {}
@@ -109,122 +114,157 @@ export default function Checkout() {
     return Object.keys(e).length === 0
   }
 
-  // ─── Razorpay payment handler ─────────────────────────────────────────────
-  async function handlePay() {
-    if (!validate()) return
-    setPaying(true)
 
-    const loaded = await loadRazorpay()
-    if (!loaded) {
-      alert("Failed to load payment gateway. Please try again.")
+  // ─── Razorpay payment handler ─────────────────────────────────────────────
+async function handlePay() {
+  if (!validate()) return
+  setPaying(true)
+  
+// Add this right before the fetch call in handlePay
+console.log("trip.id being sent:", trip.id)
+console.log("trip.slug:", trip.slug)
+console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
+
+  const loaded = await loadRazorpay()
+  if (!loaded) {
+    alert("Failed to load payment gateway. Please try again.")
+    setPaying(false)
+    return
+  }
+
+  // ── Step 1: Create Razorpay order via Supabase Edge Function ──
+  let order_id   = null
+  let booking_id = null
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log("Session:", session?.access_token ? "logged in" : "NOT logged in")
+    console.log("Session token:", session?.access_token)  // ← add this to debug auth issues in Edge Function
+    const res = await fetch(
+      `https://wenhudcyvlhilpgazylg.supabase.co/functions/v1/create-razorpay-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          tour_id:         trip.id,
+          num_persons:     travelers,
+          booking_date:    form.travelDate,
+          special_request: form.specialReq || null,
+        }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      alert(data.error || "Could not initiate payment. Please try again.")
       setPaying(false)
       return
     }
+    order_id   = data.order_id
+    booking_id = data.booking_id
+  } catch (err) {
+    console.error("Order creation failed:", err)
+    alert("Could not initiate payment. Please try again.")
+    setPaying(false)
+    return
+  }
 
-    // In production: create an order on your backend and get order_id
-    // const { order_id } = await yourBackend.createOrder({ amount: pricing.payNow * 100, currency: "INR" })
+  // ── Step 2: Open Razorpay checkout ────────────────────────────
+  const options = {
+    key:         RAZORPAY_KEY_ID,
+    amount:      pricing.payNow * 100,   // amount in rupees
+    currency:    "INR",
+    name:        "Hoppity",
+    order_id:    order_id,               // ← required for QR in live mode
+    description: `${trip.title} — ${travelers} traveller${travelers > 1 ? "s" : ""}`,
+    image:       trip.image?.[0] || "",
 
-    const options = {
-      key:         RAZORPAY_KEY_ID,
-      amount:      pricing.payNow * 100, // paise
-      currency:    "INR",
-      name:        "Hoppity",
-      description: `${trip.title} — ${travelers} traveller${travelers > 1 ? "s" : ""}`,
-      image:       trip.image?.[0] || "",
-      // order_id: order_id,  // uncomment when using backend order creation
+    prefill: {
+      name:    form.name,
+      email:   form.email,
+      contact: `+91${form.phone}`,
+    },
 
-      prefill: {
-        name:    form.name,
-        email:   form.email,
-        contact: `+91${form.phone}`,
-      },
+    notes: {
+      slug:        trip.slug,
+      travelers:   travelers,
+      travel_date: form.travelDate,
+      pay_mode:    payMode,
+      special_req: form.specialReq,
+    },
 
-      notes: {
-        slug:        trip.slug,
-        travelers:   travelers,
-        travel_date: form.travelDate,
-        pay_mode:    payMode,
-        special_req: form.specialReq,
-      },
+    theme: { color: "#7c3aed" },
 
-      theme: { color: "#7c3aed" },
+    handler: async function (response) {
+      try {
+        // ── Step 3: Update the pending booking to confirmed ─────
+        const { error: bookingError } = await supabase
+          .from("Bookings")
+          .update({
+            status:         "confirmed",
+            payment_status: "paid",
+            item_type:      "itinerary",
+            item_id:        trip.id,
+            gateway_fee:    pricing.platformFee,
+          })
+          .eq("id", booking_id)
 
-        handler: async function (response) {
-        // Save booking to Supabase
-        try {
-
-        const { data: { user } } = await supabase.auth.getUser()
-        const { data: bookingRow, error: bookingError } = await supabase.from("Bookings").insert({
-        user_id:           user?.id || null,
-        item_type:         'itinerary',
-        item_id:           trip.id,
-        tour_id:           trip.id,
-        schedule_id:       null,               // set if you have schedules
-        total_amount:      pricing.grandTotal,
-        status:            'confirmed',
-        payment_status:    'paid',
-        num_persons:       travelers,
-        booking_date:      form.travelDate,
-        special_request:   form.specialReq || null,
-        guide_notes:       null,
-        gateway_fee:       pricing.platformFee,
-        razorpay_order_id: response.razorpay_order_id || null,
-        })
-        .select('id')
-        .single()
         if (bookingError) throw bookingError
-        
 
+        // ── Step 4: Insert payment record ──────────────────────
         const { error: paymentError } = await supabase
-        .from('payment')
-        .insert({
-        booking_id:          bookingRow.id,
-        amount:              pricing.payNow,
-        gateway:             'razorpay',
-        status:              'captured',
-        currency:            'INR',
-        razorpay_order_id:   response.razorpay_order_id   || null,
-        razorpay_payment_id: response.razorpay_payment_id || null,
-        razorpay_signature:  response.razorpay_signature  || null,
-        gateway_fee:         pricing.platformFee,
-        metadata: {
-        traveler_name:  form.name,
-        traveler_email: form.email,
-        traveler_phone: form.phone,
-        num_travelers:  travelers,
-        pay_mode:       payMode,
-        base_amount:    pricing.baseTotal,
-        gst:            pricing.gst,
-        convenience_fee: pricing.convFee,
-        balance_due:    payMode === 'advance' ? pricing.balanceDue : 0,
-        trip_slug:      trip.slug,
-        trip_title:     trip.title,
-        },
-        })
-        
+          .from("payment")
+          .insert({
+            booking_id:          booking_id,
+            amount:              pricing.payNow,
+            gateway:             "razorpay",
+            status:              "captured",
+            currency:            "INR",
+            razorpay_order_id:   response.razorpay_order_id   || null,
+            razorpay_payment_id: response.razorpay_payment_id || null,
+            razorpay_signature:  response.razorpay_signature  || null,
+            gateway_fee:         pricing.platformFee,
+            metadata: {
+            traveler_name:   form.name,
+            traveler_email:  form.email,
+            traveler_phone:  form.phone,
+            num_travelers:   travelers,
+            pay_mode:        payMode,
+            base_amount:     pricing.baseTotal,
+            gst:             pricing.gst,
+            convenience_fee: pricing.convFee,
+            balance_due:     payMode === "advance" ? pricing.balanceDue : 0,
+            trip_slug:       trip.slug,
+            trip_title:      trip.title,
+            },
+          })
+
         if (paymentError) throw paymentError
 
-        } catch (err) {
-            console.error("Booking save error:", err)
-        }
-        setPaying(false)
-        setSuccess(true)
-        window.scrollTo(0, 0)
-      },
+      } catch (err) {
+        console.error("Booking save error:", err)
+      }
 
-      modal: {
-        ondismiss: () => setPaying(false),
-      },
-    }
-
-    const rzp = new window.Razorpay(options)
-    rzp.on("payment.failed", (resp) => {
-      console.error("Payment failed:", resp.error)
-      alert(`Payment failed: ${resp.error.description}`)
       setPaying(false)
-    })
-    rzp.open()
+      setSuccess(true)
+      window.scrollTo(0, 0)
+    },
+
+    modal: {
+      ondismiss: () => setPaying(false),
+    },
   }
+
+  const rzp = new window.Razorpay(options)
+  rzp.on("payment.failed", (resp) => {
+    console.error("Payment failed:", resp.error)
+    alert(`Payment failed: ${resp.error.description}`)
+    setPaying(false)
+  })
+  rzp.open()
+}
 
   // ─── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
@@ -411,7 +451,7 @@ export default function Checkout() {
                   <div>
                     <label className="input-label">WhatsApp Number *</label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">+91</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500"></span>
                       <input type="tel" maxLength={10}
                         className={`input-field pl-12 ${errors.phone ? "error" : ""}`}
                         placeholder="10-digit number"

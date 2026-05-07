@@ -8,6 +8,8 @@ import Navbar from "../components/Navbar"
 import subhagImg from "../assets/subhag.jpeg"
 import pallaviImg from "../assets/pallavi1.jpeg"
 import divyanshImg from "../assets/divyansh.jpeg"
+import startuplogo from "../assets/startuplogo.png"
+import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
 
 function normaliseLanding(row) {
@@ -312,36 +314,55 @@ export default function LandingPage() {
 
       {/* ── FOOTER ────────────────────────────────────────────────── */}
       <footer className="border-t border-violet-100 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-            <div>
-              <p className="font-black text-slate-900 text-lg">Hoppity</p>
-              <p className="text-xs text-slate-500 mt-0.5">Discover Real Travel · India</p>
-            </div>
-            <nav className="flex flex-wrap gap-5 text-sm text-slate-500">
-              <a href="#catalog" className="hover:text-violet-700 transition">Itineraries</a>
-              <Link to="/itineraries" className="hover:text-violet-700 transition">All Tours</Link>
-              <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
-              <Link to="/about" className="hover:text-violet-700 transition">About</Link>
-              <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
-              <Link to="/privacy" className="hover:text-violet-700 transition">Privacy Policy</Link>
-            </nav>
-            <div className="flex items-center gap-4">
-              <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110"><FaInstagram /></a>
-              <a href="https://www.linkedin.com/company/triffair/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 text-xl transition hover:scale-110"><FaLinkedin /></a>
-              <a href="https://www.facebook.com/Hoppityin" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 text-xl transition hover:scale-110"><FaFacebook /></a>
-              <a href="https://wa.me/919752377323" target="_blank" rel="noopener noreferrer"
-                className="ml-2 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 hover:bg-green-100 transition">
-                💬 WhatsApp us
-              </a>
-            </div>
-          </div>
-          <div className="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <span>© 2026 Hoppity (Triffair). All rights reserved.</span>
-            <a href="mailto:sales@hoppity.in" className="hover:text-violet-600 transition">sales@hoppity.in</a>
-          </div>
+  <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+      <div>
+        <p className="font-black text-slate-900 text-lg">Hoppity</p>
+        <p className="text-xs text-slate-500 mt-0.5">Discover Real Travel · India</p>
+      </div>
+      <nav className="flex flex-wrap gap-5 text-sm text-slate-500">
+        <a href="#catalog" className="hover:text-violet-700 transition">Itineraries</a>
+        <Link to="/itineraries" className="hover:text-violet-700 transition">All Tours</Link>
+        <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
+        <Link to="/about" className="hover:text-violet-700 transition">About</Link>
+        <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
+        <Link to="/privacy" className="hover:text-violet-700 transition">Privacy Policy</Link>
+      </nav>
+      <div className="flex items-center gap-4">
+        <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110"><FaInstagram /></a>
+        <a href="https://www.linkedin.com/company/triffair/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 text-xl transition hover:scale-110"><FaLinkedin /></a>
+        <a href="https://www.facebook.com/Hoppityin" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 text-xl transition hover:scale-110"><FaFacebook /></a>
+        <a href="https://wa.me/919752377323" target="_blank" rel="noopener noreferrer"
+          className="ml-2 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 hover:bg-green-100 transition">
+          💬 WhatsApp us
+        </a>
+      </div>
+    </div>
+
+    {/* DPIIT & Startup India recognition badge row */}
+    <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Recognised by</span>
+        <div className="flex items-center gap-4">
+          <img
+            src={dpiitlogo}
+            alt="DPIIT - Department for Promotion of Industry and Internal Trade"
+            className="h-8 w-auto object-contain opacity-80 opacity-100 transition"
+          />
+          <img
+            src={startuplogo}
+            alt="Startup India"
+            className="h-7 w-auto object-contain opacity-80 opacity-100 transition"
+          />
         </div>
-      </footer>
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-400">
+        <span>© 2026 Hoppity (Triffair). All rights reserved.</span>
+        <a href="mailto:sales@hoppity.in" className="hover:text-violet-600 transition sm:ml-4">sales@hoppity.in</a>
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   )
 }
