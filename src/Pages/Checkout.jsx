@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, Info, CheckCircle2, Lock } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
-import { createClient } from '@supabase/supabase-js'
 
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
@@ -12,8 +11,6 @@ const GST_PERCENT          = 5          // 5% GST on base price
 const CONVENIENCE_FEE_FLAT = 99         // flat ₹99 convenience fee per booking
 const ADVANCE_PERCENT      = 30       // 30% advance to confirm booking
 
-// ─── Razorpay config ──────────────────────────────────────────────────────────
-const RAZORPAY_KEY_ID = "rzp_live_SlFUTb4rlS6gOz" // replace with your key
 
 // ─── Normalise Supabase row ───────────────────────────────────────────────────
 function normalise(row) {
@@ -42,7 +39,6 @@ function loadRazorpay() {
 
 export default function Checkout() {
   const { slug } = useParams()
-  const navigate = useNavigate()
 
   const [trip, setTrip]           = useState(null)
   const [loading, setLoading]     = useState(true)
@@ -61,7 +57,14 @@ export default function Checkout() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    if (!slug) { setLoading(false); return }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) {
+      navigate("/login?redirect=/checkout/" + slug)
+      return
+    }
+  })
+  if (!slug) { setLoading(false); return }
+
     supabase
       .from("Itineraries")
       .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,blurb,max_group_size,images,cover_image_url,rating,review_count,inclusions")
@@ -84,19 +87,15 @@ export default function Checkout() {
     const platformFee   = Math.round((baseTotal * PLATFORM_FEE_PERCENT) / 100)
     const gst           = Math.round((baseTotal * GST_PERCENT) / 100)
     const convFee       = CONVENIENCE_FEE_FLAT
-
     const grandTotal    = baseTotal + platformFee + gst + convFee
     const advanceAmount = Math.round((grandTotal * ADVANCE_PERCENT) / 100)
-    const amountPaise    = Math.round(grandTotal * 100)
     const balanceDue    = grandTotal - advanceAmount
-
     const payNow = payMode === "advance" ? advanceAmount : grandTotal
 
     return {
       basePerPerson, baseTotal,
       platformFee, gst, convFee,
       grandTotal, advanceAmount, balanceDue, payNow,
-      amountPaise,
     }
   }, [trip, travelers, payMode])
 
@@ -116,14 +115,9 @@ export default function Checkout() {
 
 
   // ─── Razorpay payment handler ─────────────────────────────────────────────
-async function handlePay() {
+  async function handlePay() {
   if (!validate()) return
   setPaying(true)
-  
-// Add this right before the fetch call in handlePay
-console.log("trip.id being sent:", trip.id)
-console.log("trip.slug:", trip.slug)
-console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
 
   const loaded = await loadRazorpay()
   if (!loaded) {
@@ -132,38 +126,51 @@ console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
     return
   }
 
-  // ── Step 1: Create Razorpay order via Supabase Edge Function ──
-  let order_id   = null
-  let booking_id = null
+  // ── Step 1: Create Razorpay order ──────────────────────────
+  let order_id    = null
+  let booking_id  = null
+  let orderAmount = null
+  let keyId       = null
 
   try {
     const { data: { session } } = await supabase.auth.getSession()
-    console.log("Session:", session?.access_token ? "logged in" : "NOT logged in")
-    console.log("Session token:", session?.access_token)  // ← add this to debug auth issues in Edge Function
+
+    if (!session?.access_token) {
+      alert("Please log in to continue booking.")
+      setPaying(false)
+      return
+    }
+
     const res = await fetch(
       `https://wenhudcyvlhilpgazylg.supabase.co/functions/v1/create-razorpay-order`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token}`,
+          "Authorization": `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           tour_id:         trip.id,
           num_persons:     travelers,
           booking_date:    form.travelDate,
           special_request: form.specialReq || null,
+          pay_mode:        payMode,
         }),
       }
     )
+
     const data = await res.json()
     if (!res.ok) {
       alert(data.error || "Could not initiate payment. Please try again.")
       setPaying(false)
       return
     }
-    order_id   = data.order_id
-    booking_id = data.booking_id
+
+    order_id    = data.order_id
+    booking_id  = data.booking_id
+    orderAmount = data.amount      // paise, already advance or full
+    keyId       = data.key_id      // from server, not hardcoded
+
   } catch (err) {
     console.error("Order creation failed:", err)
     alert("Could not initiate payment. Please try again.")
@@ -171,13 +178,13 @@ console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
     return
   }
 
-  // ── Step 2: Open Razorpay checkout ────────────────────────────
+  // ── Step 2: Open Razorpay checkout ─────────────────────────
   const options = {
-    key:         RAZORPAY_KEY_ID,
-    amount:      pricing.payNow * 100,   // amount in rupees
+    key:         keyId,
+    amount:      orderAmount,
     currency:    "INR",
     name:        "Hoppity",
-    order_id:    order_id,               // ← required for QR in live mode
+    order_id:    order_id,
     description: `${trip.title} — ${travelers} traveller${travelers > 1 ? "s" : ""}`,
     image:       trip.image?.[0] || "",
 
@@ -189,44 +196,42 @@ console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
 
     notes: {
       slug:        trip.slug,
-      travelers:   travelers,
+      travelers:   String(travelers),
       travel_date: form.travelDate,
       pay_mode:    payMode,
-      special_req: form.specialReq,
+      special_req: form.specialReq || "",
     },
 
     theme: { color: "#7c3aed" },
 
     handler: async function (response) {
-      try {
-        // ── Step 3: Update the pending booking to confirmed ─────
-        const { error: bookingError } = await supabase
-          .from("Bookings")
-          .update({
-            status:         "confirmed",
-            payment_status: "paid",
-            item_type:      "itinerary",
-            item_id:        trip.id,
-            gateway_fee:    pricing.platformFee,
-          })
-          .eq("id", booking_id)
+      // ── Step 3: Update booking to confirmed ──────────────
+      const { error: bookingError } = await supabase
+        .from("Bookings")
+        .update({
+          status:            "confirmed",
+          payment_status:    "paid",
+        })
+        .eq("id", booking_id)
 
-        if (bookingError) throw bookingError
+      if (bookingError) {
+        console.error("Booking update error:", bookingError.message)
+        // Don't block — payment went through, just log it
+      }
 
-        // ── Step 4: Insert payment record ──────────────────────
-        const { error: paymentError } = await supabase
-          .from("payment")
-          .insert({
-            booking_id:          booking_id,
-            amount:              pricing.payNow,
-            gateway:             "razorpay",
-            status:              "captured",
-            currency:            "INR",
-            razorpay_order_id:   response.razorpay_order_id   || null,
-            razorpay_payment_id: response.razorpay_payment_id || null,
-            razorpay_signature:  response.razorpay_signature  || null,
-            gateway_fee:         pricing.platformFee,
-            metadata: {
+      // ── Step 4: Insert payment record ────────────────────
+      const { error: paymentError } = await supabase
+        .from("payment")
+        .insert({
+          booking_id:          booking_id,
+          amount:              pricing.payNow,
+          gateway:             "razorpay",
+          status:              "captured",
+          currency:            "INR",
+          razorpay_order_id:   response.razorpay_order_id   || null,
+          razorpay_payment_id: response.razorpay_payment_id || null,
+          razorpay_signature:  response.razorpay_signature  || null,
+          metadata: {
             traveler_name:   form.name,
             traveler_email:  form.email,
             traveler_phone:  form.phone,
@@ -235,18 +240,19 @@ console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
             base_amount:     pricing.baseTotal,
             gst:             pricing.gst,
             convenience_fee: pricing.convFee,
+            grand_total:     pricing.grandTotal,
             balance_due:     payMode === "advance" ? pricing.balanceDue : 0,
             trip_slug:       trip.slug,
             trip_title:      trip.title,
-            },
-          })
+          },
+        })
 
-        if (paymentError) throw paymentError
-
-      } catch (err) {
-        console.error("Booking save error:", err)
+      if (paymentError) {
+        console.error("Payment record error:", paymentError.message)
+        // Don't block — payment went through, just log it
       }
 
+      // ── Step 5: Always show success ───────────────────────
       setPaying(false)
       setSuccess(true)
       window.scrollTo(0, 0)
@@ -328,9 +334,9 @@ console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL)
     </div>
   )
 
-  const displayPrice = trip.price_per_person
-    ? `₹${Number(trip.price_per_person).toLocaleString("en-IN")} / person`
-    : trip.price || "On Request"
+  //const displayPrice = trip.price_per_person
+   // ? `₹${Number(trip.price_per_person).toLocaleString("en-IN")} / person`
+    //: trip.price || "On Request"
 
   return (
     <div className="min-h-screen bg-[#f7f1ff] font-sans">
