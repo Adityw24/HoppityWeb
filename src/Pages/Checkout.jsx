@@ -49,6 +49,7 @@ export default function Checkout() {
   const [success, setSuccess]     = useState(false)
 
   // Form state
+  const navigate = useNavigate()
   const [form, setForm] = useState({
     name: "", email: "", phone: "",
     travelDate: "", specialReq: "",
@@ -191,7 +192,7 @@ export default function Checkout() {
     prefill: {
       name:    form.name,
       email:   form.email,
-      contact: `+91${form.phone}`,
+      contact: form.phone,
     },
 
     notes: {
