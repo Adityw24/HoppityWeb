@@ -47,24 +47,24 @@ export default function Itineraries() {
       description: 'Browse Hoppity\'s full catalogue of curated India travel experiences — tribal Northeast India, Ladakh expeditions, wildlife safaris, heritage trails, spiritual journeys, and more.',
       canonical: '/itineraries',
     })
-    supabase
-      .from("Itineraries")
-      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
-      // NOTE: fetch all itineraries (including drafts) so admin uploads show immediately
-      .order("id", { ascending: true })
-      .then(res => {
-        console.log('Itineraries fetch result:', res)
-        const { data, error } = res
-        if (error) console.error('Itineraries fetch error:', error)
-        setTrips((data || []).map(normalise))
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Itineraries fetch failed:', err)
-        setLoading(false)
-      })
 
-    // DEBUG: also fetch recent itineraries without the `is_active` filter
+  //fetch active itineraries for listing page
+  supabase
+  .from("Itineraries")
+  .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
+  .eq("is_active", true)   // ← this is the fix
+  .order("id", { ascending: true })
+  .then(({ data, error }) => {
+    if (error) console.error('Itineraries fetch error:', error)
+    setTrips((data || []).map(normalise))
+    setLoading(false)
+  })
+  .catch(err => {
+    console.error('Itineraries fetch failed:', err)
+    setLoading(false)
+  })
+
+  /*  // DEBUG: also fetch recent itineraries without the `is_active` filter
     // This helps check if new uploads are saved but not marked active.
     supabase
       .from("Itineraries")
@@ -78,6 +78,7 @@ export default function Itineraries() {
         if (inactive.length > 0) console.warn('Inactive itineraries (debug):', inactive.map(i => ({ slug: i.slug, id: i.id })))
       })
       .catch(err => console.error('Itineraries debug fetch failed:', err))
+      */
 
     // DEBUG: get exact count and the id/slug list visible to this anon key
     supabase
@@ -90,7 +91,7 @@ export default function Itineraries() {
         console.log('Itineraries visible ids/slugs:', (data || []).map(r => ({ id: r.id, slug: r.slug })))
       })
       .catch(err => console.error('Itineraries count fetch failed:', err))
-  }, [])
+  }, []) 
 
   const filtered = filter === 'All' ? trips : trips.filter(t => t.category === filter)
 

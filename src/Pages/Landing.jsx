@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar"
 import subhagImg from "../assets/subhag.jpeg"
 import pallaviImg from "../assets/pallavi1.jpeg"
 import divyanshImg from "../assets/divyansh.jpeg"
+import diwakarImg  from "../assets/diwakar.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
@@ -38,23 +39,58 @@ export default function LandingPage() {
   }, [])
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const searchRef = useRef(null)
 
   useEffect(() => {
-    supabase
-      .from("Itineraries")
-      .select("id,slug,title,location,duration,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating")
-      .eq("is_active", true)
-      .order("id", { ascending: true })
-      .limit(6)
-      .then(({ data }) => setTrips((data || []).map(normaliseLanding)))
+    let didCancel = false
+
+    const cacheKey = 'landing_trips_v1'
+    const cached = typeof window !== 'undefined' && sessionStorage.getItem(cacheKey)
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        setTrips(parsed)
+        setLoading(false)
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    const fetchTrips = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Itineraries')
+          .select('id,slug,title,location,duration,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating')
+          .eq('is_active', true)
+          .order('id', { ascending: true })
+          .limit(6)
+
+        if (error) return
+        if (didCancel) return
+        const normalised = (data || []).map(normaliseLanding)
+        setTrips(normalised)
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(normalised))
+        } catch (_) {}
+      } finally {
+        if (!didCancel) setLoading(false)
+      }
+    }
+
+    fetchTrips()
+
+    return () => { didCancel = true }
   }, [])
 
   const [testimonials, setTestimonials] = React.useState([
     { quote: "They helped us find a peaceful, off-beat place that wasn't crowded. The stay was cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: subhagImg, rating: 5, location: "Mumbai" },
     { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: pallaviImg, rating: 5, location: "Pune" },
     { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: divyanshImg, rating: 5, location: "Delhi" },
+    {
+      quote: "Our Coorg trip with Hoppity was smoothly planned with seamless bookings, excellent coordination and wonderful support, making our family vacation stress-free, memorable, and truly enjoyable.", author: "Diwakar Sharma", image: diwakarImg, rating: 5, location: "Bangalore"
+    }
   ])
 
   React.useEffect(() => {
@@ -183,15 +219,17 @@ export default function LandingPage() {
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {trips.slice(0, 6).map(trip => (
-            <Link to={`/itinerary/${trip.slug}`} key={trip.id}
-              className="group overflow-hidden rounded-[1.75rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer">
-              <div className="relative h-48 overflow-hidden">
+          {(loading ? Array.from({ length: 6 }) : trips.slice(0, 6)).map((trip, idx) => (
+            trip ? (
+              <Link to={`/itinerary/${trip.slug}`} key={trip.id}
+                className="group overflow-hidden rounded-[1.75rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+                <div className="relative h-48 overflow-hidden">
                 {/* Gradient fallback base */}
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-700 to-purple-900" />
                 {/* Photo overlay */}
                 {trip.image?.[0] && (
                   <img src={trip.image[0]} alt={trip.title}
+                    loading="lazy" decoding="async"
                     className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105"
                     onError={e => { e.currentTarget.style.display = 'none' }} />
                 )}
@@ -226,6 +264,17 @@ export default function LandingPage() {
                 </div>
               </div>
             </Link>
+            ) : (
+              <div key={`skeleton-${idx}`} className="rounded-[1.75rem] border border-violet-100 bg-white shadow-sm p-0 overflow-hidden animate-pulse">
+                <div className="relative h-48 bg-slate-100" />
+                <div className="p-5">
+                  <div className="h-3.5 bg-slate-200 rounded w-24 mb-3" />
+                  <div className="h-4 bg-slate-200 rounded w-40 mb-2" />
+                  <div className="h-3 bg-slate-200 rounded w-32 mb-4" />
+                  <div className="h-3 bg-slate-200 rounded w-20 mt-4" />
+                </div>
+              </div>
+            )
           ))}
         </div>
 
@@ -243,8 +292,8 @@ export default function LandingPage() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">What this unlocks</p>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-950">Not escape. Expansion.</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {testimonials.slice(0, 3).map((item, i) => (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {testimonials.slice(0, 4).map((item, i) => (
             <div key={i} className="rounded-2xl bg-white border border-violet-100 p-5 shadow-sm hover:shadow-md transition hover:-translate-y-0.5">
               <div className="flex items-center gap-3 mb-3">
                 {item.image
