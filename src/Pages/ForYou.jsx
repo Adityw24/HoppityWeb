@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+
 export default function ForYouPage() {
   const { user, loading: authLoading } = useAuth()
   const [tours, setTours] = useState([])
@@ -44,7 +46,7 @@ export default function ForYouPage() {
     // Authenticated — call personalize-feed edge function
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(`https://wenhudcyvlhilpgazylg.supabase.co/functions/v1/personalize-feed`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/personalize-feed`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
