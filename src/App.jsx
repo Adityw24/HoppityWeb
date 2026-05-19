@@ -18,7 +18,6 @@ import AboutPage     from './Pages/About'
 import FloatingActions from './components/FloatingActions'
 import Privacy from './Pages/Privacy'
 import CheckoutPage from './Pages/Checkout'
-import PropertyPage from './Pages/Properties'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -55,7 +54,6 @@ const App = () => (
         <Route path="/for-you"           element={<ForYouPage />} />
         <Route path="/contact"           element={<ContactPage />} />
         <Route path="/about"             element={<AboutPage />} />
-        ,<Route path="/properties"        element={<PropertyPage />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>

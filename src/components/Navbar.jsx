@@ -37,7 +37,6 @@ export default function Navbar() {
           <Sparkles className="w-3 h-3" />For You
         </Link>
         <Link to="/contact" className="hover:text-violet-700 font-semibold">Contact</Link>
-       {/* <Link to="/properties" className="hover:text-violet-700 font-semibold">Signature Stays</Link> */}
       </nav>
 
       <div className="flex items-center gap-2">

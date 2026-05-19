@@ -4,8 +4,6 @@ import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, Info, 
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
 const PLATFORM_FEE_PERCENT = 2.5        // 2.5% platform fee
@@ -145,7 +143,7 @@ export default function Checkout() {
     }
 
     const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/create-razorpay-order`,
+      `https://wenhudcyvlhilpgazylg.supabase.co/functions/v1/create-razorpay-order`,
       {
         method: "POST",
         headers: {

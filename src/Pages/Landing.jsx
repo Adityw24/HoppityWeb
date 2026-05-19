@@ -40,7 +40,6 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
-  const [imagesLoaded, setImagesLoaded] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const searchRef = useRef(null)
 
@@ -75,27 +74,6 @@ export default function LandingPage() {
         try {
           sessionStorage.setItem(cacheKey, JSON.stringify(normalised))
         } catch (_) {}
-
-        // Preload all images in parallel
-        const imageUrls = normalised.map(trip => trip.image?.[0]).filter(Boolean)
-        if (imageUrls.length > 0) {
-          await Promise.all(
-            imageUrls.map(url => {
-              return new Promise((resolve) => {
-                const img = new Image()
-                img.onload = resolve
-                img.onerror = resolve
-                img.src = url
-              })
-            })
-          )
-          // Mark all images as loaded at once
-          const loadedMap = {}
-          normalised.forEach(trip => {
-            if (trip.image?.[0]) loadedMap[trip.id] = true
-          })
-          if (!didCancel) setImagesLoaded(loadedMap)
-        }
       } finally {
         if (!didCancel) setLoading(false)
       }
@@ -251,10 +229,8 @@ export default function LandingPage() {
                 {/* Photo overlay */}
                 {trip.image?.[0] && (
                   <img src={trip.image[0]} alt={trip.title}
-                    loading="eager" decoding="async"
-                    className={`absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-105 ${
-                      imagesLoaded[trip.id] ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    loading="lazy" decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105"
                     onError={e => { e.currentTarget.style.display = 'none' }} />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none" />
@@ -271,7 +247,7 @@ export default function LandingPage() {
               <div className="px-5 py-4">
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="flex items-center gap-1 text-slate-500"><Clock className="w-3.5 h-3.5" /> {trip.duration}</span>
-                  <span className={`${trip.price_per_person ? 'font-bold' : 'font-semibold'} text-violet-700`}>
+                  <span className={`${trip.price_per_person ? 'font-black' : 'font-semibold'} text-violet-700`}>
                     {trip.price_per_person ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')}` : trip.price}
                   </span>
                 </div>
