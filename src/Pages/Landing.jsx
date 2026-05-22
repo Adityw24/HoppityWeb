@@ -29,6 +29,43 @@ const VIBE_CHIPS = [
   { label: '⚡ Weekend getaway', q: 'weekend short trip' },
 ]
 
+const STAY_CATEGORIES = [
+  {
+    slug: 'budget',
+    label: 'Affordable',
+    title: 'Budget stays',
+    desc: "Honest, clean, and wallet-friendly — hostels, guesthouses, and homestays that don't cut corners.",
+    count: '6 stays',
+    icon: '🎒',
+    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800&q=80',
+    flagship: false,
+  },
+  {
+    slug: 'signature',
+    label: 'Boutique',
+    title: 'Signature stays',
+    desc: 'Handpicked properties with soul — treehouses, heritage havelis, hilltop cottages.',
+    count: '6 stays',
+    icon: '🏡',
+    image: 'https://images.unsplash.com/photo-1600011689032-8b628b8a8747?w=800&q=80',
+    flagship: false,
+  },
+  {
+    slug: 'flagship',
+    label: 'FLAGSHIP',
+    title: 'Flagship properties',
+    desc: 'Our most iconic stays — personally walked through, slept in, and stood behind completely.',
+    count: '6 stays',
+    icon: '✦',
+    image: 'https://images.unsplash.com/photo-1587922546307-776227941871?w=800&q=85',
+    flagship: true,
+    perks: [
+      'Personally vetted by the Hoppity team',
+      'Exclusive experiences not listed elsewhere',
+    ],
+  },
+]
+
 export default function LandingPage() {
   useEffect(() => {
     setPageSEO({
@@ -40,6 +77,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
+  const [imagesLoaded, setImagesLoaded] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const searchRef = useRef(null)
 
@@ -74,6 +112,27 @@ export default function LandingPage() {
         try {
           sessionStorage.setItem(cacheKey, JSON.stringify(normalised))
         } catch (_) {}
+
+        // Preload all images in parallel
+        const imageUrls = normalised.map(trip => trip.image?.[0]).filter(Boolean)
+        if (imageUrls.length > 0) {
+          await Promise.all(
+            imageUrls.map(url => {
+              return new Promise((resolve) => {
+                const img = new Image()
+                img.onload = resolve
+                img.onerror = resolve
+                img.src = url
+              })
+            })
+          )
+          // Mark all images as loaded at once
+          const loadedMap = {}
+          normalised.forEach(trip => {
+            if (trip.image?.[0]) loadedMap[trip.id] = true
+          })
+          if (!didCancel) setImagesLoaded(loadedMap)
+        }
       } finally {
         if (!didCancel) setLoading(false)
       }
@@ -157,8 +216,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="font-black leading-snug tracking-tight text-slate-950 text-base sm:text-xl md:text-2xl lg:text-3xl mb-5">
-            <span className="block">The trips you remember forever,</span>
-            <span className="block">are rarely the ones everyone else is taking.</span>
+            <span className="block">The trips you remember forever are rarely the ones everyone else is taking.</span>
           </h1>
 
           {/* ── Search bar ─────────────────────────────────────────── */}
@@ -201,88 +259,147 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── ITINERARIES ───────────────────────────────────────────── */}
-      <section id="catalog" className="mx-auto max-w-7xl px-6 lg:px-10 pb-14">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">Curated catalog</p>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-950">
-              Itineraries that make ordinary weekends feel too small.
-            </h2>
-          </div>
-          {/*
-          <Link to="/itineraries"
-            className="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-violet-700 transition flex-shrink-0 ml-8">
-            See all <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-          */}
+      {/* ── STAY CATEGORIES ───────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-6 lg:px-10 pb-10">
+        <div className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
+            Where to stay
+          </p>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-950">
+            Find your kind of stay.
+          </h2>
         </div>
-
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {(loading ? Array.from({ length: 6 }) : trips.slice(0, 6)).map((trip, idx) => (
-            trip ? (
-              <Link to={`/itinerary/${trip.slug}`} key={trip.id}
-                className="group overflow-hidden rounded-[1.75rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer">
-                <div className="relative h-48 overflow-hidden">
-                {/* Gradient fallback base */}
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-700 to-purple-900" />
-                {/* Photo overlay */}
-                {trip.image?.[0] && (
-                  <img src={trip.image[0]} alt={trip.title}
-                    loading="lazy" decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105"
-                    onError={e => { e.currentTarget.style.display = 'none' }} />
+ 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {STAY_CATEGORIES.map((card) => (
+            <Link
+              key={card.slug}
+              to={`/stays/${card.slug}`}
+              className={`group relative overflow-hidden cursor-pointer rounded-[1.75rem] transition duration-300 hover:-translate-y-1 ${
+                card.flagship ? 'h-[360px]' : 'h-[320px]'
+              }`}
+            >
+              {/* Background image */}
+              <img
+                src={card.image}
+                alt={card.title}
+                className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+                onError={e => { e.currentTarget.style.display = 'none' }}
+              />
+ 
+              {/* Gradient overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: card.flagship
+                    ? 'linear-gradient(160deg, rgba(80,20,160,0.28) 0%, transparent 45%, rgba(0,0,0,0.82) 100%)'
+                    : 'linear-gradient(to bottom, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.26) 45%, rgba(0,0,0,0.76) 100%)',
+                }}
+              />
+ 
+              {/* Flagship: gold shimmer line at top */}
+              {card.flagship && (
+                <div
+                  className="absolute top-0 left-0 right-0 pointer-events-none"
+                  style={{
+                    height: '2.5px',
+                    background: 'linear-gradient(90deg, transparent 0%, #c4a35a 35%, #f0d080 55%, transparent 100%)',
+                  }}
+                />
+              )}
+ 
+              {/* Top badges */}
+              <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                <span
+                  className="text-[10px] font-bold px-3 py-1 rounded-full border backdrop-blur-md tracking-wide"
+                  style={{
+                    background: card.flagship ? 'rgba(196,163,90,0.22)' : 'rgba(255,255,255,0.16)',
+                    color: card.flagship ? '#f0d080' : '#fff',
+                    borderColor: card.flagship ? 'rgba(196,163,90,0.40)' : 'rgba(255,255,255,0.28)',
+                  }}
+                >
+                  {card.label}
+                </span>
+                {card.flagship && (
+                  <span
+                    className="text-[10px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-md"
+                    style={{
+                      background: 'rgba(255,255,255,0.13)',
+                      color: '#fff',
+                      borderColor: 'rgba(255,255,255,0.22)',
+                    }}
+                  >
+                    ⭐ Hoppity pick
+                  </span>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none" />
-                <div className="relative p-5 h-full flex flex-col justify-between">
-                  {trip.tag && (
-                    <div className="inline-flex self-start rounded-full border border-white/20 bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">{trip.tag}</div>
-                  )}
-                  <div className="mt-auto">
-                    <p className="text-xs uppercase tracking-[0.18em] text-violet-200 mb-1">{trip.location}</p>
-                    <h3 className="text-lg font-bold leading-tight text-white">{trip.title}</h3>
-                  </div>
-                </div>
               </div>
-              <div className="px-5 py-4">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="flex items-center gap-1 text-slate-500"><Clock className="w-3.5 h-3.5" /> {trip.duration}</span>
-                  <span className={`${trip.price_per_person ? 'font-black' : 'font-semibold'} text-violet-700`}>
-                    {trip.price_per_person ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')}` : trip.price}
-                  </span>
+ 
+              {/* Bottom content */}
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+ 
+                {/* Icon + Title */}
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div
+                    className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0 text-base backdrop-blur-md border"
+                    style={{
+                      background: card.flagship ? 'rgba(196,163,90,0.20)' : 'rgba(255,255,255,0.16)',
+                      borderColor: card.flagship ? 'rgba(196,163,90,0.35)' : 'rgba(255,255,255,0.25)',
+                    }}
+                  >
+                    {card.icon}
+                  </div>
+                  <p className="text-[17px] font-black text-white tracking-tight drop-shadow-md">
+                    {card.title}
+                  </p>
                 </div>
-                {trip.blurb && <p className="text-sm leading-relaxed text-slate-600 line-clamp-2">{trip.blurb}</p>}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                  <span className="flex items-center gap-1 text-sm font-semibold text-slate-800 group-hover:text-violet-700 transition">
-                    Explore <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+ 
+                {/* Description */}
+                <p className="text-xs text-white/80 leading-relaxed mb-3 drop-shadow">
+                  {card.desc}
+                </p>
+ 
+                {/* Flagship perks */}
+                {card.flagship && card.perks && (
+                  <div className="flex flex-col gap-1.5 mb-3">
+                    {card.perks.map((perk) => (
+                      <div key={perk} className="flex items-center gap-2">
+                        <span style={{ color: '#f0d080', fontSize: '13px', flexShrink: 0 }}>✓</span>
+                        <span className="text-[11.5px] text-white/85 drop-shadow">{perk}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+ 
+                {/* Count + Explore */}
+                <div
+                  className="flex items-center justify-between pt-3 border-t"
+                  style={{ borderColor: card.flagship ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.18)' }}
+                >
+                  <span
+                    className="text-xs font-semibold px-3 py-1 rounded-full border backdrop-blur-md"
+                    style={{
+                      background: card.flagship ? 'rgba(196,163,90,0.20)' : 'rgba(255,255,255,0.15)',
+                      color: card.flagship ? '#f0d080' : '#fff',
+                      borderColor: card.flagship ? 'rgba(196,163,90,0.36)' : 'rgba(255,255,255,0.26)',
+                    }}
+                  >
+                    {card.count}
                   </span>
-                  {trip.rating > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-amber-600 font-semibold">
-                      <Star className="w-3 h-3 fill-current" /> {Number(trip.rating).toFixed(1)}
-                    </span>
-                  )}
+                  <span
+                    className="text-sm font-bold text-white flex items-center gap-1 drop-shadow"
+                  >
+                    Explore{' '}
+                    <ArrowRight
+                      className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"
+                      style={{ color: card.flagship ? '#f0d080' : '#fff' }}
+                    />
+                  </span>
                 </div>
               </div>
             </Link>
-            ) : (
-              <div key={`skeleton-${idx}`} className="rounded-[1.75rem] border border-violet-100 bg-white shadow-sm p-0 overflow-hidden animate-pulse">
-                <div className="relative h-48 bg-slate-100" />
-                <div className="p-5">
-                  <div className="h-3.5 bg-slate-200 rounded w-24 mb-3" />
-                  <div className="h-4 bg-slate-200 rounded w-40 mb-2" />
-                  <div className="h-3 bg-slate-200 rounded w-32 mb-4" />
-                  <div className="h-3 bg-slate-200 rounded w-20 mt-4" />
-                </div>
-              </div>
-            )
           ))}
-        </div>
-
-        <div className="mt-7 flex justify-center">
-          <Link to="/itineraries"
-            className="rounded-2xl bg-slate-950 px-8 py-3.5 text-sm text-white font-semibold shadow-lg hover:-translate-y-0.5 transition">
-            See all itineraries →
-          </Link>
         </div>
       </section>
 
@@ -311,7 +428,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── WAITLIST ──────────────────────────────────────────────── */}
+{/* ── WAITLIST ──────────────────────────────────────────────── */}
       <section id="waitlist" className="mx-auto max-w-7xl px-6 lg:px-10 pb-14">
         <div className="rounded-[2rem] bg-gradient-to-br from-slate-950 via-violet-950 to-fuchsia-800 px-8 py-12 text-white shadow-2xl lg:px-14 lg:py-16">
           <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">

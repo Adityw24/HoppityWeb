@@ -18,6 +18,14 @@ import AboutPage     from './Pages/About'
 import FloatingActions from './components/FloatingActions'
 import Privacy from './Pages/Privacy'
 import CheckoutPage from './Pages/Checkout'
+import Navbar from './components/Navbar'
+import PropertiesPage from './Pages/Properties'
+import BudgetStaysPage from './Pages/BudgetStays'
+import FlagshipStaysPage from './Pages/FlagshipStays'
+import SignatureStaysPage from './Pages/SignatureStays'
+import SignatureProperty from './Pages/SignatureProperty'
+import BudgetProperty from './Pages/BudgetPropertyPage'
+import FlagshipProperty from './Pages/FlagshipProperty'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -54,6 +62,13 @@ const App = () => (
         <Route path="/for-you"           element={<ForYouPage />} />
         <Route path="/contact"           element={<ContactPage />} />
         <Route path="/about"             element={<AboutPage />} />
+        <Route path="/properties"        element={<PropertiesPage />} />
+        <Route path="/stays/budget"      element={<BudgetStaysPage />} />
+        <Route path="/stays/flagship"     element={<FlagshipStaysPage />} />
+        <Route path="/stays/signature"   element={<SignatureStaysPage />} />
+        <Route path="/stays/signature/:slug"   element={<SignatureProperty />} />
+        <Route path="/stays/budget/:slug"   element={<BudgetProperty />} />
+        <Route path="/stays/flagship/:slug"   element={<FlagshipProperty />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>
