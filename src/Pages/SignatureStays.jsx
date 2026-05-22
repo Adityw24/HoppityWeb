@@ -265,7 +265,7 @@ export default function SignatureStaysPage() {
           {stays.length === 0 && !loading && (
             <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-4 py-2 text-xs font-medium text-amber-700">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-pulse" />
-              Showing sample properties — connect your database to display live listings
+              Showing sample properties while we build our collection. Real properties coming soon!
             </div>
           )}
         </div>
