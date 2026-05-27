@@ -2,11 +2,16 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import TeamSlider from '../components/Teamslider'
 
 // ── Photos — add these files to src/assets/ when ready ──────────────────────
 import sabyPhoto from '../assets/saby.jpg'
 import ajayPhoto from '../assets/ajay.jpg'
 import { setPageSEO } from '../lib/seo'
+import adiphoto from '../assets/adi.jpeg'
+import gauravphoto from '../assets/gaurav.jpeg'
+import rachnaPhoto from '../assets/rachna.jpeg'
+import diyaPhoto from '../assets/diya.jpeg'
 // import dipakPhoto from '../assets/dipak.jpg'
 // Then set photo: sabyPhoto, photo: ajayPhoto, photo: dipakPhoto below
 
@@ -62,7 +67,7 @@ In the time since joining, he's done what only someone with his depth of relatio
     ],
   },
   // ── 3. Dipak ─────────────────────────────────────────────────────────────
-  {
+    {
     name: 'Dipak Jha',
     nickname: 'Dipak',
     role: 'CTO & Co-Founder',
@@ -86,6 +91,72 @@ When Sab came to him with Hoppity, Dipak saw something most people miss: this is
       "Architecting Hoppity's entire cloud infrastructure",
     ],
   },
+]
+
+// ── TEAM MEMBERS — replace with real data ───────────────────────────────────
+// To add a photo: import the file at the top of this file, then set photo: memberPhoto below.
+// To remove a LinkedIn link: set linkedin: null
+const teamMembers = [
+  {
+    name: 'Aditya Warkade',
+    role: 'Product Developer aka The Tech guy',
+    bio: 'Adi is the guy responsible for turning "Wouldn\'t it be cool if..." into an actual working prototype. He built this product from scratch, survived countless bugs, renamed variables more times than he would like to admit and learned that every great feature starts with a slightly questionable idea.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: 'https://www.linkedin.com/in/aditya-warkade-6aa999330/',
+    avatar: 'ADI',
+    photo: adiphoto, // replace with imported photo variable
+    gradient: 'from-fuchsia-600 to-pink-700',
+    accentColor: '#c026d3',
+  },
+  {
+    name: 'Rachna',
+    role: 'Chief of Staff & Project Manager',
+    bio: 'Rachna is the Chief of Staff and Project Manager at Hoppity, though her unofficial title is "Momager." She coordinates our biggest projects, streamlines our daily operations, and ensures the team has exactly what they need to succeed. Without her, Hoppity wouldn\'t hop!',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: null,
+    avatar: 'TM',
+    photo: rachnaPhoto,
+    gradient: 'from-teal-600 to-emerald-700',
+    accentColor: '#0d9488',
+  },
+  {
+    name: 'Gourav Sharma',
+    role: 'Founder\'s Office',
+    bio: 'Gourav works closely with the founder at Hoppity, managing daily administrative work and handling incoming sales queries. He keeps day-to-day operations running smoothly while taking care of client requests..',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: 'https://www.linkedin.com/in/gourav-sharma-90a57a38a/',
+    avatar: 'GS',
+    photo: gauravphoto,
+    gradient: 'from-rose-600 to-red-700',
+    accentColor: '#e11d48',
+  },
+  {
+    name: 'Diya Jain',
+    role: 'UX Designer aka Visual Wizard',
+    bio: 'Diya joined Hoppity as a social media intern and now work as a Graphic Designer, creating everything from social media content and campaign visuals to creative shoots and presentations. The diversity of work and the amazing team make every day exciting and rewarding.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: 'https://www.linkedin.com/in/diya-jain-774930217/',
+    avatar: 'DJ',
+    photo: diyaPhoto,
+    gradient: 'from-sky-600 to-blue-700',
+    accentColor: '#0284c7',
+  }
 ]
 
 export default function AboutPage() {
@@ -208,6 +279,31 @@ export default function AboutPage() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+     {/* ── THE PEOPLE BEHIND HOPPITY — SLIDER ───────────────────────── */}
+      <section className="relative overflow-hidden py-20 bg-[#f7f1ff]">
+
+        <div className="absolute inset-0 opacity-[0.35] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(ellipse 70% 40% at 80% 20%, rgba(167,139,250,0.15), transparent), radial-gradient(ellipse 50% 50% at 10% 80%, rgba(124,58,237,0.08), transparent)' }} />
+
+        <div className="relative z-10">
+
+          {/* Section header */}
+          <div className="text-center mb-14 px-4">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-600 mb-3">The crew</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight">
+              The people behind Hoppity.
+            </h2>
+            <p className="text-slate-500 mt-3 max-w-xl mx-auto leading-7 text-sm">
+              Great founders need great people. Meet the team that makes everything run
+              the operators, storytellers and builders who bring Hoppity to life every day.
+            </p>
+          </div>
+
+          {/* Slider — full bleed */}
+          <TeamSlider teamMembers={teamMembers} />
         </div>
       </section>
 
