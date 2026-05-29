@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink } from 'lucide-react'
+import { FaLinkedin } from 'react-icons/fa'
 import Navbar from '../components/Navbar'
 import TeamSlider from '../components/Teamslider'
 
@@ -67,7 +67,7 @@ In the time since joining, he's done what only someone with his depth of relatio
     ],
   },
   // ── 3. Dipak ─────────────────────────────────────────────────────────────
-    {
+  /*} {
     name: 'Dipak Jha',
     nickname: 'Dipak',
     role: 'CTO & Co-Founder',
@@ -91,6 +91,7 @@ When Sab came to him with Hoppity, Dipak saw something most people miss: this is
       "Architecting Hoppity's entire cloud infrastructure",
     ],
   },
+  */
 ]
 
 // ── TEAM MEMBERS — replace with real data ───────────────────────────────────
@@ -243,8 +244,8 @@ export default function AboutPage() {
                   <h3 className="text-xl font-black text-slate-950 leading-tight">{f.name}</h3>
                   {f.linkedin && (
                     <a href={f.linkedin} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 mt-1 font-semibold transition">
-                      <ExternalLink className="w-3 h-3" /> LinkedIn
+                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1 font-semibold transition">
+                      <FaLinkedin className='w-5.5 h-5.5' />
                     </a>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { FaLinkedin } from 'react-icons/fa'
 
 export default function TeamSlider({ teamMembers }) {
   const trackRef = useRef(null)
@@ -137,10 +138,10 @@ export default function TeamSlider({ teamMembers }) {
                       href={m.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-800 hover:underline mt-1.5 transition"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline mt-1.5 transition"
                       style={{ cursor: 'pointer', userSelect: 'none' }}
                     >
-                      <ExternalLink className="w-3 h-3" /> LinkedIn
+                    <FaLinkedin className='w-5.5 h-5.5' />
                     </a>
                   ) : (
                     <span className="block mt-1.5 h-4" />
@@ -154,9 +155,7 @@ export default function TeamSlider({ teamMembers }) {
 
       {/* ── Bio panel ────────────────────────────────────────────────────── */}
       {member.bio && (
-        <div className="mt-10 px-4 max-w-lg mx-auto text-center">
-          <p className="text-slate-600 text-[15px] leading-7">{member.bio}</p>
-        </div>
+          <p className="text-slate-600 text-[15px] leading-7 mt-3 max-w-xl mx-auto text-center select-text">{member.bio}</p>
       )}
 
       {/* ── Nav: arrows + dots ───────────────────────────────────────────── */}

@@ -6,10 +6,10 @@ import Navbar from "../components/Navbar"
 
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
-const PLATFORM_FEE_PERCENT = 2.5        // 2.5% platform fee
+const PLATFORM_FEE_PERCENT = 0       // 2.5% platform fee
 const GST_PERCENT          = 5          // 5% GST on base price
-const CONVENIENCE_FEE_FLAT = 99         // flat ₹99 convenience fee per booking
-const ADVANCE_PERCENT      = 30       // 30% advance to confirm booking
+const CONVENIENCE_FEE_FLAT = 0         // flat ₹99 convenience fee per booking
+const ADVANCE_PERCENT      = 1      // 30% advance to confirm booking
 
 
 // ─── Normalise Supabase row ───────────────────────────────────────────────────
