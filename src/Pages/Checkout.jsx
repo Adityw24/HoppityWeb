@@ -6,10 +6,10 @@ import Navbar from "../components/Navbar"
 
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
-const PLATFORM_FEE_PERCENT = 0       // 2.5% platform fee
+const PLATFORM_FEE_PERCENT = 2.5      // 2.5% platform fee
 const GST_PERCENT          = 5          // 5% GST on base price
-const CONVENIENCE_FEE_FLAT = 0         // flat ₹99 convenience fee per booking
-const ADVANCE_PERCENT      = 1      // 30% advance to confirm booking
+const CONVENIENCE_FEE_FLAT = 99        // flat ₹99 convenience fee per booking
+const ADVANCE_PERCENT      = 30      // 30% advance to confirm booking
 
 
 // ─── Normalise Supabase row ───────────────────────────────────────────────────
@@ -212,6 +212,7 @@ export default function Checkout() {
         .update({
           status:            "confirmed",
           payment_status:    "paid",
+          razorpay_payment_id:  response.razorpay_payment_id,  // ← add this
         })
         .eq("id", booking_id)
 
@@ -225,7 +226,7 @@ export default function Checkout() {
         .from("payment")
         .insert({
           booking_id:          booking_id,
-          amount:              pricing.payNow,
+          amount:              orderAmount / 100,  // ← server's actual charged amount
           gateway:             "razorpay",
           status:              "captured",
           currency:            "INR",
