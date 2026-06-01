@@ -87,7 +87,8 @@ export default function Checkout() {
 
     const platformFee   = Math.round((baseTotal * PLATFORM_FEE_PERCENT) / 100)
     const gst           = Math.round((baseTotal * GST_PERCENT) / 100)
-    const convFee       = CONVENIENCE_FEE_FLAT
+    const hasPricing = basePerPerson > 0
+    const convFee = hasPricing ? CONVENIENCE_FEE_FLAT : 0
     const grandTotal    = baseTotal + platformFee + gst + convFee
     const advanceAmount = Math.round((grandTotal * ADVANCE_PERCENT) / 100)
     const balanceDue    = grandTotal - advanceAmount
@@ -97,6 +98,7 @@ export default function Checkout() {
       basePerPerson, baseTotal,
       platformFee, gst, convFee,
       grandTotal, advanceAmount, balanceDue, payNow,
+      hasPricing,
     }
   }, [trip, travelers, payMode])
 
@@ -558,10 +560,12 @@ export default function Checkout() {
                         <span className="text-slate-500">Platform fee ({PLATFORM_FEE_PERCENT}%)</span>
                         <span className="text-slate-700">{formatINR(pricing.platformFee)}</span>
                       </div>
+                      {pricing.hasPricing && (
                       <div className="flex justify-between">
                         <span className="text-slate-500">Convenience fee</span>
                         <span className="text-slate-700">{formatINR(pricing.convFee)}</span>
                       </div>
+                      )}
                     </div>
                   )}
 
@@ -572,6 +576,8 @@ export default function Checkout() {
                 </div>
 
                 {/* Pay now box */}
+
+                {pricing.hasPricing && (
                 <div className="mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 p-4">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-violet-700">
@@ -593,8 +599,10 @@ export default function Checkout() {
                     )}
                   </div>
                 </div>
+                )}
 
                 {/* Pay button */}
+                {pricing.hasPricing ? (
                 <button onClick={handlePay} disabled={paying}
                   className={`shimmer-button w-full mt-4 py-4 rounded-2xl text-white font-black text-base cursor-pointer transition ${paying ? "opacity-70 cursor-not-allowed" : "hover:shadow-xl hover:-translate-y-0.5"}`}>
                   {paying
@@ -605,6 +613,13 @@ export default function Checkout() {
                     : `Pay ${formatINR(pricing.payNow)} →`
                   }
                 </button>
+                ) : (
+    <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20a%20quote%20for%20${encodeURIComponent(trip.title)}`}
+    target="_blank" rel="noopener noreferrer"
+    className="flex items-center justify-center gap-2 w-full mt-4 py-4 rounded-2xl bg-slate-900 text-white font-black text-base hover:bg-slate-700 transition">
+    💬 Request a Price Quote
+    </a>
+)}
 
                 <div className="flex items-center justify-center gap-1.5 mt-3">
                   <Lock className="w-3 h-3 text-slate-400" />

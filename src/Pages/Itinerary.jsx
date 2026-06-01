@@ -28,8 +28,6 @@ function normalise(row) {
   };
 }
 
-const WHATSAPP = 'https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27m%20interested%20in%20booking%20a%20trip';
-
 export default function TripDetails() {
   const { slug }    = useParams();
   const navigate    = useNavigate();
@@ -496,7 +494,7 @@ export default function TripDetails() {
               className="shimmer-button px-10 py-4 rounded-full text-base font-semibold shadow-xl cursor-pointer">
               Book Your Adventure
             </button>
-            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"
+            <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20a%20quote%20for%20${encodeURIComponent(trip.title)}`} target="_blank" rel="noopener noreferrer"
               className="px-10 py-4 rounded-full text-base font-medium glass-card flex items-center justify-center gap-3 cursor-pointer border border-green-300 text-green-800 hover:bg-green-50 transition-all w-full sm:w-auto">
               💬 WhatsApp Us
             </a>

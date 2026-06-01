@@ -10,8 +10,9 @@ import ajayPhoto from '../assets/ajay.jpg'
 import { setPageSEO } from '../lib/seo'
 import adiphoto from '../assets/adi.jpeg'
 import gauravphoto from '../assets/gaurav.jpeg'
-import rachnaPhoto from '../assets/rachna.jpeg'
-import diyaPhoto from '../assets/diya.jpeg'
+import rachnaphoto from '../assets/rachna.jpeg'
+import diyaphoto from '../assets/diya.jpeg'
+import suzainphoto from '../assets/suzain.jpeg'
 // import dipakPhoto from '../assets/dipak.jpg'
 // Then set photo: sabyPhoto, photo: ajayPhoto, photo: dipakPhoto below
 
@@ -114,7 +115,7 @@ const teamMembers = [
     accentColor: '#c026d3',
   },
   {
-    name: 'Rachna',
+    name: 'Rachna Kishnani',
     role: 'Chief of Staff & Project Manager',
     bio: 'Rachna is the Chief of Staff and Project Manager at Hoppity, though her unofficial title is "Momager." She coordinates our biggest projects, streamlines our daily operations, and ensures the team has exactly what they need to succeed. Without her, Hoppity wouldn\'t hop!',
     credentials: [
@@ -122,9 +123,9 @@ const teamMembers = [
       'Credential or highlight two',
       'Credential or highlight three',
     ],
-    linkedin: null,
+    linkedin: 'https://www.linkedin.com/in/rachna-kishnani-624a65161/',
     avatar: 'TM',
-    photo: rachnaPhoto,
+    photo: rachnaphoto,
     gradient: 'from-teal-600 to-emerald-700',
     accentColor: '#0d9488',
   },
@@ -154,7 +155,22 @@ const teamMembers = [
     ],
     linkedin: 'https://www.linkedin.com/in/diya-jain-774930217/',
     avatar: 'DJ',
-    photo: diyaPhoto,
+    photo: diyaphoto,
+    gradient: 'from-sky-600 to-blue-700',
+    accentColor: '#0284c7',
+  },
+  {
+    name: 'Suzain Khan',
+    role: 'Marketing Associate',
+    bio: 'Suzain joined as a Marketing Associate at Hoppity, She lead end-to-end marketing—from building strategies and content calendars to scripting and creating content. She focus on shaping brand storytelling, driving engagement, and executing campaigns that connect with the right audience.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: 'https://www.linkedin.com/in/suzain-khan-a09351309/',
+    avatar: 'SK',
+    photo: suzainphoto,
     gradient: 'from-sky-600 to-blue-700',
     accentColor: '#0284c7',
   }
@@ -209,10 +225,10 @@ export default function AboutPage() {
         <div className="text-center mb-12">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-600 mb-3">The team</p>
           <h2 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight">
-            Three founders. One obsession.
+            Two founders. One obsession.
           </h2>
           <p className="text-slate-500 mt-3 max-w-xl mx-auto">
-            A decade in tech & media. Thirty years in travel. An architecture career in the UK.
+            A decade in tech & media. Thirty years in travel. {/*An architecture career in the UK. */}
             Different paths, same conclusion: India's best experiences deserved better infrastructure.
           </p>
         </div>
@@ -244,8 +260,8 @@ export default function AboutPage() {
                   <h3 className="text-xl font-black text-slate-950 leading-tight">{f.name}</h3>
                   {f.linkedin && (
                     <a href={f.linkedin} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1 font-semibold transition">
-                      <FaLinkedin className='w-5.5 h-5.5' />
+                      className="inline-flex items-center gap-1 text-xs text-blue-600 mt-1 font-semibold transition">
+                      <FaLinkedin className='w-5.5 h-5.5 transition-all duration-300 hover:scale-110' />
                     </a>
                   )}
                 </div>
