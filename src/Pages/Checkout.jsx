@@ -6,10 +6,10 @@ import Navbar from "../components/Navbar"
 
 
 // ─── Pricing config — edit these as needed ────────────────────────────────────
-const PLATFORM_FEE_PERCENT = 2.5      // 2.5% platform fee
-const GST_PERCENT          = 5          // 5% GST on base price
-const CONVENIENCE_FEE_FLAT = 99        // flat ₹99 convenience fee per booking
-const ADVANCE_PERCENT      = 30      // 30% advance to confirm booking
+const PLATFORM_FEE_PERCENT = 2.5     // 2.5% platform fee
+const GST_PERCENT          = 5         // 5% GST on base price
+const CONVENIENCE_FEE_FLAT = 99       // flat ₹99 convenience fee per booking
+const ADVANCE_PERCENT      = 30     // 30% advance to confirm booking
 
 
 // ─── Normalise Supabase row ───────────────────────────────────────────────────
@@ -225,7 +225,7 @@ export default function Checkout() {
 
       // ── Step 4: Insert payment record ────────────────────
       const { error: paymentError } = await supabase
-        .from("payment")
+        .from("Payments")
         .insert({
           booking_id:          booking_id,
           amount:              orderAmount / 100,  // ← server's actual charged amount

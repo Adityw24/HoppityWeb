@@ -9,6 +9,7 @@ import subhagImg from "../assets/subhag.jpeg"
 import pallaviImg from "../assets/pallavi1.jpeg"
 import divyanshImg from "../assets/divyansh.jpeg"
 import diwakarImg  from "../assets/diwakar.jpeg"
+import poojaImg    from "../assets/pooja.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
@@ -45,7 +46,7 @@ const STAY_CATEGORIES = [
     label: 'Boutique',
     title: 'Signature stays',
     desc: 'Handpicked properties with soul — treehouses, heritage havelis, hilltop cottages.',
-    count: '6 stays',
+    count: '1 stay',
     icon: '🏡',
     image: 'https://images.unsplash.com/photo-1600011689032-8b628b8a8747?w=800&q=80',
     flagship: false,
@@ -149,6 +150,9 @@ export default function LandingPage() {
     { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: divyanshImg, rating: 5, location: "Delhi" },
     {
       quote: "Our Coorg trip with Hoppity was smoothly planned with seamless bookings, excellent coordination and wonderful support, making our family vacation stress-free, memorable, and truly enjoyable.", author: "Diwakar Sharma", image: diwakarImg, rating: 5, location: "Bangalore"
+    },
+    {
+      quote:"Our Kerala journey was truly unforgettable. A heartfelt thanks to Hoppity for seamlessly curating every detail across Munnar, Thekkady, Alleppey, Kumarakom, and Kochi. Special thanks to Gaurav for his constant support, care, and hospitality. Looking forward to travelling with Hoppity again!", author: "Pooja Hingroni", image: poojaImg, rating: 5, location: "Mumbai" 
     }
   ])
 
@@ -275,9 +279,7 @@ export default function LandingPage() {
             <Link
               key={card.slug}
               to={`/stays/${card.slug}`}
-              className={`group relative overflow-hidden cursor-pointer rounded-[1.75rem] transition duration-300 hover:-translate-y-1 ${
-                card.flagship ? 'h-[360px]' : 'h-[320px]'
-              }`}
+              className={`group relative overflow-hidden cursor-pointer rounded-[1.75rem] transition duration-300 hover:-translate-y-1 h-[360px] `}
             >
               {/* Background image */}
               <img
@@ -363,12 +365,7 @@ export default function LandingPage() {
                 {/* Flagship perks */}
                 {card.flagship && card.perks && (
                   <div className="flex flex-col gap-1.5 mb-3">
-                    {card.perks.map((perk) => (
-                      <div key={perk} className="flex items-center gap-2">
-                        <span style={{ color: '#f0d080', fontSize: '13px', flexShrink: 0 }}>✓</span>
-                        <span className="text-[11.5px] text-white/85 drop-shadow">{perk}</span>
-                      </div>
-                    ))}
+                    
                   </div>
                 )}
  
@@ -409,12 +406,12 @@ export default function LandingPage() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">What this unlocks</p>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-950">Not escape. Expansion.</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {testimonials.slice(0, 4).map((item, i) => (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {testimonials.slice(0, 5).map((item, i) => (
             <div key={i} className="rounded-2xl bg-white border border-violet-100 p-5 shadow-sm hover:shadow-md transition hover:-translate-y-0.5">
               <div className="flex items-center gap-3 mb-3">
                 {item.image
-                  ? <img src={item.image} alt={item.author} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                  ? <img src={item.image} alt={item.author} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
                   : <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-black flex-shrink-0">{(item.author || 'H').charAt(0)}</div>}
                 <div>
                   <p className="font-semibold text-sm text-slate-900 leading-none">{item.author}</p>

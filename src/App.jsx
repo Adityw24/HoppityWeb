@@ -66,7 +66,7 @@ const App = () => (
         <Route path="/stays/budget"      element={<BudgetStaysPage />} />
         <Route path="/stays/flagship"     element={<FlagshipStaysPage />} />
         <Route path="/stays/signature"   element={<SignatureStaysPage />} />
-        <Route path="/stays/signature/:slug"   element={<SignatureProperty />} />
+        <Route path="/stays/:slug"   element={<SignatureProperty />} />
         <Route path="/stays/budget/:slug"   element={<BudgetProperty />} />
         <Route path="/stays/flagship/:slug"   element={<FlagshipProperty />} />
       </Routes>

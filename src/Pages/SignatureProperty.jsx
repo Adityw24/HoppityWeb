@@ -3,226 +3,470 @@ import { useEffect, useState } from "react"
 import {
   ArrowLeft, Star, MapPin, Clock, Wifi, Coffee, Flame,
   Anchor, Utensils, Shield, Users, Waves, Phone, MessageCircle,
-  ChevronLeft, ChevronRight, Check, Share2, Heart, Calendar
+  Check, Share2, Heart, Calendar, Images, X, ChevronLeft, ChevronRight,
+  ExternalLink
 } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import { setPageSEO } from '../lib/seo'
 
-const DUMMY_MAP = {
-  'tiger-trail-lodge-corbett': {
-    id: 's1', slug: 'tiger-trail-lodge-corbett',
-    title: 'Tiger Trail Lodge',
-    location: 'Jim Corbett, Uttarakhand',
-    duration_display: 'Per night', price_per_person: 14500,
-    tag: 'Jungle Lodge',
-    blurb: 'A boutique jungle retreat on the edge of Corbett buffer zone. Morning safari, candlelit dining, and elephants in the wild.',
-    description: `Tiger Trail Lodge sits on 4 acres of private buffer forest on the edge of Jim Corbett National Park — the oldest national park in India and home to over 200 Bengal tigers.
-
-The property has 8 luxury cottages, each with a private sit-out facing the forest. Naturalists on staff run early-morning jeep safaris into the Dhikala zone, and evening walks along the property's own nature trail are a guest favourite.
-
-Dinners are lit by lantern, served under a canopy of sal trees with a set menu of Kumaoni cuisine and garden-fresh vegetables. The salt-water pool is unheated but perfectly refreshing after a morning in the forest.
-
-Best season: November to June. The park closes from July to mid-November.`,
-    image: [
-      'https://images.unsplash.com/photo-1549366021-9f761d450615?w=1200&q=85',
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=85',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85',
-    ],
-    rating: 4.9, review_count: 67,
-    amenities: ['Safari', 'Pool', 'Fine Dining', 'Bonfire', 'Spa', 'Naturalist'],
-    highlights: ['Private buffer forest boundary','Expert naturalist-led safaris','Kumaoni cuisine by lantern light','Salt-water pool in the jungle'],
-    what_included: ['Cottage stay', 'All meals', 'Morning safari', 'Nature walk', 'Naturalist guide'],
-    what_not_included: ['Park entry fees', 'Jeep hire (separate tariff)', 'Alcohol', 'Transport'],
-    cancellation: 'Free cancellation up to 7 days before check-in. 50% refund within 7–3 days. No refund under 3 days.',
-    is_dummy: true,
-  },
-  'suryagarh-palace-jaisalmer': {
-    id: 's2', slug: 'suryagarh-palace-jaisalmer',
-    title: 'Suryagarh Palace',
-    location: 'Jaisalmer, Rajasthan',
-    duration_display: 'Per night', price_per_person: 22000,
-    tag: 'Heritage Hotel',
-    blurb: 'A modern fortress-hotel sculpted from golden Jaisalmer sandstone. Desert dunes at your doorstep, royal-to-the-bone hospitality.',
-    description: `Suryagarh is built entirely from Jaisalmer's famous yellow limestone — a 112-room palace that looks like it emerged from the desert itself. It sits 7 km from the Sam Sand Dunes, with a private dune access path for guests.
-
-The architecture is a meticulous recreation of a Rajput palace: jharokha windows, carved jaali screens, intricate frescoes. Rooms are designed as suites with traditional textiles, four-poster beds, and sandstone bathrooms.
-
-The property runs a nightly cultural programme — folk music, puppet shows, and a desert campfire dinner with live performance. The Nao restaurant is considered one of Jaisalmer's finest, serving progressive Rajasthani cuisine with rare desert ingredients.
-
-The spa uses local sesame and rose extracts. Book the rooftop pool at dawn — the dunes turn gold as the sun rises.`,
-    image: [
-      'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=1200&q=85',
-      'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1200&q=85',
-      'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=85',
-    ],
-    rating: 4.9, review_count: 142,
-    amenities: ['Pool', 'Spa', 'Cultural shows', 'Fine Dining', 'Desert safari', 'Rooftop bar'],
-    highlights: ['7 km from Sam Sand Dunes','Nightly Rajasthani cultural programme','Award-winning Nao restaurant','Private dune access at dawn'],
-    what_included: ['Suite stay', 'Breakfast & dinner', 'Cultural evening programme', 'Spa access'],
-    what_not_included: ['Camel safari', 'Jeep safari', 'Lunch', 'Alcohol', 'Transport'],
-    cancellation: 'Free cancellation up to 10 days before check-in. No refund within 10 days.',
-    is_dummy: true,
-  },
-  'windermere-estate-munnar': {
-    id: 's3', slug: 'windermere-estate-munnar',
-    title: 'Windermere Estate',
-    location: 'Munnar, Kerala',
-    duration_display: 'Per night', price_per_person: 9800,
-    tag: 'Estate Stay',
-    blurb: "A planter's bungalow inside a working tea estate. Morning mist over endless green, estate tours, and colonial-era charm.",
-    description: `Windermere Estate has been a working tea and cardamom plantation since 1875. The main bungalow — a colonial planter's residence — has been restored as a 14-room boutique stay while the estate continues to produce award-winning Munnar tea.
-
-Wake to mist rolling over 3,000 acres of tea terraces. Mornings start with a self-guided estate walk and a cupping session where you compare three single-origin teas from the same hillside.
-
-The dining room serves traditional Kerala sadya meals on banana leaf, with vegetables from the kitchen garden and fish from the Mattupetty reservoir. Evenings are quiet — board games, a well-stocked library, and a fire in the planter's lounge.
-
-The estate is at 5,200 ft, so bring layers. Nearest airport: Cochin (4 hrs). Book the cardamom harvest season (October–November) for a completely different experience.`,
-    image: [
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=85',
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85',
-      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=85',
-    ],
-    rating: 4.8, review_count: 88,
-    amenities: ['Tea tours', 'Pool', 'Bonfire', 'Home-cooked meals', 'Wifi', 'Library'],
-    highlights: ["1875 colonial planter's bungalow",'Live tea estate with daily tours','Kerala sadya on banana leaf','Cardamom harvest season visits'],
-    what_included: ['Room with all meals', 'Tea estate tour & cupping', 'Complimentary wi-fi', 'All linen', 'Bonfire on request'],
-    what_not_included: ['Transport', 'Cardamom picking activity (seasonal surcharge)', 'Alcohol'],
-    cancellation: 'Free cancellation up to 7 days before check-in. 50% charge within 7–3 days.',
-    is_dummy: true,
-  },
-  'kodai-treehouse-kodaikanal': {
-    id: 's4', slug: 'kodai-treehouse-kodaikanal',
-    title: 'The Kodai Treehouse',
-    location: 'Kodaikanal, Tamil Nadu',
-    duration_display: 'Per night', price_per_person: 8500,
-    tag: 'Treehouse',
-    blurb: 'Sleep among the clouds in a hand-crafted eucalyptus treehouse. Panoramic valley views, no screens, total disconnection.',
-    description: `The Kodai Treehouse is a single-suite property — only one booking at a time — built 18 feet off the ground into a cluster of centurion eucalyptus trees on the Kodaikanal plateau.
-
-The structure is entirely hand-built using traditional carpentry and rope joints, no metal fasteners in the main frame. Floor-to-ceiling glass on three sides means you wake to an uninterrupted panorama of the Palani Hills valley — on clear mornings, you can see 80 km across to the Western Ghats.
-
-There is no TV, no in-room phone, and the kitchen serves only what the host harvests from the property: seasonal fruits, cold-pressed oils, wood-fired flatbreads. Nights here are genuinely dark and very quiet.
-
-A resident naturalist takes guests on a 2-hour morning walk to spot Nilgiri langurs, shola birds, and the rare Kodai rose.`,
-    image: [
-      'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=1200&q=85',
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=85',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85',
-    ],
-    rating: 4.7, review_count: 54,
-    amenities: ['Valley views', 'Meals', 'Nature walks', 'Bonfire', 'Wifi'],
-    highlights: ['Exclusive single-suite property','18 ft hand-built eucalyptus treehouse','No TV · total digital detox','Nilgiri langur nature walks daily'],
-    what_included: ['Treehouse suite', 'All meals (farm-to-table)', 'Morning nature walk', 'Evening bonfire'],
-    what_not_included: ['Transport', 'Alcohol', 'Trekking guide (on request)'],
-    cancellation: 'Free cancellation up to 14 days before check-in. No refund within 14 days (exclusive property).',
-    is_dummy: true,
-  },
-  'barefoot-havelock-andaman': {
-    id: 's5', slug: 'barefoot-havelock-andaman',
-    title: 'Barefoot at Havelock',
-    location: 'Havelock Island, Andaman',
-    duration_display: 'Per night', price_per_person: 18000,
-    tag: 'Beach Villa',
-    blurb: "Pristine beach cottages on Radhanagar — Asia's finest beach. Snorkelling, bioluminescent nights, silence like nowhere else.",
-    description: `Barefoot at Havelock occupies 7 acres of beachfront on Radhanagar Beach — rated Asia's best beach multiple years running by Time magazine. The 28 cottages are built from bamboo, palm thatch, and reclaimed timber, spaced far enough apart that you'll never hear a neighbour.
-
-The house reef is 50 metres from the shore, rich with parrotfish, hawksbill turtles, and staghorn coral gardens. Snorkelling equipment is provided free. The dive centre runs PADI courses and liveaboard day trips to Lighthouse Reef and Jackson's Bar.
-
-Bioluminescent plankton blooms appear most nights between October and March — wade knee-deep at midnight and watch the water glow around you. No other guest experience in India comes close.
-
-The restaurant serves a daily changing menu of fresh Andaman catch — red snapper, lobster, barracuda. Catch your own fish on the sunset fishing trip and the kitchen will cook it for dinner.`,
-    image: [
-      'https://images.unsplash.com/photo-1540202404-d0c7fe46a1b6?w=1200&q=85',
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=85',
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85',
-    ],
-    rating: 4.9, review_count: 213,
-    amenities: ['Snorkelling', 'Beach access', 'Spa', 'All meals', 'Water sports', 'Dive centre'],
-    highlights: ["Radhanagar — Asia's best beach",'Bioluminescent plankton nights','House reef 50 m from shore','Sunset fishing + cook your catch'],
-    what_included: ['Beach cottage', 'All meals', 'Snorkelling equipment', 'Kayak access', 'Sunset fishing trip'],
-    what_not_included: ['Scuba diving (extra)', 'Alcohol', 'Liveaboard day trips', 'Ferry transfers'],
-    cancellation: 'Free cancellation up to 15 days before check-in. No refund within 15 days (remote island logistics).',
-    is_dummy: true,
-  },
-  'nimmu-house-ladakh': {
-    id: 's6', slug: 'nimmu-house-ladakh',
-    title: 'Nimmu House',
-    location: 'Nimmu, Ladakh',
-    duration_display: 'Per night', price_per_person: 12000,
-    tag: 'Heritage Stay',
-    blurb: 'A 200-year-old royal residence in the Indus Valley. Stone walls, silk duvets, and the Zanskar confluence 5 min away.',
-    description: `Nimmu House is a 200-year-old Ladakhi royal residence converted into a 10-room heritage stay without altering its mud-brick walls, carved wooden windows, or traditional Buddhist prayer room. The family who owns it — descendants of the Nimmu royal lineage — still lives on the upper floor.
-
-The property sits in the Indus Valley at 3,250 m, 5 minutes from the Zanskar–Indus confluence — one of the most dramatic river junctions in the world, where turquoise Zanskar water meets the brown Indus in a visible line mid-river.
-
-Rooms have hand-embroidered silk duvets, locally woven rugs, and electric blankets for the cold nights. Meals are prepared by the family — traditional Ladakhi thukpa, skyu, and butter tea are non-negotiable parts of every dinner.
-
-Excursions include sunrise at the confluence, day trips to Likir Monastery, Magnetic Hill, and the Hall of Fame, all within 40 km.`,
-    image: [
-      'https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=1200&q=85',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85',
-      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=85',
-    ],
-    rating: 4.8, review_count: 91,
-    amenities: ['River views', 'All meals', 'Excursions', 'Wifi', 'Bonfire', 'Heritage tour'],
-    highlights: ['200-year-old royal residence','Zanskar–Indus confluence 5 min away','Ladakhi family-cooked meals','Day trips to 5+ major sites'],
-    what_included: ['Heritage room', 'All meals (Ladakhi cuisine)', 'Wi-fi', 'Excursion planning', 'Cultural heritage tour'],
-    what_not_included: ['Vehicle hire', 'Entry fees', 'Alcohol', 'Transport from Leh'],
-    cancellation: 'Free cancellation up to 7 days before check-in. 50% refund within 7–3 days.',
-    is_dummy: true,
-  },
-}
+// ─── Amenity icons ────────────────────────────────────────────────────────────
 
 const AMENITY_ICONS = {
-  'Wifi': Wifi, 'Cafe': Coffee, 'Bonfire': Flame, 'Pool': Waves,
-  'Spa': Shield, 'Safari': MapPin, 'Snorkelling': Anchor, 'Naturalist': Users,
-  'All meals': Utensils, 'Home-cooked meals': Utensils, 'Meals': Utensils,
-  'Fine Dining': Utensils, 'Tea tours': Coffee, 'Beach access': Anchor,
-  'Water sports': Anchor, 'Dive centre': Anchor, 'Valley views': MapPin,
-  'River views': MapPin, 'Nature walks': MapPin, 'Excursions': MapPin,
-  'Cultural shows': Users, 'Desert safari': MapPin, 'Rooftop bar': Coffee,
-  'Library': Shield, 'Heritage tour': MapPin,
+  'Wifi':               Wifi,
+  'Cafe':               Coffee,
+  'Bonfire':            Flame,
+  'Pool':               Waves,
+  'Spa':                Shield,
+  'Safari':             MapPin,
+  'Snorkelling':        Anchor,
+  'Naturalist':         Users,
+  'All meals':          Utensils,
+  'Home-cooked meals':  Utensils,
+  'Meals':              Utensils,
+  'Fine Dining':        Utensils,
+  'Breakfast':          Coffee,
+  'Tea tours':          Coffee,
+  'Beach access':       Anchor,
+  'Water sports':       Anchor,
+  'Dive centre':        Anchor,
+  'Valley views':       MapPin,
+  'River views':        MapPin,
+  'Nature walks':       MapPin,
+  'Excursions':         MapPin,
+  'Cultural shows':     Users,
+  'Desert safari':      MapPin,
+  'Rooftop bar':        Utensils,
+  'Library':            Shield,
+  'Heritage tour':      MapPin,
+  'Gym':                Shield,
+  'Pet friendly':       Users,
+  'Airport transfer':   MapPin,
+  'AC':                 Shield,
+  'Parking':            Shield,
 }
 
+// ─── Image collection helper ───────────────────────────────────────────────────
+// Robustly gathers every available image into a single, de-duplicated array.
+// Handles cover_image_url + images_url where images_url may be:
+//   • a real Postgres text[] (already an array)
+//   • a JSON-encoded array string  e.g. '["a.jpg","b.jpg"]'
+//   • an unquoted bracket string   e.g. '[a.jpg, b.jpg]'  (legacy rows)
+//   • a comma-separated string     e.g. 'a.jpg, b.jpg'
+//   • a single URL string
+// Also picks up an optional `images` text[] column if present.
+
+function collectImages(data) {
+  const out = []
+
+  if (data.cover_image_url) out.push(data.cover_image_url)
+
+  const pushFrom = (val) => {
+    if (!val) return
+
+    // Already an array (Postgres text[])
+    if (Array.isArray(val)) {
+      out.push(...val)
+      return
+    }
+
+    if (typeof val !== 'string') return
+    const trimmed = val.trim()
+    if (!trimmed) return
+
+    // 1) Try strict JSON array first  →  ["a.jpg","b.jpg"]
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) {
+          out.push(...parsed.filter(Boolean))
+          return
+        }
+      } catch { /* fall through to manual parse below */ }
+    }
+
+    // 2) Fallback: strip stray surrounding brackets, split on commas,
+    //    and remove any leftover quotes from each URL.
+    const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
+      ? trimmed.slice(1, -1)
+      : trimmed
+    out.push(
+      ...inner
+        .split(',')
+        .map(s => s.trim().replace(/^["']|["']$/g, ''))
+        .filter(Boolean)
+    )
+  }
+
+  pushFrom(data.images_url)
+  pushFrom(data.images) // harmless if undefined
+
+  // De-dupe while preserving order, drop empties
+  return [...new Set(out.filter(Boolean))]
+}
+
+// ─── Maps link helper ───────────────────────────────────────────────────────────
+// Prefer the admin-saved maps_url (validated as a real http/https link).
+// Fall back to a Google Maps search built from address / title / location.
+
+function isValidMapsLink(str) {
+  if (!str?.trim()) return false
+  try {
+    const u = new URL(str.trim())
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function buildMapsUrl(property) {
+  if (isValidMapsLink(property.maps_url)) return property.maps_url.trim()
+
+  const query = property.address
+    || [property.title, property.location].filter(Boolean).join(', ')
+    || property.location
+  return query
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+    : null
+}
+
+// ─── Time formatting helper ───────────────────────────────────────────────────
+function formatTime(time) {
+  if (!time) return ''
+
+  const [hours, minutes] = time.split(':')
+  const date = new Date()
+  date.setHours(hours, minutes)
+
+  return date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+// ─── Lightbox / Slider ──────────────────────────────────────────────────────────
+
+function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape')     onClose()
+      if (e.key === 'ArrowLeft')  onPrev()
+      if (e.key === 'ArrowRight') onNext()
+    }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [onClose, onPrev, onNext])
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col"
+      onClick={onClose}
+    >
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 py-4 text-white" onClick={e => e.stopPropagation()}>
+        <span className="text-sm font-medium tabular-nums">
+          {index + 1} / {images.length}
+        </span>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+          aria-label="Close gallery">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Main image + nav */}
+      <div className="flex-1 flex items-center justify-center px-4 relative" onClick={e => e.stopPropagation()}>
+        {images.length > 1 && (
+          <button
+            onClick={onPrev}
+            className="absolute left-3 sm:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+            aria-label="Previous image">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+
+        <img
+          src={images[index]}
+          alt={`Image ${index + 1}`}
+          className="max-h-[72vh] max-w-[92vw] object-contain rounded-2xl select-none"
+          draggable={false}
+        />
+
+        {images.length > 1 && (
+          <button
+            onClick={onNext}
+            className="absolute right-3 sm:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+            aria-label="Next image">
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div
+          className="flex gap-2 overflow-x-auto px-5 py-4 justify-start sm:justify-center"
+          onClick={e => e.stopPropagation()}>
+          {images.map((src, i) => (
+            <button
+              key={i}
+              onClick={() => onSelect(i)}
+              className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
+                i === index ? 'border-violet-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
+              }`}>
+              <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" draggable={false} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Photo Grid ────
+// 5+ images → 1 big left + 2×2 right grid, with a "Show all photos" button.
+// Degrades cleanly for 1–4 images. Every tile opens the Lightbox carousel.
+
+function BentoGallery({ images, title, onOpen }) {
+  const [errored, setErrored] = useState({})
+  const mark = (i) => setErrored(p => ({ ...p, [i]: true }))
+
+  const Fallback = ({ className }) => (
+    <div className={`${className} bg-gradient-to-br from-violet-700 via-purple-700 to-fuchsia-800 flex items-center justify-center`}>
+      <span className="text-5xl opacity-20">✦</span>
+    </div>
+  )
+
+  const Tile = ({ index, className = "", rounded = "" }) => {
+    const src = images[index]
+    return (
+      <div
+        onClick={() => src && onOpen(index)}
+        className={`relative overflow-hidden ${rounded} ${src ? 'cursor-zoom-in' : ''} ${className} group`}>
+        {src && !errored[index] ? (
+          <img
+            src={src}
+            alt={`${title} ${index + 1}`}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            onError={() => mark(index)}
+          />
+        ) : (
+          <Fallback className="w-full h-full" />
+        )}
+        {/* subtle hover darken */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition pointer-events-none" />
+      </div>
+    )
+  }
+
+  const count = images.length
+  const wrap = "relative mt-4 mx-auto max-w-7xl px-6 lg:px-10"
+  const frame = "grid gap-2 overflow-hidden rounded-3xl"
+  const h = { height: 'clamp(340px, 58vh, 560px)' }
+
+  // ── 0–1 image: single hero ────────────────────────────────────────────────
+  if (count <= 1) {
+    return (
+      <div className={wrap}>
+        <div className={frame} style={h}>
+          <Tile index={0} rounded="rounded-3xl" />
+        </div>
+        <TopBar title={title} count={count} onShowAll={() => count && onOpen(0)} />
+      </div>
+    )
+  }
+
+  // ── 2 images: side by side ────────────────────────────────────────────────
+  if (count === 2) {
+    return (
+      <div className={wrap}>
+        <div className={frame} style={{ ...h, gridTemplateColumns: '1fr 1fr' }}>
+          <Tile index={0} rounded="rounded-l-3xl" />
+          <Tile index={1} rounded="rounded-r-3xl" />
+        </div>
+        <TopBar title={title} count={count} onShowAll={() => onOpen(0)} />
+      </div>
+    )
+  }
+
+  // ── 3 images: big left + 2 stacked right ──────────────────────────────────
+  if (count === 3) {
+    return (
+      <div className={wrap}>
+        <div className={frame} style={{ ...h, gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}>
+          <Tile index={0} rounded="rounded-l-3xl" className="row-span-2" />
+          <Tile index={1} rounded="rounded-tr-3xl" />
+          <Tile index={2} rounded="rounded-br-3xl" />
+        </div>
+        <TopBar title={title} count={count} onShowAll={() => onOpen(0)} />
+      </div>
+    )
+  }
+
+  // ── 4 images: big left + 3 stacked (or 1 + column) ────────────────────────
+  if (count === 4) {
+    return (
+      <div className={wrap}>
+        <div className={frame} style={{ ...h, gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
+          <Tile index={0} rounded="rounded-l-3xl" className="row-span-2" />
+          <Tile index={1} />
+          <Tile index={2} rounded="rounded-tr-3xl" />
+          <Tile index={3} />
+          {/* fill the empty bottom-middle by letting index 3 sit bottom-right */}
+        </div>
+        <TopBar title={title} count={count} onShowAll={() => onOpen(0)} />
+      </div>
+    )
+  }
+
+  // ── 5+ images: classic Airbnb — 1 big left + 2×2 right ────────────────────
+  return (
+    <div className={wrap}>
+      <div
+        className={frame}
+        style={{ ...h, gridTemplateColumns: '1fr 0.5fr 0.5fr', gridTemplateRows: '1fr 1fr' }}>
+        {/* Big hero — left, spans both rows */}
+        <Tile index={0} rounded="rounded-l-3xl" className="row-span-2" />
+        {/* 2×2 on the right */}
+        <Tile index={1} />
+        <Tile index={2} rounded="rounded-tr-3xl" />
+        <Tile index={3} />
+        <Tile index={4} rounded="rounded-br-3xl" />
+      </div>
+
+      {/* Show all photos — bottom-right, like Airbnb */}
+      <button
+        onClick={() => onOpen(0)}
+        className="absolute bottom-4 right-10 lg:right-14 flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 shadow-md hover:shadow-lg hover:bg-slate-50 transition">
+        <Images className="w-4 h-4" />
+        Show all photos{count > 5 ? ` (${count})` : ''}
+      </button>
+
+      <TopBar title={title} count={count} onShowAll={() => onOpen(0)} />
+    </div>
+  )
+}
+
+// Shared top-bar (Back / Share / Wishlist) — floats over whatever gallery layout
+function TopBar({ title, onShowAll, count }) {
+  const navigate  = useNavigate()
+  const [wish, setWish] = useState(false)
+  return (
+    <div className="absolute top-4 left-10 right-10 lg:left-16 lg:right-16 flex items-center justify-between z-10 pointer-events-none">
+      <button
+        onClick={() => navigate(-1)}
+        className="pointer-events-auto flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-sm px-4 py-2 text-white text-sm font-medium hover:bg-black/60 transition cursor-pointer">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+      <div className="flex items-center gap-2 pointer-events-auto">
+        {count > 1 && (
+          <button
+            onClick={onShowAll}
+            className="hidden sm:flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-sm px-4 py-2 text-white text-sm font-medium hover:bg-black/60 transition cursor-pointer"
+            aria-label="View all photos">
+            <Images className="w-4 h-4" /> All photos
+          </button>
+        )}
+        <button
+          className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition cursor-pointer"
+          onClick={() => navigator.share?.({ title, url: window.location.href })}
+          aria-label="Share">
+          <Share2 className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setWish(w => !w)}
+          className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center  transition cursor-pointer ${wish ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
+          aria-label="Wishlist">
+          <Heart className={`w-4 h-4 ${wish ? 'fill-white' : ''}`} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function SignaturePropertyPage() {
-  const { slug } = useParams()
-  const navigate = useNavigate()
-  const [property, setProperty] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [imgIndex, setImgIndex] = useState(0)
-  const [wishlist, setWishlist] = useState(false)
-  const [guests, setGuests] = useState(2)
-  const [nights, setNights] = useState(2)
+  const { slug }       = useParams()
+  console.log('slug:', slug)
+  const [property,   setProperty]   = useState(null)
+  const [loading,    setLoading]    = useState(true)
+  const [fetchError, setFetchError] = useState(null)
+  const [guests,     setGuests]     = useState(1)
+  const [nights,     setNights]     = useState(1)
+  const [lightbox,   setLightbox]   = useState({ open: false, index: 0 })
 
   useEffect(() => {
     window.scrollTo(0, 0)
+
     supabase
-      .from('Itineraries')
-      .select('*')
+      .from('Properties')
+      .select(
+        'id, name, location, property_type, property_category, ' +
+        'price_per_night, cover_image_url, images_url, amenities, ' +
+        'description, is_active, checkin_time, checkout_time, ' +
+        'meals_included, cancellation_policy, pet_policy, address, maps_url, slug'
+      )
       .eq('slug', slug)
       .eq('is_active', true)
       .single()
-      .then(({ data }) => {
-        if (data) {
-          const norm = {
-            ...data,
-            image: data.images?.length
-              ? data.images.filter(Boolean)
-              : data.cover_image_url ? [data.cover_image_url] : [],
-          }
-          setProperty(norm)
-          setPageSEO({ title: `${data.title} – Signature Stay | Hoppity`, description: data.blurb, canonical: `/stays/property/${slug}` })
-        } else {
-          const dummy = DUMMY_MAP[slug]
-          if (dummy) {
-            setProperty(dummy)
-            setPageSEO({ title: `${dummy.title} – Signature Stay | Hoppity`, description: dummy.blurb, canonical: `/stays/property/${slug}` })
-          }
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setFetchError('Property not found or not available.')
+          setLoading(false)
+          return
         }
+
+        const collected = collectImages(data)
+
+        // Debug: confirm what was stored vs. what we parsed
+        console.log('🖼️ Image fetch debug:', {
+          raw_images_url:  data.images_url,
+          type:            typeof data.images_url,
+          cover_image_url: data.cover_image_url,
+          parsed:          collected,
+          count:           collected.length,
+        })
+
+        const norm = {
+          ...data,
+          checkin_time: formatTime(data.checkin_time),
+          checkout_time: formatTime(data.checkout_time),
+          title:             data.name,
+          tag:               data.property_type,
+          price_per_person:  data.price_per_night,
+          duration_display:  'Per night',
+          blurb:             data.description,
+          amenities:         Array.isArray(data.amenities) ? data.amenities : [],
+          image:             collected,
+          maps_url:          data.maps_url || null,
+          rating:            data.rating       || 0,
+          review_count:      data.review_count || 0,
+          highlights:        data.highlights   || [],
+          what_included:     data.what_included     || [],
+          what_not_included: data.what_not_included || [],
+          cancellation:      data.cancellation_policy || null,
+        }
+
+        setProperty(norm)
+        setPageSEO({
+          title:       `${data.name} – Signature Stay | Hoppity`,
+          description: data.description,
+          canonical:   `/stays/${slug}`,
+        })
         setLoading(false)
       })
-      .catch(() => { setProperty(DUMMY_MAP[slug] || null); setLoading(false) })
+      .catch(err => {
+        setFetchError(err.message)
+        setLoading(false)
+      })
   }, [slug])
 
   if (loading) return (
@@ -234,12 +478,12 @@ export default function SignaturePropertyPage() {
     </div>
   )
 
-  if (!property) return (
+  if (fetchError || !property) return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
       <div className="text-center">
         <p className="text-4xl mb-4">🏡</p>
         <h2 className="text-xl font-bold text-slate-900">Property not found</h2>
-        <p className="text-slate-500 mt-2 mb-6">This listing may have moved or been removed.</p>
+        <p className="text-slate-500 mt-2 mb-6 text-sm">{fetchError || 'This listing may have moved or been removed.'}</p>
         <Link to="/stays/signature"
           className="rounded-full bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white px-6 py-2.5 text-sm font-semibold shadow-lg shadow-violet-200 hover:shadow-xl transition">
           ← Back to Signature Stays
@@ -248,11 +492,27 @@ export default function SignaturePropertyPage() {
     </div>
   )
 
-  const images = property.image?.length ? property.image : ['https://images.unsplash.com/photo-1549366021-9f761d450615?w=1200&q=85']
+  const images     = property.image?.length ? property.image : []
   const totalPrice = Number(property.price_per_person || 0) * guests * nights
 
+  // Prefer the admin-saved maps_url column; fall back to an address-based search
+  const mapsUrl = buildMapsUrl(property)
+
+  // Lightbox controls
+  const openLightbox  = (i = 0) => setLightbox({ open: true, index: Math.min(i, images.length - 1) })
+  const closeLightbox = () => setLightbox(l => ({ ...l, open: false }))
+  const prevImg = () => setLightbox(l => ({ ...l, index: (l.index - 1 + images.length) % images.length }))
+  const nextImg = () => setLightbox(l => ({ ...l, index: (l.index + 1) % images.length }))
+  const selectImg = (i) => setLightbox(l => ({ ...l, index: i }))
+
   const handleWhatsApp = () => {
-    const msg = encodeURIComponent(`Hi! I'm interested in booking ${property.title} in ${property.location}.\n\nGuests: ${guests}\nNights: ${nights}\nTotal estimate: ₹${totalPrice.toLocaleString('en-IN')}\n\nPlease share availability and confirm the booking.`)
+    const msg = encodeURIComponent(
+      `Hi! I'm interested in booking ${property.title} in ${property.location}.\n\n` +
+      `Guests: ${guests} and Nights: ${nights}\n` +
+      `Could you please share:
+      • Availability for this stay
+      • Best available pricing`
+    )
     window.open(`https://wa.me/+919752377323?text=${msg}`, '_blank')
   }
   const handleCall = () => window.open('tel:+919752377323', '_self')
@@ -262,73 +522,38 @@ export default function SignaturePropertyPage() {
       <Navbar />
       <div className="pt-20 pb-20">
 
-        {/* Gallery */}
-        <div className="relative w-full h-[55vh] min-h-[320px] max-h-[520px] overflow-hidden bg-slate-900 mt-4">
-          <img
-            key={imgIndex}
-            src={images[imgIndex]}
-            alt={property.title}
-            className="w-full h-full object-cover transition-opacity duration-500"
-            onError={e => { e.currentTarget.style.opacity = '0' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25 pointer-events-none" />
+        {/* ── Bento Gallery ──────────────────────────────────────────────── */}
+        <BentoGallery
+          images={images}
+          title={property.title}
+          onOpen={openLightbox}
+        />
 
-          {images.length > 1 && (<>
-            <button onClick={() => setImgIndex(i => (i - 1 + images.length) % images.length)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition"
-              aria-label="Previous image"><ChevronLeft className="w-5 h-5" /></button>
-            <button onClick={() => setImgIndex(i => (i + 1) % images.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition"
-              aria-label="Next image"><ChevronRight className="w-5 h-5" /></button>
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 items-center">
-              {images.map((_, i) => (
-                <button key={i} onClick={() => setImgIndex(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${i === imgIndex ? 'bg-white w-4' : 'bg-white/50 w-1.5'}`}
-                  aria-label={`View image ${i + 1}`} />
-              ))}
-            </div>
-          </>)}
-
-          {/* Top bar */}
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-            <button onClick={() => navigate(-1)}
-              className="flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-sm px-4 py-2 text-white text-sm font-medium hover:bg-black/60 transition cursor-pointer">
-              <ArrowLeft className="w-4 h-4" /> Back
-            </button>
-            <div className="flex items-center gap-2">
-              <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition"
-                onClick={() => navigator.share?.({ title: property.title, url: window.location.href })}
-                aria-label="Share property"><Share2 className="w-4 h-4" /></button>
-              <button onClick={() => setWishlist(w => !w)}
-                className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition ${wishlist ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
-                aria-label="Save to wishlist"><Heart className={`w-4 h-4 ${wishlist ? 'fill-white' : ''}`} /></button>
-            </div>
-          </div>
-
-          {/* Badges over image */}
-          <div className="absolute bottom-12 left-5 flex items-center gap-2">
-            {property.tag && (
-              <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-                {property.tag}
-              </span>
-            )}
-            <span className="inline-flex rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
-              ✦ Signature
+        {/* Category + tag badges row — below gallery */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 mt-4 flex items-center gap-2 flex-wrap">
+          {property.tag && (
+            <span className="inline-flex rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold text-violet-700 shadow-sm">
+              {property.tag}
             </span>
-          </div>
+          )}
+          {property.property_category && (
+            <span className="inline-flex rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
+              ✦ {property.property_category.charAt(0).toUpperCase() + property.property_category.slice(1)}
+            </span>
+          )}
         </div>
 
-        {/* Main */}
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 mt-8">
+        {/* ── Main content ───────────────────────────────────────────────── */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 mt-6">
           <div className="flex flex-col lg:flex-row gap-10">
 
-            {/* Left: content */}
+            {/* ── Left ─────────────────────────────────────────────────── */}
             <div className="flex-1 min-w-0">
+
               <h1 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight leading-tight mb-2">
                 {property.title}
               </h1>
 
-              {/* Meta */}
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500 mb-6">
                 {property.location && (
                   <div className="flex items-center gap-1.5">
@@ -340,24 +565,31 @@ export default function SignaturePropertyPage() {
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                     <span className="font-semibold text-slate-800">{Number(property.rating).toFixed(1)}</span>
-                    {property.review_count && <span className="text-slate-400">({property.review_count} reviews)</span>}
+                    {property.review_count > 0 && <span className="text-slate-400">({property.review_count} reviews)</span>}
                   </div>
                 )}
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-violet-500" />
-                  <span>{property.duration_display || property.duration}</span>
-                </div>
               </div>
+
+              <div className="flex items-center mb-6 -mt-2 gap-3">
+              {mapsUrl && (
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-2xl bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
+                      View on Google Maps
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  </div>
 
               <hr className="border-slate-200 mb-6" />
 
               {/* Description */}
-              {(property.description || property.blurb) && (
+              {property.blurb && (
                 <div className="mb-8">
                   <h2 className="text-lg font-bold text-slate-900 mb-3">About this property</h2>
-                  <div className="text-slate-600 text-sm leading-[1.95] whitespace-pre-line">
-                    {property.description || property.blurb}
-                  </div>
+                  <div className="text-slate-600 text-sm leading-[1.95] whitespace-pre-line">{property.blurb}</div>
                 </div>
               )}
 
@@ -387,11 +619,41 @@ export default function SignaturePropertyPage() {
                       const Icon = AMENITY_ICONS[a] || Shield
                       return (
                         <span key={a} className="flex items-center gap-2 rounded-2xl border border-violet-100 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm">
-                          <Icon className="w-4 h-4 text-violet-500" />
-                          {a}
+                          <Icon className="w-4 h-4 text-violet-500" />{a}
                         </span>
                       )
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Meals */}
+              {property.meals_included && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-bold text-slate-900 mb-3">Meals</h2>
+                  <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-sm text-amber-800">
+                    <Utensils className="w-4 h-4 flex-shrink-0" />{property.meals_included}
+                  </div>
+                </div>
+              )}
+
+              {/* Check-in / Check-out */}
+              {(property.checkin_time || property.checkout_time) && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-bold text-slate-900 mb-3">Check-in & Check-out</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {property.checkin_time && (
+                      <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3">
+                        <p className="text-xs text-slate-400 mb-0.5">Check-in</p>
+                        <p className="text-sm font-semibold text-slate-800">{property.checkin_time}</p>
+                      </div>
+                    )}
+                    {property.checkout_time && (
+                      <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3">
+                        <p className="text-xs text-slate-400 mb-0.5">Check-out</p>
+                        <p className="text-sm font-semibold text-slate-800">{property.checkout_time}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -440,101 +702,111 @@ export default function SignaturePropertyPage() {
               {property.cancellation && (
                 <div className="mb-8 rounded-2xl bg-violet-50 border border-violet-200 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-violet-500" />
-                    Cancellation policy
+                    <Calendar className="w-4 h-4 text-violet-500" />Cancellation policy
                   </h3>
                   <p className="text-sm text-slate-600 leading-relaxed">{property.cancellation}</p>
                 </div>
               )}
 
-              {/* Dummy notice */}
-              {property.is_dummy && (
-                <div className="rounded-2xl bg-violet-50 border border-violet-200 px-5 py-4 mb-6">
-                  <p className="text-xs text-violet-700 font-medium">
-                    🔧 Sample listing — connect your Supabase database to display live property data.
-                  </p>
+              {/* Pet policy */}
+              {property.pet_policy && (
+                <div className="mb-8 rounded-2xl bg-slate-50 border border-slate-200 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Pet policy</h3>
+                  <p className="text-sm text-slate-600">{property.pet_policy}</p>
+                </div>
+              )}
+
+              {/* Address */}
+              {(property.address || mapsUrl) && (
+                <div className="mb-8 rounded-2xl bg-slate-50 border border-slate-200 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-slate-500" />Address
+                  </h3>
+                  {property.address && (
+                    <p className="text-sm text-slate-600 leading-relaxed">{property.address}</p>
+                  )}
+                  
                 </div>
               )}
             </div>
 
-            {/* Booking Sidebar */}
+            {/* ── Right: booking sidebar ────────────────────────────────── */}
             <div className="lg:w-96 flex-shrink-0">
               <div className="sticky top-24">
                 <div className="rounded-3xl border border-violet-100 bg-white shadow-xl shadow-violet-100/50 p-6">
 
-                  {/* Price */}
                   <div className="mb-5">
                     <div className="flex items-end gap-2">
                       <span className="text-3xl font-black text-violet-700">
-                        ₹{Number(property.price_per_person || 0).toLocaleString('en-IN')}
+                        {property.price_per_person
+                          ? `₹${Number(property.price_per_person).toLocaleString('en-IN')}`
+                          : 'On Request'}
                       </span>
-                      <span className="text-slate-400 text-sm mb-1">/ night</span>
+                      {property.price_per_person > 0 && (
+                        <span className="text-slate-400 text-sm mb-1">/ night</span>
+                      )}
                     </div>
                     {property.rating > 0 && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                         <span className="text-sm font-semibold text-slate-700">{Number(property.rating).toFixed(1)}</span>
-                        {property.review_count && <span className="text-xs text-slate-400">· {property.review_count} reviews</span>}
+                        {property.review_count > 0 && <span className="text-xs text-slate-400">· {property.review_count} reviews</span>}
                       </div>
                     )}
                   </div>
 
                   <hr className="border-slate-100 mb-5" />
 
-                  {/* Guests & nights */}
                   <div className="space-y-4 mb-5">
                     {[
-                      { label: 'Guests', sub: 'Number of people', val: guests, set: setGuests, max: 20 },
-                      { label: 'Nights', sub: 'Duration of stay', val: nights, set: setNights, max: 30 },
-                    ].map(({ label, sub, val, set, max }) => (
+                      { label: 'Guests', sub: 'Number of people', val: guests, setVal: setGuests, max: 20 },
+                      { label: 'Nights', sub: 'Duration of stay',  val: nights, setVal: setNights, max: 30 },
+                    ].map(({ label, sub, val, setVal, max }) => (
                       <div key={label} className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-semibold text-slate-800">{label}</p>
                           <p className="text-xs text-slate-400">{sub}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <button onClick={() => set(v => Math.max(1, v - 1))}
+                          <button onClick={() => setVal(v => Math.max(1, v - 1))}
                             className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-violet-400 hover:text-violet-700 transition text-lg font-bold">−</button>
                           <span className="w-6 text-center text-sm font-bold text-slate-900">{val}</span>
-                          <button onClick={() => set(v => Math.min(max, v + 1))}
+                          <button onClick={() => setVal(v => Math.min(max, v + 1))}
                             className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-violet-400 hover:text-violet-700 transition text-lg font-bold">+</button>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Price breakdown */}
-                  <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3 mb-5 space-y-2">
-                    <div className="flex justify-between text-sm text-slate-600">
-                      <span>₹{Number(property.price_per_person || 0).toLocaleString('en-IN')} × {guests} guest{guests > 1 ? 's' : ''} × {nights} night{nights > 1 ? 's' : ''}</span>
-                      <span>₹{totalPrice.toLocaleString('en-IN')}</span>
+                  {property.price_per_person > 0 && (
+                    <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3 mb-5 space-y-2">
+                      <div className="flex justify-between text-sm text-slate-600">
+                        <span>₹{Number(property.price_per_person).toLocaleString('en-IN')} × {guests} guest{guests > 1 ? 's' : ''} × {nights} night{nights > 1 ? 's' : ''}</span>
+                        <span>₹{totalPrice.toLocaleString('en-IN')}</span>
+                      </div>
+                      <hr className="border-violet-200" />
+                      <div className="flex justify-between font-bold text-slate-900">
+                        <span>Total estimate</span>
+                        <span className="text-violet-700">₹{totalPrice.toLocaleString('en-IN')}</span>
+                      </div>
                     </div>
-                    <hr className="border-violet-200" />
-                    <div className="flex justify-between font-bold text-slate-900">
-                      <span>Total estimate</span>
-                      <span className="text-violet-700">₹{totalPrice.toLocaleString('en-IN')}</span>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* CTAs */}
                   <div className="space-y-3">
                     <button onClick={handleWhatsApp}
-                      className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:shadow-xl">
-                      <MessageCircle className="w-5 h-5" />
-                      Book via WhatsApp
+                      className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer">
+                      <MessageCircle className="w-5 h-5" />Book via WhatsApp
                     </button>
                     <button onClick={handleCall}
-                      className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl">
-                      <Phone className="w-5 h-5" />
-                      Call to enquire
+                      className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer">
+                      <Phone className="w-5 h-5" />Call to enquire
                     </button>
-                    <p className="text-center text-xs text-slate-400 pt-1">
+                  {/*  <p className="text-center text-xs text-slate-400 pt-1">
                       No payment collected here · We confirm availability first
-                    </p>
+                    </p> */}
                   </div>
                 </div>
 
-                {/* Trust strip */}
                 <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
                   {['Free cancellation*', 'Instant response', 'Personally curated'].map(t => (
                     <span key={t} className="flex items-center gap-1.5">
@@ -548,6 +820,18 @@ export default function SignaturePropertyPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Lightbox / Slider ──────────────────────────────────────────────── */}
+      {lightbox.open && images.length > 0 && (
+        <Lightbox
+          images={images}
+          index={lightbox.index}
+          onClose={closeLightbox}
+          onPrev={prevImg}
+          onNext={nextImg}
+          onSelect={selectImg}
+        />
+      )}
     </div>
   )
 }

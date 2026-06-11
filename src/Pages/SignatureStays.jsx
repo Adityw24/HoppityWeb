@@ -5,188 +5,121 @@ import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import { setPageSEO } from '../lib/seo'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function normalise(row) {
-  return {
-    ...row,
-    image: row.images?.length
-      ? row.images.filter(Boolean)
-      : row.cover_image_url
-        ? [row.cover_image_url]
-        : [],
-  }
-}
-
-// ─── Dummy data ───────────────────────────────────────────────────────────────
-
-const DUMMY_STAYS = [
-  {
-    id: 's1',
-    slug: 'tiger-trail-lodge-corbett',
-    title: 'Tiger Trail Lodge',
-    location: 'Jim Corbett, Uttarakhand',
-    duration: '2 nights',
-    duration_display: 'Per night',
-    price_per_person: 14500,
-    tag: 'Jungle Lodge',
-    blurb: 'A boutique jungle retreat on the edge of Corbett buffer zone. Morning safari, candlelit dining, and elephants in the wild.',
-    image: ['https://images.unsplash.com/photo-1549366021-9f761d450615?w=800&q=80'],
-    rating: 4.9,
-    review_count: 67,
-    amenities: ['Safari', 'Pool', 'Fine Dining', 'Bonfire', 'Spa'],
-    is_dummy: true,
-  },
-  {
-    id: 's2',
-    slug: 'suryagarh-palace-jaisalmer',
-    title: 'Suryagarh Palace',
-    location: 'Jaisalmer, Rajasthan',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 22000,
-    tag: 'Heritage Hotel',
-    blurb: 'A modern fortress-hotel sculpted from golden Jaisalmer sandstone. Desert dunes at your doorstep, royal-to-the-bone hospitality.',
-    image: ['https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=800&q=80'],
-    rating: 4.9,
-    review_count: 142,
-    amenities: ['Pool', 'Spa', 'Cultural shows', 'Fine Dining', 'Desert safari'],
-    is_dummy: true,
-  },
-  {
-    id: 's3',
-    slug: 'windermere-estate-munnar',
-    title: 'Windermere Estate',
-    location: 'Munnar, Kerala',
-    duration: '2 nights',
-    duration_display: 'Per night',
-    price_per_person: 9800,
-    tag: 'Estate Stay',
-    blurb: "A planter's bungalow inside a working tea estate. Morning mist over endless green, estate tours, and colonial-era charm.",
-    image: ['https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80'],
-    rating: 4.8,
-    review_count: 88,
-    amenities: ['Tea tours', 'Pool', 'Bonfire', 'Home-cooked meals', 'Wifi'],
-    is_dummy: true,
-  },
-  {
-    id: 's4',
-    slug: 'kodai-treehouse-kodaikanal',
-    title: 'The Kodai Treehouse',
-    location: 'Kodaikanal, Tamil Nadu',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 8500,
-    tag: 'Treehouse',
-    blurb: 'Sleep among the clouds in a hand-crafted eucalyptus treehouse. Panoramic valley views, no screens, total disconnection.',
-    image: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=800&q=80'],
-    rating: 4.7,
-    review_count: 54,
-    amenities: ['Valley views', 'Meals', 'Nature walks', 'Bonfire'],
-    is_dummy: true,
-  },
-  {
-    id: 's5',
-    slug: 'barefoot-havelock-andaman',
-    title: 'Barefoot at Havelock',
-    location: 'Havelock Island, Andaman',
-    duration: '2 nights',
-    duration_display: 'Per night',
-    price_per_person: 18000,
-    tag: 'Beach Villa',
-    blurb: "Pristine beach cottages on Radhanagar — Asia's finest beach. Snorkelling, bioluminescent nights, silence like nowhere else.",
-    image: ['https://images.unsplash.com/photo-1540202404-d0c7fe46a1b6?w=800&q=80'],
-    rating: 4.9,
-    review_count: 213,
-    amenities: ['Snorkelling', 'Beach access', 'Spa', 'All meals', 'Water sports'],
-    is_dummy: true,
-  },
-  {
-    id: 's6',
-    slug: 'nimmu-house-ladakh',
-    title: 'Nimmu House',
-    location: 'Nimmu, Ladakh',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 12000,
-    tag: 'Heritage Stay',
-    blurb: 'A 200-year-old royal residence in the Indus Valley. Stone walls, silk duvets, and the Zanskar confluence 5 min away.',
-    image: ['https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=800&q=80'],
-    rating: 4.8,
-    review_count: 91,
-    amenities: ['River views', 'All meals', 'Excursions', 'Wifi', 'Bonfire'],
-    is_dummy: true,
-  },
-]
-
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LOCATION_ALL = 'All Locations'
 
 const TAG_GRADIENTS = {
-  Treehouse:      'from-green-700 to-emerald-900',
-  Haveli:         'from-amber-700 to-orange-900',
-  Cottage:        'from-slate-600 to-slate-800',
-  Resort:         'from-violet-700 to-purple-900',
-  Homestay:       'from-teal-600 to-teal-900',
-  Camp:           'from-stone-600 to-stone-900',
-  'Jungle Lodge': 'from-emerald-800 to-green-950',
-  'Heritage Hotel':'from-amber-700 to-orange-900',
-  'Estate Stay':  'from-lime-700 to-green-900',
-  'Beach Villa':  'from-cyan-600 to-blue-900',
-  'Heritage Stay':'from-indigo-700 to-slate-900',
+  Treehouse:        'from-green-700 to-emerald-900',
+  Haveli:           'from-amber-700 to-orange-900',
+  Cottage:          'from-slate-600 to-slate-800',
+  Resort:           'from-violet-700 to-purple-900',
+  Homestay:         'from-teal-600 to-teal-900',
+  Camp:             'from-stone-600 to-stone-900',
+  'Jungle Lodge':   'from-emerald-800 to-green-950',
+  'Heritage Hotel': 'from-amber-700 to-orange-900',
+  'Estate Stay':    'from-lime-700 to-green-900',
+  'Beach Villa':    'from-cyan-600 to-blue-900',
+  'Heritage Stay':  'from-indigo-700 to-slate-900',
+  'Hotel':          'from-violet-700 to-purple-900',
+  'Hostel':         'from-teal-600 to-teal-900',
+  'Guesthouse':     'from-slate-600 to-slate-800',
+  'Villa':          'from-cyan-600 to-blue-900',
+  'Eco Lodge':      'from-green-700 to-emerald-900',
+  'Boutique Hotel': 'from-violet-700 to-purple-900',
+  'Jungle Stay':    'from-emerald-800 to-green-950',
+  'Palace':         'from-amber-700 to-orange-900',
+  'Tent / Glamping':'from-stone-600 to-stone-900',
 }
 const DEFAULT_GRADIENT = 'from-violet-700 to-purple-900'
 
 const AMENITY_ICONS = {
-  'Wifi': Wifi,
-  'Cafe': Coffee,
-  'Bonfire': Flame,
-  'Pool': Waves,
-  'Spa': Shield,
-  'Safari': MapPin,
-  'Snorkelling': Anchor,
-  'All meals': Utensils,
-  'Home-cooked meals': Utensils,
-  'Meals': Utensils,
-  'Fine Dining': Utensils,
-  'Tea tours': Coffee,
-  'Beach access': Anchor,
-  'Water sports': Anchor,
-  'Valley views': MapPin,
-  'River views': MapPin,
-  'Nature walks': MapPin,
-  'Excursions': MapPin,
-  'Cultural shows': Users,
-  'Desert safari': MapPin,
+  'Wifi':               Wifi,
+  'Cafe':               Coffee,
+  'Bonfire':            Flame,
+  'Pool':               Waves,
+  'Spa':                Shield,
+  'Safari':             MapPin,
+  'Snorkelling':        Anchor,
+  'All meals':          Utensils,
+  'Home-cooked meals':  Utensils,
+  'Meals':              Utensils,
+  'Fine Dining':        Utensils,
+  'Breakfast':          Coffee,
+  'Tea tours':          Coffee,
+  'Beach access':       Anchor,
+  'Water sports':       Anchor,
+  'Dive centre':        Anchor,
+  'Valley views':       MapPin,
+  'River views':        MapPin,
+  'Nature walks':       MapPin,
+  'Excursions':         MapPin,
+  'Heritage tour':      Users,
+  'Cultural shows':     Users,
+  'Desert safari':      MapPin,
+  'Airport transfer':   MapPin,
+  'Rooftop bar':        Utensils,
+  'Gym':                Shield,
+  'Library':            Shield,
+  'Pet friendly':       Users,
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SignatureStaysPage() {
-  const [stays, setStays] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [stays,          setStays]          = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [fetchError,     setFetchError]     = useState(null)
+  const [search,         setSearch]         = useState('')
   const [activeLocation, setActiveLocation] = useState(LOCATION_ALL)
-  const [locations, setLocations] = useState([])
+  const [locations,      setLocations]      = useState([])
 
   useEffect(() => {
     window.scrollTo(0, 0)
     setPageSEO({
-      title: 'Signature Stays – Boutique Handpicked Properties | Hoppity',
-      description: "Handpicked boutique properties with soul — treehouses, heritage havelis, hilltop cottages. Curated by Hoppity.",
-      canonical: '/stays/signature',
+      title:       'Signature Stays – Boutique Handpicked Properties | Hoppity',
+      description: 'Handpicked boutique properties with soul — treehouses, heritage havelis, hilltop cottages. Curated by Hoppity.',
+      canonical:   '/stays/signature',
     })
 
     supabase
-      .from('Itineraries')
-      .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count')
+      .from('Properties')
+      .select(
+        'id, name, location, property_type, property_category, ' +
+        'price_per_night, cover_image_url, images_url, amenities, ' +
+        'description, is_active, created_at, slug'
+      )
       .eq('is_active', true)
-      .eq('stay_category', 'signature')
-      .order('id', { ascending: true })
+      .eq('property_category', 'signature')
+      .order('created_at', { ascending: true })
       .then(({ data, error }) => {
-        if (error) console.error('Signature stays fetch error:', error)
-        const normalised = (data || []).map(normalise)
+        if (error) {
+          console.error('Signature stays fetch error:', error)
+          setFetchError(error.message)
+          setLoading(false)
+          return
+        }
+
+        // Map Properties columns to the shape the card expects
+        const normalised = (data || []).map(row => ({
+          id:              row.id,
+          title:           row.name,
+          slug:            row.slug,
+          location:        row.location,
+          tag:             row.property_type,
+          price_per_person:row.price_per_night,
+          duration_display:'Per night',
+          blurb:           row.description,
+          amenities:       Array.isArray(row.amenities) ? row.amenities : [],
+          rating:          row.rating       || 0,
+          review_count:    row.review_count || 0,
+          image:           row.cover_image_url
+                             ? [row.cover_image_url]
+                             : row.images_url
+                               ? [row.images_url]
+                               : [],
+        }))
+
         setStays(normalised)
         const locs = [...new Set(normalised.map(s => s.location).filter(Boolean))]
         setLocations(locs)
@@ -194,21 +127,15 @@ export default function SignatureStaysPage() {
       })
       .catch(err => {
         console.error('Signature stays fetch failed:', err)
+        setFetchError(err.message)
         setLoading(false)
       })
   }, [])
 
-  // Fall back to dummy cards while DB is empty
-  const displayStays = stays.length > 0 ? stays : DUMMY_STAYS
-
-  // Build location list from whichever source is active
-  const displayLocations = stays.length > 0
-    ? locations
-    : [...new Set(DUMMY_STAYS.map(s => s.location).filter(Boolean))]
-
-  const filtered = displayStays.filter(s => {
+  const filtered = stays.filter(s => {
     const q = search.trim().toLowerCase()
-    const matchSearch = !q ||
+    const matchSearch =
+      !q ||
       s.title?.toLowerCase().includes(q) ||
       s.location?.toLowerCase().includes(q) ||
       s.blurb?.toLowerCase().includes(q)
@@ -216,6 +143,7 @@ export default function SignatureStaysPage() {
     return matchSearch && matchLocation
   })
 
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
@@ -225,6 +153,17 @@ export default function SignatureStaysPage() {
     </div>
   )
 
+  // ── Error ─────────────────────────────────────────────────────────────────
+  if (fetchError) return (
+    <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-red-600 font-semibold mb-2">Failed to load stays</p>
+        <p className="text-slate-500 text-sm font-mono">{fetchError}</p>
+      </div>
+    </div>
+  )
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
@@ -254,87 +193,95 @@ export default function SignatureStaysPage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-slate-500 mt-5">
-            {[`${displayStays.length} properties`, 'Personally curated', 'Small & boutique only'].map(t => (
+            {[`${stays.length} properties`, 'Personally curated', 'Small & boutique only'].map(t => (
               <span key={t} className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-violet-400 inline-block" />{t}
               </span>
             ))}
           </div>
-
-          {/* Dummy notice — disappears once DB is live */}
-          {stays.length === 0 && !loading && (
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-4 py-2 text-xs font-medium text-amber-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-pulse" />
-              Showing sample properties while we build our collection. Real properties coming soon!
-            </div>
-          )}
         </div>
 
-        {/* Search bar */}
-        <div className="max-w-7xl mx-auto mb-5">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or location…"
-              className="w-full bg-white rounded-2xl border border-violet-200 pl-10 pr-10 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-sm"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Location filter chips */}
-        {displayLocations.length > 0 && (
-          <div className="max-w-7xl mx-auto flex flex-wrap gap-2 mb-6">
-            {[LOCATION_ALL, ...displayLocations].map(loc => (
-              <button key={loc} onClick={() => setActiveLocation(loc)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition cursor-pointer border-2 ${
-                  activeLocation === loc
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-700'
-                }`}>
-                {loc}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Results count */}
-        <p className="max-w-7xl mx-auto text-sm text-slate-400 mb-5 px-1">
-          {filtered.length} {filtered.length !== 1 ? 'properties' : 'property'}
-          {activeLocation !== LOCATION_ALL && ` in ${activeLocation}`}
-        </p>
-
-        {/* Grid */}
-        {filtered.length === 0 ? (
+        {/* Empty state — no properties in DB yet */}
+        {stays.length === 0 && (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🏡</div>
-            <h3 className="text-xl font-bold text-slate-900">No stays found</h3>
-            <p className="text-slate-500 mt-2">Try a different search or location filter.</p>
-            {activeLocation !== LOCATION_ALL && (
-              <button onClick={() => setActiveLocation(LOCATION_ALL)}
-                className="mt-4 text-violet-600 text-sm font-semibold hover:underline cursor-pointer">
-                See all signature stays →
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map(stay => (
-              <SignatureStayCard
-                key={stay.id}
-                stay={stay}
-                tagGradients={TAG_GRADIENTS}
-                defaultGradient={DEFAULT_GRADIENT}
-              />
-            ))}
+            <h3 className="text-xl font-bold text-slate-900">No signature stays yet</h3>
+            <p className="text-slate-500 mt-2 text-sm">
+              Properties marked as <strong>Signature</strong> and set to <strong>Live</strong> will appear here.
+            </p>
           </div>
         )}
+
+        {stays.length > 0 && (
+          <>
+            {/* Search bar */}
+            <div className="max-w-7xl mx-auto mb-5">
+              <div className="relative max-w-md">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search by name or location…"
+                  className="w-full bg-white rounded-2xl border border-violet-200 pl-10 pr-10 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-sm"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Location filter chips */}
+            {locations.length > 0 && (
+              <div className="max-w-7xl mx-auto flex flex-wrap gap-2 mb-6">
+                {[LOCATION_ALL, ...locations].map(loc => (
+                  <button key={loc} onClick={() => setActiveLocation(loc)}
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition cursor-pointer border-2 ${
+                      activeLocation === loc
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-700'
+                    }`}>
+                    {loc}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Results count */}
+            <p className="max-w-7xl mx-auto text-sm text-slate-400 mb-5 px-1">
+              {filtered.length} {filtered.length !== 1 ? 'properties' : 'property'}
+              {activeLocation !== LOCATION_ALL && ` in ${activeLocation}`}
+            </p>
+
+            {/* No results from filter/search */}
+            {filtered.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="text-5xl mb-4">🏡</div>
+                <h3 className="text-xl font-bold text-slate-900">No stays found</h3>
+                <p className="text-slate-500 mt-2">Try a different search or location filter.</p>
+                {activeLocation !== LOCATION_ALL && (
+                  <button onClick={() => setActiveLocation(LOCATION_ALL)}
+                    className="mt-4 text-violet-600 text-sm font-semibold hover:underline cursor-pointer">
+                    See all signature stays →
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.map(stay => (
+                  <SignatureStayCard
+                    key={stay.id}
+                    stay={stay}
+                    tagGradients={TAG_GRADIENTS}
+                    defaultGradient={DEFAULT_GRADIENT}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
       </div>
     </div>
   )
@@ -343,17 +290,16 @@ export default function SignatureStaysPage() {
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
 function SignatureStayCard({ stay, tagGradients, defaultGradient }) {
-  const hasImage = stay.image?.length > 0 && stay.image[0]
-  const gradient = tagGradients[stay.tag] || defaultGradient
-  const duration = stay.duration_display || stay.duration || ''
-  const price = stay.price_per_person
+  const hasImage   = stay.image?.length > 0 && stay.image[0]
+  const gradient   = tagGradients[stay.tag] || defaultGradient
+  const price      = stay.price_per_person
     ? `₹${Number(stay.price_per_person).toLocaleString('en-IN')}`
-    : stay.price || 'On Request'
+    : 'On Request'
   const isTopRated = Number(stay.rating) >= 4.9
 
   return (
     <Link
-      to={`/stays/signature/${stay.slug}`}
+      to={`/stays/${stay.slug}`}
       className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-violet-100 cursor-pointer flex flex-col"
     >
       {/* Image area */}
@@ -396,7 +342,7 @@ function SignatureStayCard({ stay, tagGradients, defaultGradient }) {
           <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1">
             <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
             <span className="text-xs font-bold text-white">{Number(stay.rating).toFixed(1)}</span>
-            {stay.review_count && (
+            {stay.review_count > 0 && (
               <span className="text-[10px] text-white/60 ml-0.5">({stay.review_count})</span>
             )}
           </div>
@@ -421,19 +367,14 @@ function SignatureStayCard({ stay, tagGradients, defaultGradient }) {
 
         {/* Price + duration */}
         <div className="flex items-center justify-between text-sm mb-3">
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{duration}</span>
-          </div>
-          <div>
-            <span className="font-black text-amber-700 text-base">{price}</span>
-            <span className="text-xs text-slate-400 ml-1">/ person</span>
+          <div className="flex items-baseline gap-1 ml-68">
+          <span className="font-semibold text-violet-700 text-base">{price}</span>
           </div>
         </div>
 
         {/* Blurb */}
         {stay.blurb && (
-          <p className="text-sm leading-relaxed text-slate-600 line-clamp-3 flex-1 mb-4">
+          <p className="text-sm leading-relaxed text-gray-700 line-clamp-3 flex-1 mb-4">
             {stay.blurb}
           </p>
         )}
@@ -444,18 +385,23 @@ function SignatureStayCard({ stay, tagGradients, defaultGradient }) {
             {stay.amenities.slice(0, 3).map(a => {
               const Icon = AMENITY_ICONS[a]
               return (
-                <span key={a} className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2.5 py-1 text-xs text-amber-800">
+                <span key={a} className="flex items-center gap-1 rounded-full bg-violet-50 border border-violet-100 px-2.5 py-1 text-xs text-violet-800">
                   {Icon && <Icon className="w-3 h-3" />}
                   {a}
                 </span>
               )
             })}
+            {stay.amenities.length > 3 && (
+              <span className="rounded-full bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs text-slate-500">
+                +{stay.amenities.length - 3} more
+              </span>
+            )}
           </div>
         )}
 
         {/* Footer */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 group-hover:text-amber-700 transition">
+          <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 group-hover:text-violet-700 transition">
             View property
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1.5" />
           </div>
