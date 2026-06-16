@@ -2,156 +2,90 @@ import { Link, useParams, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import {
   ArrowLeft, Star, MapPin, Clock, Wifi, Coffee, Flame,
-  Anchor, Utensils, Shield, Users, Waves, Phone, MessageCircle,
+  Anchor, Utensils, Shield, Users, Phone, MessageCircle,
   ChevronLeft, ChevronRight, Check, Share2, Heart, Calendar,
-  Info, Tag, Minus, Plus
+  Info, Tag, Minus, Plus, ExternalLink
 } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import { setPageSEO } from '../lib/seo'
-
-// ─── Dummy data (mirrors BudgetStaysPage slugs exactly) ───────────────────────
-
-const DUMMY_MAP = {
-  'zostel-kasol': {
-    id: 'd1', slug: 'zostel-kasol',
-    title: 'Zostel Kasol',
-    location: 'Kasol, Himachal Pradesh',
-    duration_display: 'Per night', price_per_person: 699,
-    tag: 'Hostel',
-    blurb: 'Iconic backpacker hostel on the banks of Parvati river. Perfect base for Kheerganga treks, great vibe, bonfire nights guaranteed.',
-    description: `Zostel Kasol sits on the banks of the Parvati river in the heart of the Parvati Valley — one of India's most beloved backpacker destinations. The hostel is just 5 minutes from the main village, surrounded by pine forests and the gentle sound of the river.
-
-This is the launchpad for Kheerganga trek (12 km, 2,950 m), Pin Parvati Pass, and day hikes through Chalal and Tosh. After a day on the trails, the common room fills with travellers sharing stories, guitars, and the kind of easy conversation that only happens when you're far from home.
-
-Dorms are clean with good mattresses, personal reading lights, and secure lockers. The café serves breakfast, Maggi, and chai from 7 am. Evening bonfires are practically a ritual.`,
-    image: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85','https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=85'],
-    rating: 4.6, review_count: 312,
-    amenities: ['Wifi', 'Cafe', 'Bonfire', 'Lockers', 'Hot water', 'Common room'],
-    highlights: ['5 min walk to Parvati river', 'Kheerganga trek base camp', 'Evening bonfire ritual', 'Cafe open from 7 am'],
-    what_included: ['Dorm bed / private room', 'Complimentary wi-fi', 'Locker access', 'Linen & towels', 'Hot water'],
-    what_not_included: ['Meals (except stated plans)', 'Trek guide fees', 'Transport to Kasol'],
-    cancellation: 'Free cancellation up to 48 hours before check-in. 50% charge within 48 hours.',
-    is_dummy: true,
-  },
-  'gostops-mcleodganj': {
-    id: 'd2', slug: 'gostops-mcleodganj',
-    title: 'goStops McLeod Ganj',
-    location: 'McLeodganj, Dharamsala',
-    duration_display: 'Per night', price_per_person: 899,
-    tag: 'Hostel',
-    blurb: 'Tibetan-influenced hostel with mountain views. Walk to Dharamkot, monastery, and the best momos in town.',
-    description: `goStops McLeodganj occupies a converted building right in the heart of the Tibetan quarter — a short walk from the Dalai Lama's temple, Bhagsu waterfall, and the famous momo stalls of McLeod market.
-
-The rooftop has unobstructed views of the Dhauladhar range, especially spectacular at sunrise. Common areas are thoughtfully designed with Tibetan artwork and warm lighting. Weekly movie nights and community dinners are a regular feature.
-
-The café downstairs serves local Tibetan dishes alongside continental breakfast options. Book in advance during peak season (March–June, September–November) as this fills up fast.`,
-    image: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=85','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=85'],
-    rating: 4.4, review_count: 189,
-    amenities: ['Wifi', 'Rooftop cafe', 'Lockers', 'Hot water', 'Common room', 'Laundry'],
-    highlights: ['10 min to Dalai Lama temple', 'Panoramic Dhauladhar views', 'Weekly community dinners', 'Bhagsu Waterfall nearby'],
-    what_included: ['Dorm bed / private room', 'Wi-fi', 'Locker access', 'Linen & towels'],
-    what_not_included: ['Meals', 'Monastery visit fees', 'Transport'],
-    cancellation: 'Free cancellation up to 72 hours before check-in.',
-    is_dummy: true,
-  },
-  'hill-view-homestay-mukteshwar': {
-    id: 'd3', slug: 'hill-view-homestay-mukteshwar',
-    title: 'Hill View Homestay',
-    location: 'Mukteshwar, Uttarakhand',
-    duration_display: 'Per night', price_per_person: 1399,
-    tag: 'Homestay',
-    blurb: 'A warm family-run homestay with Himalayan panoramas. Home-cooked food, apple orchards, and total silence.',
-    description: `Perched at 2,286 m in Mukteshwar, this family-run homestay offers some of the clearest views of the Nanda Devi range you'll find anywhere in Uttarakhand — on a clear morning, you can see peaks 200 km away.
-
-The house is built in traditional Kumaoni style with a wrap-around veranda. Your hosts, the Bisht family, have run this property for 15 years and take quiet pride in the meals — breakfasts of fresh paranthas with homemade achaar, and evening thalis with dal, seasonal vegetables from their kitchen garden.
-
-Apple orchards surround the property; during October, guests help with picking. The village temple and Mukteshwar Dham are a short walk uphill.`,
-    image: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=85','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=85'],
-    rating: 4.8, review_count: 74,
-    amenities: ['Home-cooked meals', 'Wifi', 'Bonfire', 'Mountain views', 'Garden', 'Hot water'],
-    highlights: ['Nanda Devi range panorama', 'Authentic Kumaoni cuisine', 'Apple orchard walks', '5 min to Mukteshwar Dham'],
-    what_included: ['Room with breakfast & dinner', 'Complimentary wi-fi', 'Bonfire on request', 'All linen'],
-    what_not_included: ['Lunch', 'Transport', 'Guide fees'],
-    cancellation: 'Free cancellation up to 5 days before check-in. No refund thereafter.',
-    is_dummy: true,
-  },
-  'shivpuri-camp-rishikesh': {
-    id: 'd4', slug: 'shivpuri-camp-rishikesh',
-    title: 'Shivpuri Camp Resort',
-    location: 'Shivpuri, Rishikesh',
-    duration_display: 'Per night', price_per_person: 1799,
-    tag: 'Camp',
-    blurb: 'Swiss tents on the Ganges shore. White-water rafting package included. Fall asleep to river sounds every night.',
-    description: `Shivpuri Camp Resort occupies 3 acres on the Ganges riverbank at Shivpuri — one of the most picturesque stretches of the river, 16 km upstream from Rishikesh. The Swiss-style canvas tents are well-furnished with real beds, not sleeping bags on the ground.
-
-Rafting starts at Marine Drive and ends at Nimbechwala — a 16 km stretch rated Grade III–IV, with rapids like Three Blind Mice, Roller Coaster, and the famous Golf Course rapid. Trained WAFA-certified guides accompany every group.
-
-Post-rafting, evenings wind down with a beach bonfire, BBQ dinner, and stargazing. The camp runs bungee jumping, giant swing, and cliff jumping activities at an additional cost.`,
-    image: ['https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=1200&q=85','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85'],
-    rating: 4.5, review_count: 201,
-    amenities: ['Rafting included', 'All meals', 'Bonfire', 'Beach access', 'Hot showers', 'Volleyball'],
-    highlights: ['16 km Grade III–IV rafting', 'Ganges beachfront tents', 'All meals included', 'WAFA-certified guides'],
-    what_included: ['Tent accommodation', 'Rafting with safety equipment', 'All meals (dinner, breakfast)', 'Bonfire', 'Helmet & life jacket'],
-    what_not_included: ['Bungee / swing / cliff jump', 'Transport from Rishikesh', 'Alcohol'],
-    cancellation: 'Free cancellation up to 48 hours before check-in.',
-    is_dummy: true,
-  },
-  'zostel-kaza-spiti': {
-    id: 'd5', slug: 'zostel-kaza-spiti',
-    title: 'Zostel Kaza',
-    location: 'Kaza, Spiti Valley',
-    duration_display: 'Per night', price_per_person: 749,
-    tag: 'Hostel',
-    blurb: "The world's highest Zostel at 12,500 ft. Surreal moonscape views, star-gazing nights, and a community of serious trekkers.",
-    description: `Zostel Kaza sits at 3,800 m — high enough that the sky looks darker in the day and the Milky Way is plainly visible at night. Located in the heart of Kaza, the main town of Spiti Valley, it's the best base for exploring one of India's most remote regions.
-
-The property has a warm interior despite the altitude — double-paned windows, good insulation, and a constantly stocked kitchen. Staff are incredibly helpful with arranging taxis to Key Monastery, Kibber village, Chandratal Lake, and the Pin Valley.
-
-The common room is the social heart of the valley's traveller circuit. The altitude is real — spend your first day slow, drink plenty of water, and do NOT rush to trek.`,
-    image: ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=1200&q=85'],
-    rating: 4.7, review_count: 156,
-    amenities: ['Wifi', 'Hot water', 'Cafe', 'Lockers', 'Oxygen cylinder', 'Tour desk'],
-    highlights: ["World's highest Zostel (3,800 m)", 'Milky Way star-gazing', '30 min to Key Monastery', 'Chandratal day-trips available'],
-    what_included: ['Dorm bed / private room', 'Wi-fi', 'Locker access', 'Linen', 'Oxygen cylinder on request'],
-    what_not_included: ['Meals', 'Vehicle hire', 'Trek permits'],
-    cancellation: 'Free cancellation up to 72 hours before check-in.',
-    is_dummy: true,
-  },
-  'agonda-beach-shack-goa': {
-    id: 'd6', slug: 'agonda-beach-shack-goa',
-    title: 'Agonda Beach Shack',
-    location: 'Agonda, South Goa',
-    duration_display: 'Per night', price_per_person: 1200,
-    tag: 'Guesthouse',
-    blurb: 'Simple bamboo-and-tile guesthouse steps from the quietest beach in Goa. Hammocks, fresh coconut, zero pretension.',
-    description: `Agonda Beach Shack is a collection of 8 cottages set 50 metres from Agonda beach — consistently rated one of the least-crowded beaches in Goa. Unlike Baga or Calangute, Agonda has no jet-skis, no trance parties, and no hawkers. Just sand, sea, and the occasional turtle nesting ground.
-
-The cottages are built in a mix of bamboo and red Mangalore tile — airy, simple, with ceiling fans, mosquito nets, and good mattresses. Each opens onto a shared veranda with hammocks. The in-house shack serves fresh catch, kokum drinks, and Sol Kadhi all day.
-
-Peak season: November–March. Book 3+ weeks ahead for Christmas and New Year.`,
-    image: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=85','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85','https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=85'],
-    rating: 4.3, review_count: 98,
-    amenities: ['Beach access', 'Wifi', 'Breakfast', 'Hammocks', 'Sea-facing rooms', 'In-house cafe'],
-    highlights: ['50 m from Agonda beach', 'Turtle nesting zone nearby', 'Fresh catch daily', 'No crowds, no noise'],
-    what_included: ['Room with breakfast', 'Wi-fi', 'Hammock access', 'Mosquito nets & fan'],
-    what_not_included: ['Lunch & dinner', 'Scooter rental', 'Water sports'],
-    cancellation: 'Free cancellation up to 3 days before check-in. No refund thereafter.',
-    is_dummy: true,
-  },
-}
 
 // ─── Amenity icons ────────────────────────────────────────────────────────────
 
 const AMENITY_ICONS = {
   'Wifi': Wifi, 'Cafe': Coffee, 'Rooftop cafe': Coffee, 'Bonfire': Flame,
   'Beach access': Anchor, 'Breakfast': Coffee, 'Home-cooked meals': Utensils,
-  'All meals': Utensils, 'Meals': Utensils, 'Rafting included': Anchor,
-  'Lockers': Shield, 'Hot water': Shield, 'Hot showers': Shield,
-  'Common room': Users, 'Laundry': Shield, 'Garden': MapPin,
-  'Mountain views': MapPin, 'Sea-facing rooms': MapPin, 'In-house cafe': Coffee,
-  'Hammocks': Shield, 'Tour desk': MapPin, 'Oxygen cylinder': Shield,
-  'Volleyball': Users, 'Beach': Anchor,
+  'All meals': Utensils, 'Meals': Utensils, 'Fine Dining': Utensils,
+  'Rafting included': Anchor, 'Lockers': Shield, 'Hot water': Shield,
+  'Hot showers': Shield, 'Common room': Users, 'Laundry': Shield,
+  'Garden': MapPin, 'Mountain views': MapPin, 'Sea-facing rooms': MapPin,
+  'In-house cafe': Coffee, 'Hammocks': Shield, 'Tour desk': MapPin,
+  'Oxygen cylinder': Shield, 'Volleyball': Users, 'Beach': Anchor,
+  'Pool': Shield, 'Spa': Shield, 'AC': Shield, 'Parking': Shield,
+  'Safari': MapPin, 'Nature walks': MapPin, 'Snorkelling': Anchor,
+  'Dive centre': Anchor, 'Heritage tour': MapPin, 'Library': Shield,
+  'Gym': Shield, 'Pet friendly': Users, 'Airport transfer': MapPin,
+}
+
+// ─── Image collection helper ───────────────────────────────────────────────────
+// Gathers every available image into a single, de-duplicated array.
+// Handles cover_image_url + images_url where images_url may be a real array,
+// a JSON-encoded array string, an unquoted bracket string, a comma list, or a single URL.
+
+function collectImages(data) {
+  const out = []
+  if (data.cover_image_url) out.push(data.cover_image_url)
+
+  const pushFrom = (val) => {
+    if (!val) return
+    if (Array.isArray(val)) { out.push(...val); return }
+    if (typeof val !== 'string') return
+    const trimmed = val.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) { out.push(...parsed.filter(Boolean)); return }
+      } catch { /* fall through */ }
+    }
+    const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
+      ? trimmed.slice(1, -1)
+      : trimmed
+    out.push(...inner.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean))
+  }
+
+  pushFrom(data.images_url)
+  pushFrom(data.images)
+  return [...new Set(out.filter(Boolean))]
+}
+
+// ─── Maps link helper ───────────────────────────────────────────────────────────
+
+function isValidMapsLink(str) {
+  if (!str?.trim()) return false
+  try {
+    const u = new URL(str.trim())
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch { return false }
+}
+
+function buildMapsUrl(property) {
+  if (isValidMapsLink(property.maps_url)) return property.maps_url.trim()
+  const query = property.address
+    || [property.title, property.location].filter(Boolean).join(', ')
+    || property.location
+  return query
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+    : null
+}
+
+// ─── Time formatting helper ───────────────────────────────────────────────────
+function formatTime(time) {
+  if (!time) return ''
+  const [hours, minutes] = time.split(':')
+  const date = new Date()
+  date.setHours(hours, minutes)
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 // ─── Booking fee constants (MMT-style) ────────────────────────────────────────
@@ -174,31 +108,48 @@ export default function BudgetPropertyPage() {
   useEffect(() => {
     window.scrollTo(0, 0)
     supabase
-      .from('Itineraries')
+      .from('Properties')
       .select('*')
       .eq('slug', slug)
       .eq('is_active', true)
       .single()
-      .then(({ data }) => {
-        if (data) {
-          const norm = {
-            ...data,
-            image: data.images?.length
-              ? data.images.filter(Boolean)
-              : data.cover_image_url ? [data.cover_image_url] : [],
-          }
-          setProperty(norm)
-          setPageSEO({ title: `${data.title} – Budget Stay | Hoppity`, description: data.blurb, canonical: `/stays/property/${slug}` })
-        } else {
-          const dummy = DUMMY_MAP[slug]
-          if (dummy) {
-            setProperty(dummy)
-            setPageSEO({ title: `${dummy.title} – Budget Stay | Hoppity`, description: dummy.blurb, canonical: `/stays/property/${slug}` })
-          }
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setProperty(null)
+          setLoading(false)
+          return
         }
+
+        const norm = {
+          ...data,
+          title:             data.name,
+          tag:               data.property_type,
+          price_per_person:  data.price_per_night,
+          duration_display:  'Per night',
+          blurb:             data.description,
+          description:       data.description,
+          amenities:         Array.isArray(data.amenities) ? data.amenities : [],
+          image:             collectImages(data),
+          maps_url:          data.maps_url || null,
+          checkin_time:      formatTime(data.checkin_time),
+          checkout_time:     formatTime(data.checkout_time),
+          rating:            data.rating       || 0,
+          review_count:      data.review_count || 0,
+          highlights:        data.highlights        || [],
+          what_included:     data.what_included     || [],
+          what_not_included: data.what_not_included || [],
+          cancellation:      data.cancellation_policy || null,
+        }
+
+        setProperty(norm)
+        setPageSEO({
+          title:       `${data.name} – Budget Stay | Hoppity`,
+          description: data.description,
+          canonical:   `/stays/property/${slug}`,
+        })
         setLoading(false)
       })
-      .catch(() => { setProperty(DUMMY_MAP[slug] || null); setLoading(false) })
+      .catch(() => { setProperty(null); setLoading(false) })
   }, [slug])
 
   if (loading) return (
@@ -224,12 +175,12 @@ export default function BudgetPropertyPage() {
     </div>
   )
 
-  const images = property.image?.length ? property.image : ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85']
+  const images  = property.image?.length ? property.image : []
+  const mapsUrl = buildMapsUrl(property)
 
-  // ── Pricing math (MMT / Airbnb style) ──────────────────────────────────────
-  // Base rate is per-person per-night
+  // ── Pricing math (MMT / Airbnb style) — base rate is per-person per-night ──
   const ratePerPersonPerNight = Number(property.price_per_person || 0)
-  const accommodation         = ratePerPersonPerNight * guests * nights   // core cost
+  const accommodation         = ratePerPersonPerNight * guests * nights
   const gst                   = Math.round(accommodation * GST_RATE)
   const convenienceFee        = HOPPITY_FEE_PER_BOOKING
   const grandTotal            = accommodation + gst + convenienceFee
@@ -247,7 +198,7 @@ export default function BudgetPropertyPage() {
       `Total: ${fmt(grandTotal)}\n\n` +
       `Please confirm availability and next steps.`
     )
-    window.open(`https://wa.me/+919752377323?text=${msg}`, '_blank') 
+    window.open(`https://wa.me/+919752377323?text=${msg}`, '_blank')
   }
   const handleCall = () => window.open('tel:+919752377323', '_self')
 
@@ -258,13 +209,19 @@ export default function BudgetPropertyPage() {
 
         {/* ── Gallery ── */}
         <div className="relative w-full h-[55vh] min-h-[320px] max-h-[520px] overflow-hidden bg-slate-900 mt-4">
-          <img
-            key={imgIndex}
-            src={images[imgIndex]}
-            alt={property.title}
-            className="w-full h-full object-cover transition-opacity duration-500"
-            onError={e => { e.currentTarget.style.opacity = '0' }}
-          />
+          {images.length > 0 ? (
+            <img
+              key={imgIndex}
+              src={images[imgIndex]}
+              alt={property.title}
+              className="w-full h-full object-cover transition-opacity duration-500"
+              onError={e => { e.currentTarget.style.opacity = '0' }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-violet-700 via-purple-700 to-fuchsia-800 flex items-center justify-center">
+              <span className="text-6xl opacity-20">✦</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25 pointer-events-none" />
 
           {images.length > 1 && (<>
@@ -333,14 +290,24 @@ export default function BudgetPropertyPage() {
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                     <span className="font-semibold text-slate-800">{Number(property.rating).toFixed(1)}</span>
-                    {property.review_count && <span className="text-slate-400">({property.review_count} reviews)</span>}
+                    {property.review_count > 0 && <span className="text-slate-400">({property.review_count} reviews)</span>}
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-violet-500" />
-                  <span>{property.duration_display || property.duration}</span>
+                  <span>{property.duration_display}</span>
                 </div>
               </div>
+
+              {mapsUrl && (
+                <div className="flex items-center mb-6 -mt-2 gap-3">
+                  <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-2xl bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
+                    View on Google Maps
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
 
               <hr className="border-slate-200 mb-6" />
 
@@ -384,6 +351,37 @@ export default function BudgetPropertyPage() {
                         </span>
                       )
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Meals */}
+              {property.meals_included && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-bold text-slate-900 mb-3">Meals</h2>
+                  <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-sm text-amber-800">
+                    <Utensils className="w-4 h-4 flex-shrink-0" />{property.meals_included}
+                  </div>
+                </div>
+              )}
+
+              {/* Check-in / Check-out */}
+              {(property.checkin_time || property.checkout_time) && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-bold text-slate-900 mb-3">Check-in & Check-out</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {property.checkin_time && (
+                      <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3">
+                        <p className="text-xs text-slate-400 mb-0.5">Check-in</p>
+                        <p className="text-sm font-semibold text-slate-800">{property.checkin_time}</p>
+                      </div>
+                    )}
+                    {property.checkout_time && (
+                      <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3">
+                        <p className="text-xs text-slate-400 mb-0.5">Check-out</p>
+                        <p className="text-sm font-semibold text-slate-800">{property.checkout_time}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -439,11 +437,29 @@ export default function BudgetPropertyPage() {
                 </div>
               )}
 
-              {property.is_dummy && (
-                <div className="rounded-2xl bg-violet-50 border border-violet-200 px-5 py-4 mb-6">
-                  <p className="text-xs text-violet-700 font-medium">
-                    🔧 Sample listing — connect your Supabase database to display live property data.
-                  </p>
+              {/* Pet policy */}
+              {property.pet_policy && (
+                <div className="mb-8 rounded-2xl bg-slate-50 border border-slate-200 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Pet policy</h3>
+                  <p className="text-sm text-slate-600">{property.pet_policy}</p>
+                </div>
+              )}
+
+              {/* Address */}
+              {property.address && (
+                <div className="mb-8 rounded-2xl bg-slate-50 border border-slate-200 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-slate-500" />Address
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">{property.address}</p>
+                  {mapsUrl && (
+                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
+                      <MapPin className="w-3.5 h-3.5" />
+                      View on Google Maps
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
               )}
             </div>
@@ -457,15 +473,17 @@ export default function BudgetPropertyPage() {
                   <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 px-6 py-4">
                     <div className="flex items-end gap-2">
                       <span className="text-2xl font-black text-white">
-                        {fmt(ratePerPersonPerNight)}
+                        {ratePerPersonPerNight > 0 ? fmt(ratePerPersonPerNight) : 'On Request'}
                       </span>
-                      <span className="text-violet-200 text-xs mb-1 font-medium">/ person / night</span>
+                      {ratePerPersonPerNight > 0 && (
+                        <span className="text-violet-200 text-xs mb-1 font-medium">/ person / night</span>
+                      )}
                     </div>
                     {property.rating > 0 && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
                         <span className="text-sm font-semibold text-white">{Number(property.rating).toFixed(1)}</span>
-                        {property.review_count && <span className="text-xs text-violet-200">· {property.review_count} reviews</span>}
+                        {property.review_count > 0 && <span className="text-xs text-violet-200">· {property.review_count} reviews</span>}
                       </div>
                     )}
                   </div>
@@ -531,60 +549,62 @@ export default function BudgetPropertyPage() {
                     </div>
 
                     {/* ── Price breakdown (MMT/Airbnb style) ── */}
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 mb-5">
+                    {ratePerPersonPerNight > 0 && (
+                      <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 mb-5">
 
-                      {/* Accommodation line */}
-                      <div className="flex items-center justify-between text-sm mb-3">
-                        <div className="flex items-center gap-1.5 text-slate-600">
-                          <Tag className="w-3.5 h-3.5 text-violet-500" />
-                          <span>
-                            {fmt(ratePerPersonPerNight)} × {guests} guest{guests > 1 ? 's' : ''} × {nights} night{nights > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <span className="font-semibold text-slate-800">{fmt(accommodation)}</span>
-                      </div>
-
-                      {/* Toggle full breakdown */}
-                      <button
-                        onClick={() => setShowBreakdown(v => !v)}
-                        className="flex items-center gap-1 text-xs text-violet-600 font-medium hover:underline mb-3 cursor-pointer"
-                      >
-                        <Info className="w-3 h-3" />
-                        {showBreakdown ? 'Hide' : 'Show'} taxes & fees
-                      </button>
-
-                      {showBreakdown && (
-                        <div className="space-y-2 mb-3 border-t border-slate-200 pt-3">
-                          <div className="flex justify-between text-xs text-slate-500">
-                            <span>GST (12% on accommodation)</span>
-                            <span>{fmt(gst)}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                              Hoppity convenience fee
-                              <span className="bg-violet-100 text-violet-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">One-time</span>
+                        {/* Accommodation line */}
+                        <div className="flex items-center justify-between text-sm mb-3">
+                          <div className="flex items-center gap-1.5 text-slate-600">
+                            <Tag className="w-3.5 h-3.5 text-violet-500" />
+                            <span>
+                              {fmt(ratePerPersonPerNight)} × {guests} guest{guests > 1 ? 's' : ''} × {nights} night{nights > 1 ? 's' : ''}
                             </span>
-                            <span>{fmt(convenienceFee)}</span>
+                          </div>
+                          <span className="font-semibold text-slate-800">{fmt(accommodation)}</span>
+                        </div>
+
+                        {/* Toggle full breakdown */}
+                        <button
+                          onClick={() => setShowBreakdown(v => !v)}
+                          className="flex items-center gap-1 text-xs text-violet-600 font-medium hover:underline mb-3 cursor-pointer"
+                        >
+                          <Info className="w-3 h-3" />
+                          {showBreakdown ? 'Hide' : 'Show'} taxes & fees
+                        </button>
+
+                        {showBreakdown && (
+                          <div className="space-y-2 mb-3 border-t border-slate-200 pt-3">
+                            <div className="flex justify-between text-xs text-slate-500">
+                              <span>GST (12% on accommodation)</span>
+                              <span>{fmt(gst)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                              <span className="flex items-center gap-1">
+                                Hoppity convenience fee
+                                <span className="bg-violet-100 text-violet-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">One-time</span>
+                              </span>
+                              <span>{fmt(convenienceFee)}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Divider */}
+                        <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">Total</p>
+                            {showBreakdown && (
+                              <p className="text-[10px] text-slate-400 mt-0.5">Incl. taxes & fees</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-black text-violet-700">{fmt(grandTotal)}</p>
+                            {!showBreakdown && (
+                              <p className="text-[10px] text-slate-400">+taxes & fees</p>
+                            )}
                           </div>
                         </div>
-                      )}
-
-                      {/* Divider */}
-                      <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">Total</p>
-                          {showBreakdown && (
-                            <p className="text-[10px] text-slate-400 mt-0.5">Incl. taxes & fees</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-black text-violet-700">{fmt(grandTotal)}</p>
-                          {!showBreakdown && (
-                            <p className="text-[10px] text-slate-400">+taxes & fees</p>
-                          )}
-                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* ── CTAs ── */}
                     <div className="space-y-3">

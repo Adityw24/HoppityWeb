@@ -126,19 +126,33 @@ export default function ProfilePage() {
           const img = new window.Image()
           img.onerror = () => reject(new Error('Could not decode image'))
           img.onload = () => {
-            const s = Math.min(400, img.width, img.height)
-            const canvas = document.createElement('canvas')
-            canvas.width = s; canvas.height = s
-            canvas.getContext('2d').drawImage(
-              img,
-              (img.width - s) / 2, (img.height - s) / 2, s, s,
-              0, 0, s, s
-            )
-            canvas.toBlob(b => {
-              if (!b) reject(new Error('Canvas produced empty blob'))
-              else resolve(b)
-            }, 'image/jpeg', 0.85)
-          }
+  // largest centered square from the SOURCE (don't cap this at 400)
+  const srcSize = Math.min(img.width, img.height)
+  const sx = (img.width  - srcSize) / 2
+  const sy = (img.height - srcSize) / 2
+
+  // OUTPUT size — cap here, and never upscale a small image
+  const out = Math.min(512, srcSize)
+
+  const canvas = document.createElement('canvas')
+  canvas.width = out
+  canvas.height = out
+
+  const ctx = canvas.getContext('2d')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'   // proper averaging on downscale
+
+  ctx.drawImage(
+    img,
+    sx, sy, srcSize, srcSize,  // read the WHOLE centered square
+    0, 0, out, out             // scale it down to the output square
+  )
+
+  canvas.toBlob(b => {
+    if (!b) reject(new Error('Canvas produced empty blob'))
+    else resolve(b)
+  }, 'image/jpeg', 0.9)         // bumped from 0.85
+}
           img.src = e.target.result
         }
         reader.readAsDataURL(file)

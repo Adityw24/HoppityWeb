@@ -6,117 +6,54 @@ import Navbar from "../components/Navbar"
 import BudgetStayCard from "../components/BudgetStayCard"
 import { setPageSEO } from '../lib/seo'
 
+// ─── Image collection helper ───────────────────────────────────────────────────
+// Parse cover_image_url + images_url (array / JSON string / comma list / single URL)
+// into a clean de-duplicated array.
+
+function collectImages(row) {
+  const out = []
+  if (row.cover_image_url) out.push(row.cover_image_url)
+
+  const pushFrom = (val) => {
+    if (!val) return
+    if (Array.isArray(val)) { out.push(...val); return }
+    if (typeof val !== 'string') return
+    const trimmed = val.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) { out.push(...parsed.filter(Boolean)); return }
+      } catch { /* fall through */ }
+    }
+    const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
+      ? trimmed.slice(1, -1)
+      : trimmed
+    out.push(...inner.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean))
+  }
+
+  pushFrom(row.images_url)
+  pushFrom(row.images)
+  return [...new Set(out.filter(Boolean))]
+}
+
+// ─── Normalise a Properties row into the shape BudgetStayCard expects ─────────
+
 function normalise(row) {
   return {
     ...row,
-    image: row.images?.length
-      ? row.images.filter(Boolean)
-      : row.cover_image_url
-        ? [row.cover_image_url]
-        : [],
+    id:               row.id,
+    slug:             row.slug,
+    title:            row.name,
+    tag:              row.property_type,
+    price_per_person: row.price_per_night,
+    duration_display: 'Per night',
+    blurb:            row.description,
+    image:            collectImages(row),
+    rating:           row.rating       || 0,
+    review_count:     row.review_count || 0,
   }
 }
-
-// ─── Dummy data (shown when Supabase returns 0 results) ───────────────────────
-
-const DUMMY_STAYS = [
-  {
-    id: 'd1',
-    slug: 'zostel-kasol',
-    title: 'Zostel Kasol',
-    location: 'Kasol, Himachal Pradesh',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 699,
-    tag: 'Hostel',
-    blurb: 'Iconic backpacker hostel on the banks of Parvati river. Perfect base for Kheerganga treks, great vibe, bonfire nights guaranteed.',
-    image: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80'],
-    rating: 4.6,
-    review_count: 312,
-    amenities: ['Wifi', 'Cafe', 'Bonfire'],
-    is_dummy: true,
-  },
-  {
-    id: 'd2',
-    slug: 'gostops-mcleodganj',
-    title: 'goStops McLeod Ganj',
-    location: 'McLeodganj, Dharamsala',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 899,
-    tag: 'Hostel',
-    blurb: 'Tibetan-influenced hostel with mountain views. Walk to Dharamkot, monastery, and the best momos in town.',
-    image: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80'],
-    rating: 4.4,
-    review_count: 189,
-    amenities: ['Wifi', 'Rooftop', 'Cafe'],
-    is_dummy: true,
-  },
-  {
-    id: 'd3',
-    slug: 'hill-view-homestay-mukteshwar',
-    title: 'Hill View Homestay',
-    location: 'Mukteshwar, Uttarakhand',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 1399,
-    tag: 'Homestay',
-    blurb: 'A warm family-run homestay with Himalayan panoramas. Home-cooked food, apple orchards, and total silence.',
-    image: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80'],
-    rating: 4.8,
-    review_count: 74,
-    amenities: ['Home food', 'Wifi', 'Bonfire'],
-    is_dummy: true,
-  },
-  {
-    id: 'd4',
-    slug: 'shivpuri-camp-rishikesh',
-    title: 'Shivpuri Camp Resort',
-    location: 'Shivpuri, Rishikesh',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 1799,
-    tag: 'Camp',
-    blurb: 'Swiss tents on the Ganges shore. White-water rafting package included. Fall asleep to river sounds every night.',
-    image: ['https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800&q=80'],
-    rating: 4.5,
-    review_count: 201,
-    amenities: ['Rafting', 'Meals', 'Bonfire'],
-    is_dummy: true,
-  },
-  {
-    id: 'd5',
-    slug: 'zostel-kaza-spiti',
-    title: 'Zostel Kaza',
-    location: 'Kaza, Spiti Valley',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 749,
-    tag: 'Hostel',
-    blurb: "The world's highest Zostel at 12,500 ft. Surreal moonscape views, star-gazing nights, and a community of serious trekkers.",
-    image: ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80'],
-    rating: 4.7,
-    review_count: 156,
-    amenities: ['Wifi', 'Hot water', 'Cafe'],
-    is_dummy: true,
-  },
-  {
-    id: 'd6',
-    slug: 'agonda-beach-shack-goa',
-    title: 'Agonda Beach Shack',
-    location: 'Agonda, South Goa',
-    duration: '1 night',
-    duration_display: 'Per night',
-    price_per_person: 1200,
-    tag: 'Guesthouse',
-    blurb: 'Simple bamboo-and-tile guesthouse steps from the quietest beach in Goa. Hammocks, fresh coconut, zero pretension.',
-    image: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80'],
-    rating: 4.3,
-    review_count: 98,
-    amenities: ['Beach access', 'Wifi', 'Breakfast'],
-    is_dummy: true,
-  },
-]
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -130,12 +67,11 @@ const PRICE_FILTERS = [
 
 const DEFAULT_GRADIENT = 'from-teal-600 to-teal-900'
 const TAG_GRADIENTS = {
-  Hostel:   'from-sky-600 to-blue-900',
-  Hostel:   'from-sky-600 to-blue-900',
+  Hostel:     'from-sky-600 to-blue-900',
   Guesthouse: 'from-teal-600 to-teal-900',
-  Homestay: 'from-green-700 to-emerald-900',
-  Camp:     'from-stone-600 to-stone-900',
-  Dorm:     'from-slate-600 to-slate-800',
+  Homestay:   'from-green-700 to-emerald-900',
+  Camp:       'from-stone-600 to-stone-900',
+  Dorm:       'from-slate-600 to-slate-800',
 }
 
 export default function BudgetStaysPage() {
@@ -153,11 +89,11 @@ export default function BudgetStaysPage() {
     })
 
     supabase
-      .from('Itineraries')
-      .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count')
+      .from('Properties')
+      .select('*')
       .eq('is_active', true)
-      .eq('stay_category', 'budget')
-      .order('price_per_person', { ascending: true })
+      .eq('property_category', 'budget')
+      .order('price_per_night', { ascending: true })
       .then(({ data, error }) => {
         if (error) console.error('Budget stays fetch error:', error)
         setStays((data || []).map(normalise))
@@ -169,10 +105,7 @@ export default function BudgetStaysPage() {
       })
   }, [])
 
-  // Use real data if available, fall back to dummy cards while DB is empty
-  const displayStays = stays.length > 0 ? stays : DUMMY_STAYS
-
-  const filtered = displayStays.filter(s => {
+  const filtered = stays.filter(s => {
     const q = search.trim().toLowerCase()
     const matchSearch = !q ||
       s.title?.toLowerCase().includes(q) ||
@@ -221,20 +154,12 @@ export default function BudgetStaysPage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-slate-500 mt-5">
-            {[`${displayStays.length} properties`, 'Best value picks', 'Sorted by price'].map(t => (
+            {[`${stays.length} ${stays.length === 1 ? 'property' : 'properties'}`, 'Best value picks', 'Sorted by price'].map(t => (
               <span key={t} className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-violet-400 inline-block" />{t}
               </span>
             ))}
           </div>
-
-          {/* Dummy data notice — remove once DB is populated */}
-          {stays.length === 0 && !loading && (
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-4 py-2 text-xs font-medium text-amber-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-pulse" />
-              Showing sample properties. Real properties coming soon!
-            </div>
-          )}
         </div>
 
         {/* Search */}
@@ -279,9 +204,15 @@ export default function BudgetStaysPage() {
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🎒</div>
-            <h3 className="text-xl font-bold text-slate-900">No stays found</h3>
-            <p className="text-slate-500 mt-2">Try a different search or price range.</p>
-            {priceFilter.label !== 'All prices' && (
+            <h3 className="text-xl font-bold text-slate-900">
+              {stays.length === 0 ? 'No budget stays yet' : 'No stays found'}
+            </h3>
+            <p className="text-slate-500 mt-2">
+              {stays.length === 0
+                ? 'Budget properties will appear here once they are published.'
+                : 'Try a different search or price range.'}
+            </p>
+            {stays.length > 0 && priceFilter.label !== 'All prices' && (
               <button onClick={() => setPriceFilter(PRICE_FILTERS[0])}
                 className="mt-4 text-violet-600 text-sm font-semibold hover:underline cursor-pointer">
                 See all budget stays →

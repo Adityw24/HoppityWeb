@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom"
 import { ArrowRight, ArrowLeft, Star, Search, X, ShieldCheck, Crown, Headphones } from "lucide-react"
 import { useEffect, useState } from "react"
+import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import { setPageSEO } from "../lib/seo"
 
 // ── Fonts ─────────────────────────────────────────────────────────────────────
 const FONT_HREF =
@@ -41,70 +43,6 @@ const C = {
   darkMid:       '#4c1d95',
 }
 
-// ── Dummy Data ────────────────────────────────────────────────────────────────
-const DUMMY_STAYS = [
-  {
-    id: 's1', slug: 'tiger-trail-lodge-corbett',
-    title: 'Tiger Trail Lodge',
-    location: 'Jim Corbett, Uttarakhand',
-    duration_display: 'Per night', price_per_person: 14500,
-    tag: 'Jungle Lodge',
-    blurb: 'A boutique jungle retreat on the edge of Corbett buffer zone. Morning safari, candlelit dining, and elephants in the wild.',
-    image: ['https://images.unsplash.com/photo-1549366021-9f761d450615?w=1200&q=85'],
-    rating: 4.9, review_count: 67,
-  },
-  {
-    id: 's2', slug: 'suryagarh-palace-jaisalmer',
-    title: 'Suryagarh Palace',
-    location: 'Jaisalmer, Rajasthan',
-    duration_display: 'Per night', price_per_person: 22000,
-    tag: 'Heritage Hotel',
-    blurb: 'A modern fortress-hotel sculpted from golden Jaisalmer sandstone. Desert dunes at your doorstep, royal-to-the-bone hospitality.',
-    image: ['https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=1200&q=85'],
-    rating: 4.9, review_count: 142,
-  },
-  {
-    id: 's3', slug: 'windermere-estate-munnar',
-    title: 'Windermere Estate',
-    location: 'Munnar, Kerala',
-    duration_display: 'Per night', price_per_person: 9800,
-    tag: 'Estate Stay',
-    blurb: "A planter's bungalow inside a working tea estate. Morning mist over endless green, estate tours, and colonial-era charm.",
-    image: ['https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=85'],
-    rating: 4.8, review_count: 88,
-  },
-  {
-    id: 's4', slug: 'kodai-treehouse-kodaikanal',
-    title: 'The Kodai Treehouse',
-    location: 'Kodaikanal, Tamil Nadu',
-    duration_display: 'Per night', price_per_person: 8500,
-    tag: 'Treehouse',
-    blurb: 'Sleep among the clouds in a hand-crafted eucalyptus treehouse. Panoramic valley views, no screens, total disconnection.',
-    image: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=1200&q=85'],
-    rating: 4.7, review_count: 54,
-  },
-  {
-    id: 's5', slug: 'barefoot-havelock-andaman',
-    title: 'Barefoot at Havelock',
-    location: 'Havelock Island, Andaman',
-    duration_display: 'Per night', price_per_person: 18000,
-    tag: 'Beach Villa',
-    blurb: "Pristine beach cottages on Radhanagar — Asia's finest beach. Snorkelling, bioluminescent nights, silence like nowhere else.",
-    image: ['https://images.unsplash.com/photo-1540202404-d0c7fe46a1b6?w=1200&q=85'],
-    rating: 4.9, review_count: 213,
-  },
-  {
-    id: 's6', slug: 'nimmu-house-ladakh',
-    title: 'Nimmu House',
-    location: 'Nimmu, Ladakh',
-    duration_display: 'Per night', price_per_person: 12000,
-    tag: 'Heritage Stay',
-    blurb: 'A 200-year-old royal residence in the Indus Valley. Stone walls, silk duvets, and the Zanskar confluence 5 min away.',
-    image: ['https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=1200&q=85'],
-    rating: 4.8, review_count: 91,
-  },
-]
-
 const TAG_GRADIENTS = {
   Resort:       ['#1e0a3c', '#0d0618'],
   Villa:        ['#1a0838', '#0a0420'],
@@ -137,6 +75,36 @@ const PROMISES = [
     body: 'A dedicated specialist handles every detail of your flagship booking.',
   },
 ]
+
+// ── Image collection helper ─────────────────────────────────────────────────
+// Parse cover_image_url + images_url (array / JSON string / comma list / single
+// URL) into a clean de-duplicated array. Mirrors the Signature page logic.
+function collectImages(row) {
+  const out = []
+  if (row.cover_image_url) out.push(row.cover_image_url)
+
+  const pushFrom = (val) => {
+    if (!val) return
+    if (Array.isArray(val)) { out.push(...val); return }
+    if (typeof val !== 'string') return
+    const trimmed = val.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) { out.push(...parsed.filter(Boolean)); return }
+      } catch { /* fall through */ }
+    }
+    const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
+      ? trimmed.slice(1, -1)
+      : trimmed
+    out.push(...inner.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean))
+  }
+
+  pushFrom(row.images_url)
+  pushFrom(row.images)
+  return [...new Set(out.filter(Boolean))]
+}
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
 const CSS = `
@@ -339,7 +307,6 @@ function FlagshipCard({ stay, index }) {
   const duration = stay.duration_display || stay.duration || ''
 
   return (
-    
     <Link
       to={`/stays/flagship/${stay.slug}`}
       className={`fp-card fu fu${Math.min(index + 1, 4)}`}
@@ -429,15 +396,92 @@ function FlagshipCard({ stay, index }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function FlagshipStaysPage() {
   useFont()
-  const [search, setSearch] = useState('')
+  const [stays,      setStays]      = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [fetchError, setFetchError] = useState(null)
+  const [search,     setSearch]     = useState('')
 
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    setPageSEO({
+      title:       'Flagship Properties – Our Most Iconic Stays | Hoppity',
+      description: 'Hoppity flagship properties — personally walked through, slept in, and stood behind. Exclusively on Hoppity.',
+      canonical:   '/stays/flagship',
+    })
 
-  const filtered = DUMMY_STAYS.filter(s => {
+    supabase
+      .from('Properties')
+      .select('*')
+      .eq('is_active', true)
+      .eq('property_category', 'flagship')
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Flagship stays fetch error:', error)
+          setFetchError(error.message)
+          setLoading(false)
+          return
+        }
+
+        // Map Properties columns into the shape FlagshipCard expects
+        const normalised = (data || []).map(row => ({
+          id:               row.id,
+          title:            row.name,
+          slug:             row.slug,
+          location:         row.location,
+          tag:              row.property_type,
+          price_per_person: row.price_per_night,
+          duration_display: 'Per night',
+          blurb:            row.description,
+          rating:           row.rating       || 0,
+          review_count:     row.review_count || 0,
+          image:            collectImages(row),
+        }))
+
+        setStays(normalised)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Flagship stays fetch failed:', err)
+        setFetchError(err.message)
+        setLoading(false)
+      })
+  }, [])
+
+  const filtered = stays.filter(s => {
     const q = search.trim().toLowerCase()
     return !q || s.title?.toLowerCase().includes(q) || s.location?.toLowerCase().includes(q) || s.blurb?.toLowerCase().includes(q)
   })
 
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (loading) return (
+    <>
+      <style>{CSS}</style>
+      <div className="fp-page" style={{ minHeight: '100vh' }}>
+        <Navbar />
+        <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+          <div className="fp-spinner" style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(124,58,237,0.18)', borderTopColor: '#7c3aed' }} />
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: C.darkMid, opacity: 0.7 }}>Loading flagship stays…</p>
+        </div>
+      </div>
+    </>
+  )
+
+  // ── Error ─────────────────────────────────────────────────────────────────
+  if (fetchError) return (
+    <>
+      <style>{CSS}</style>
+      <div className="fp-page" style={{ minHeight: '100vh' }}>
+        <Navbar />
+        <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 16, fontWeight: 600, color: '#b91c1c', marginBottom: 8 }}>Failed to load flagship stays</p>
+          <p style={{ fontFamily: 'monospace', fontSize: 13, color: C.darkMid, opacity: 0.7 }}>{fetchError}</p>
+        </div>
+      </div>
+    </>
+  )
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       <style>{CSS}</style>
@@ -473,7 +517,7 @@ export default function FlagshipStaysPage() {
                 Our most iconic stays — personally walked through, slept in, and stood behind completely. These aren't places to sleep. They're reasons to travel.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 28px' }}>
-                {[`${DUMMY_STAYS.length} properties`, 'Personally vetted', 'Exclusively on Hoppity'].map(t => (
+                {[`${stays.length} ${stays.length === 1 ? 'property' : 'properties'}`, 'Personally vetted', 'Exclusively on Hoppity'].map(t => (
                   <span key={t} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: C.darkMid, opacity: 0.68, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ width: 5, height: 5, borderRadius: '50%', background: C.gold, display: 'inline-block', flexShrink: 0 }} />
                     {t}
@@ -484,39 +528,52 @@ export default function FlagshipStaysPage() {
             <PromiseCard />
           </div>
 
-          {/* Divider */}
-          <div className="fp-divider fu fu3" style={{ marginBottom: 38 }} />
-
-          {/* Search + count */}
-          <div className="fu fu3" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 44, flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: 420 }}>
-              <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 17, height: 17, color: C.violetDeep, opacity: 0.50 }} />
-              <input
-                className="fp-search"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search flagship properties…"
-              />
-              {search && (
-                <button onClick={() => setSearch('')}
-                  style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: C.darkMid, opacity: 0.45 }}>
-                  <X style={{ width: 15, height: 15 }} />
-                </button>
-              )}
-            </div>
-            <span className="fp-count">{filtered.length} {filtered.length !== 1 ? 'properties' : 'property'}</span>
-          </div>
-
-          {/* Grid */}
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '80px 0' }}>
-              <p className="fp-serif" style={{ fontSize: 36, color: C.dark, margin: '0 0 10px' }}>No properties found</p>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: C.darkMid, opacity: 0.60 }}>Try a different search term.</p>
+          {/* Empty state — no flagship properties in DB yet */}
+          {stays.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0 80px' }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🏛️</div>
+              <p className="fp-serif" style={{ fontSize: 32, color: C.dark, margin: '0 0 10px' }}>No flagship stays yet</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: C.darkMid, opacity: 0.62, maxWidth: 460, margin: '0 auto' }}>
+                Properties marked as <strong>Flagship</strong> and set to <strong>Live</strong> will appear here.
+              </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 26 }}>
-              {filtered.map((stay, i) => <FlagshipCard key={stay.id} stay={stay} index={i} />)}
-            </div>
+            <>
+              {/* Divider */}
+              <div className="fp-divider fu fu3" style={{ marginBottom: 38 }} />
+
+              {/* Search + count */}
+              <div className="fu fu3" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 44, flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: 420 }}>
+                  <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 17, height: 17, color: C.violetDeep, opacity: 0.50 }} />
+                  <input
+                    className="fp-search"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search flagship properties…"
+                  />
+                  {search && (
+                    <button onClick={() => setSearch('')}
+                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: C.darkMid, opacity: 0.45 }}>
+                      <X style={{ width: 15, height: 15 }} />
+                    </button>
+                  )}
+                </div>
+                <span className="fp-count">{filtered.length} {filtered.length !== 1 ? 'properties' : 'property'}</span>
+              </div>
+
+              {/* Grid */}
+              {filtered.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                  <p className="fp-serif" style={{ fontSize: 36, color: C.dark, margin: '0 0 10px' }}>No properties found</p>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: C.darkMid, opacity: 0.60 }}>Try a different search term.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 26 }}>
+                  {filtered.map((stay, i) => <FlagshipCard key={stay.id} stay={stay} index={i} />)}
+                </div>
+              )}
+            </>
           )}
 
           {/* Footer CTA */}

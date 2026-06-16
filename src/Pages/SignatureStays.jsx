@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, ArrowLeft, Star, Search, X, MapPin, Clock, Wifi, Coffee, Flame, Anchor, Utensils, Shield, Users, Waves } from "lucide-react"
+import { ArrowRight, ArrowLeft, Star, Search, X, MapPin, Wifi, Coffee, Flame, Anchor, Utensils, Shield, Users, Waves } from "lucide-react"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
@@ -64,6 +64,37 @@ const AMENITY_ICONS = {
   'Pet friendly':       Users,
 }
 
+// ─── Image collection helper ───────────────────────────────────────────────────
+// Parse cover_image_url + images_url (array / JSON string / comma list / single URL)
+// into a clean de-duplicated array.
+
+function collectImages(row) {
+  const out = []
+  if (row.cover_image_url) out.push(row.cover_image_url)
+
+  const pushFrom = (val) => {
+    if (!val) return
+    if (Array.isArray(val)) { out.push(...val); return }
+    if (typeof val !== 'string') return
+    const trimmed = val.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) { out.push(...parsed.filter(Boolean)); return }
+      } catch { /* fall through */ }
+    }
+    const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
+      ? trimmed.slice(1, -1)
+      : trimmed
+    out.push(...inner.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean))
+  }
+
+  pushFrom(row.images_url)
+  pushFrom(row.images)
+  return [...new Set(out.filter(Boolean))]
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SignatureStaysPage() {
@@ -84,11 +115,7 @@ export default function SignatureStaysPage() {
 
     supabase
       .from('Properties')
-      .select(
-        'id, name, location, property_type, property_category, ' +
-        'price_per_night, cover_image_url, images_url, amenities, ' +
-        'description, is_active, created_at, slug'
-      )
+      .select('*')
       .eq('is_active', true)
       .eq('property_category', 'signature')
       .order('created_at', { ascending: true })
@@ -102,22 +129,18 @@ export default function SignatureStaysPage() {
 
         // Map Properties columns to the shape the card expects
         const normalised = (data || []).map(row => ({
-          id:              row.id,
-          title:           row.name,
-          slug:            row.slug,
-          location:        row.location,
-          tag:             row.property_type,
-          price_per_person:row.price_per_night,
-          duration_display:'Per night',
-          blurb:           row.description,
-          amenities:       Array.isArray(row.amenities) ? row.amenities : [],
-          rating:          row.rating       || 0,
-          review_count:    row.review_count || 0,
-          image:           row.cover_image_url
-                             ? [row.cover_image_url]
-                             : row.images_url
-                               ? [row.images_url]
-                               : [],
+          id:               row.id,
+          title:            row.name,
+          slug:             row.slug,
+          location:         row.location,
+          tag:              row.property_type,
+          price_per_person: row.price_per_night,
+          duration_display: 'Per night',
+          blurb:            row.description,
+          amenities:        Array.isArray(row.amenities) ? row.amenities : [],
+          rating:           row.rating       || 0,
+          review_count:     row.review_count || 0,
+          image:            collectImages(row),
         }))
 
         setStays(normalised)
@@ -193,7 +216,7 @@ export default function SignatureStaysPage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-slate-500 mt-5">
-            {[`${stays.length} properties`, 'Personally curated', 'Small & boutique only'].map(t => (
+            {[`${stays.length} ${stays.length === 1 ? 'property' : 'properties'}`, 'Personally curated', 'Small & boutique only'].map(t => (
               <span key={t} className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-violet-400 inline-block" />{t}
               </span>
@@ -365,10 +388,13 @@ function SignatureStayCard({ stay, tagGradients, defaultGradient }) {
       {/* Card body */}
       <div className="p-5 flex flex-col flex-1">
 
-        {/* Price + duration */}
+        {/* Price */}
         <div className="flex items-center justify-between text-sm mb-3">
-          <div className="flex items-baseline gap-1 ml-68">
-          <span className="font-semibold text-violet-700 text-base">{price}</span>
+          <div className="flex items-baseline gap-1">
+            <span className="font-semibold text-violet-700 text-base">{price}</span>
+            {stay.price_per_person > 0 && (
+              <span className="text-xs text-slate-400">/ night</span>
+            )}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ export default function TeamSlider({ teamMembers }) {
 
   // ── Drag / swipe state ────────────────────────────────────────────────────
   const dragging = useRef(false)
+  const hasDragged = useRef(false)   // true only once a real drag is detected
   const startX = useRef(0)
   const deltaX = useRef(0)
   const [isDragging, setIsDragging] = useState(false)   // visual feedback only
@@ -39,28 +40,51 @@ export default function TeamSlider({ teamMembers }) {
   const prev = () => goTo(active - 1)
   const next = () => goTo(active + 1)
 
-  // ── Mouse events (desktop drag) ───────────────────────────────────────────
-  const onMouseDown = (e) => {
+  // ── Pointer events (desktop mouse / pen drag) ─────────────────────────────
+  // Touch is handled separately in the useEffect below, so we ignore it here
+  // to keep the mobile swipe behaviour identical to before.
+  const onPointerDown = (e) => {
+    if (e.pointerType === 'touch') return
     if (e.target.closest('a')) return
-    dragging.current = true
-    startX.current   = e.clientX
-    deltaX.current   = 0
-    setIsDragging(true)
-    e.currentTarget.setPointerCapture(e.pointerId)
+    dragging.current   = true
+    hasDragged.current = false
+    startX.current     = e.clientX
+    deltaX.current     = 0
+    // NOTE: we do NOT capture the pointer here — capturing on a plain click
+    // makes the browser retarget the click to the track, swallowing the
+    // card's onClick. We only capture once a real drag starts (below).
   }
-  const onMouseMove = (e) => {
+
+  const onPointerMove = (e) => {
+    if (e.pointerType === 'touch') return
     if (!dragging.current) return
     deltaX.current = e.clientX - startX.current
+
+    // Promote to a "real drag" once the pointer moves past the threshold.
+    if (!hasDragged.current && Math.abs(deltaX.current) > 6) {
+      hasDragged.current = true
+      setIsDragging(true)
+      try { e.currentTarget.setPointerCapture(e.pointerId) } catch (_) {}
+    }
   }
-  const onMouseUp = () => {
+
+  const onPointerUp = (e) => {
+    if (e.pointerType === 'touch') return
     if (!dragging.current) return
     dragging.current = false
     setIsDragging(false)
-    if      (deltaX.current < -40) next()
-    else if (deltaX.current >  40) prev()
+
+    // Only treat it as a swipe if an actual drag happened. A plain click
+    // falls through to the card's onClick → goTo(idx), centring that card.
+    if (hasDragged.current) {
+      if      (deltaX.current < -40) next()
+      else if (deltaX.current >  40) prev()
+    }
+
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch (_) {}
   }
 
-  // ── Touch events (mobile swipe) ───────────────────────────────────────────
+  // ── Touch events (mobile swipe) — unchanged ───────────────────────────────
   // Attached via useEffect with { passive: false } so we can call
   // preventDefault() on horizontal swipes and stop the page scrolling.
   useEffect(() => {
@@ -82,7 +106,6 @@ export default function TeamSlider({ teamMembers }) {
     const handleTouchMove = (e) => {
       if (!dragging.current || e.touches.length !== 1) return
       const dx = e.touches[0].clientX - touchStartX
-      const dy = e.touches[0].clientY - (e.touches[0].screenY - e.touches[0].clientY) // approx
 
       // Decide direction on first meaningful move
       if (isHorizontal === null && Math.abs(dx) > 5) {
@@ -119,7 +142,7 @@ export default function TeamSlider({ teamMembers }) {
   const handleCardClick = (e, idx) => {
     if (e.target.closest('a')) return
     // Don't trigger a click if the user just finished dragging
-    if (Math.abs(deltaX.current) > 5) return
+    if (hasDragged.current || Math.abs(deltaX.current) > 5) return
     goTo(idx)
   }
 
@@ -139,10 +162,10 @@ export default function TeamSlider({ teamMembers }) {
           touchAction: 'pan-y',
           WebkitOverflowScrolling: 'touch',
         }}
-        onPointerDown={onMouseDown}
-        onPointerMove={onMouseMove}
-        onPointerUp={onMouseUp}
-        onPointerLeave={onMouseUp}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
       >
         {teamMembers.map((m, idx) => {
           const isActive = idx === active
@@ -157,6 +180,7 @@ export default function TeamSlider({ teamMembers }) {
                   ? 'scale(1) translateY(0px)'
                   : 'scale(0.9) translateY(12px)',
                 opacity: isActive ? 1 : 0.55,
+                cursor: isActive ? 'default' : 'pointer',
               }}
             >
               {/* White card */}
@@ -232,40 +256,6 @@ export default function TeamSlider({ teamMembers }) {
           {member.bio}
         </p>
       )}
-
-      {/* ── Nav: arrows + dots ─────────────────────────────────────────── */}
-      <div className="flex items-center justify-center gap-5 mt-10 px-4">
-        <button
-          onClick={prev}
-          disabled={active === 0}
-          className="w-10 h-10 rounded-full border border-violet-200 bg-white flex items-center justify-center text-slate-500 hover:text-violet-700 hover:border-violet-400 hover:shadow-md disabled:opacity-25 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        <div className="flex items-center gap-2">
-          {teamMembers.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => goTo(idx)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width:      idx === active ? 22 : 6,
-                height:     6,
-                background: idx === active ? member.accentColor : '#ddd6fe',
-              }}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={next}
-          disabled={active === total - 1}
-          className="w-10 h-10 rounded-full border border-violet-200 bg-white flex items-center justify-center text-slate-500 hover:text-violet-700 hover:border-violet-400 hover:shadow-md disabled:opacity-25 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
 
     </div>
   )

@@ -13,6 +13,8 @@ import gauravphoto from '../assets/gaurav.jpeg'
 import rachnaphoto from '../assets/rachna.jpeg'
 import diyaphoto from '../assets/diya.jpeg'
 import suzainphoto from '../assets/suzain.jpeg'
+import riyaPhoto from '../assets/riya.jpeg'
+import bibhuphoto from '../assets/bibhu.jpeg'
 // import dipakPhoto from '../assets/dipak.jpg'
 // Then set photo: sabyPhoto, photo: ajayPhoto, photo: dipakPhoto below
 
@@ -102,7 +104,7 @@ const teamMembers = [
   {
     name: 'Aditya Warkade',
     role: 'Product Developer aka The Tech guy',
-    bio: 'Adi is the guy responsible for turning "Wouldn\'t it be cool if..." into an actual working prototype. He built this product from scratch, survived countless bugs, renamed variables more times than he would like to admit and learned that every great feature starts with a slightly questionable idea.',
+    bio: 'Adi is the architect, builder, tester and occasional firefighter behind this product. He spends most of his time teaching computers to be useful and the rest reminding them how. What you\'re looking at is the result of countless hours, a lot of problem-solving and a stubborn refusal to quit when things got weird. If it works perfectly, it was skill. If it works after several attempts and a coffee break, it was skill too.',
     credentials: [
       'Credential or highlight one',
       'Credential or highlight two',
@@ -162,7 +164,7 @@ const teamMembers = [
   {
     name: 'Suzain Khan',
     role: 'Marketing Associate',
-    bio: 'Suzain joined as a Marketing Associate at Hoppity, She lead end-to-end marketing—from building strategies and content calendars to scripting and creating content. She focus on shaping brand storytelling, driving engagement, and executing campaigns that connect with the right audience.',
+    bio: 'Suzain joined as a Marketing Associate at Hoppity, She lead end-to-end marketing from building strategies and content calendars to scripting and creating content. She focus on shaping brand storytelling, driving engagement, and executing campaigns that connect with the right audience.',
     credentials: [
       'Credential or highlight one',
       'Credential or highlight two',
@@ -173,6 +175,36 @@ const teamMembers = [
     photo: suzainphoto,
     gradient: 'from-sky-600 to-blue-700',
     accentColor: '#0284c7',
+  },
+  {
+    name: 'Riya Maheshwari',
+    role: 'Business Development',
+    bio: 'As Hoppity’s BD Lead, Riya connect our incredible global partners directly to your travel bucket list to bring your dream trips to life. From boutique stays to wild adventures anywhere on the map. If you can dream it, consider her your go-to person to make it happen!.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: 'https://www.linkedin.com/in/riya-maheshwari-917787215/',
+    avatar: 'RM',
+    photo: riyaPhoto,
+    gradient: 'from-emerald-600 to-green-700',
+    accentColor: '#16a34a',
+  },
+  {
+    name: 'Bibhu',
+    role: 'Consultant – Sustainability Advisor',
+    bio: 'Part strategist, part educator, part networker, Bibhu looks at Hoppity\'s sustainability consulting vertical. She helps organisations go from "we should probably do something about ESG" to a full roadmap, compliance plan, and the confidence to talk about it at every forum and conference on the calendar.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: '',
+    avatar: 'BPS',
+    photo: bibhuphoto,
+    gradient: 'from-emerald-600 to-green-700',
+    accentColor: '#16a34a',
   }
 ]
 

@@ -47,61 +47,33 @@ const AMENITY_ICONS = {
 }
 
 // ─── Image collection helper ───────────────────────────────────────────────────
-// Robustly gathers every available image into a single, de-duplicated array.
-// Handles cover_image_url + images_url where images_url may be:
-//   • a real Postgres text[] (already an array)
-//   • a JSON-encoded array string  e.g. '["a.jpg","b.jpg"]'
-//   • an unquoted bracket string   e.g. '[a.jpg, b.jpg]'  (legacy rows)
-//   • a comma-separated string     e.g. 'a.jpg, b.jpg'
-//   • a single URL string
-// Also picks up an optional `images` text[] column if present.
+// Gathers cover_image_url + images_url (array / JSON string / unquoted brackets /
+// comma list / single URL) into one de-duplicated array.
 
 function collectImages(data) {
   const out = []
-
   if (data.cover_image_url) out.push(data.cover_image_url)
 
   const pushFrom = (val) => {
     if (!val) return
-
-    // Already an array (Postgres text[])
-    if (Array.isArray(val)) {
-      out.push(...val)
-      return
-    }
-
+    if (Array.isArray(val)) { out.push(...val); return }
     if (typeof val !== 'string') return
     const trimmed = val.trim()
     if (!trimmed) return
-
-    // 1) Try strict JSON array first  →  ["a.jpg","b.jpg"]
     if (trimmed.startsWith('[')) {
       try {
         const parsed = JSON.parse(trimmed)
-        if (Array.isArray(parsed)) {
-          out.push(...parsed.filter(Boolean))
-          return
-        }
-      } catch { /* fall through to manual parse below */ }
+        if (Array.isArray(parsed)) { out.push(...parsed.filter(Boolean)); return }
+      } catch { /* fall through */ }
     }
-
-    // 2) Fallback: strip stray surrounding brackets, split on commas,
-    //    and remove any leftover quotes from each URL.
     const inner = trimmed.startsWith('[') && trimmed.endsWith(']')
       ? trimmed.slice(1, -1)
       : trimmed
-    out.push(
-      ...inner
-        .split(',')
-        .map(s => s.trim().replace(/^["']|["']$/g, ''))
-        .filter(Boolean)
-    )
+    out.push(...inner.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean))
   }
 
   pushFrom(data.images_url)
-  pushFrom(data.images) // harmless if undefined
-
-  // De-dupe while preserving order, drop empties
+  pushFrom(data.images)
   return [...new Set(out.filter(Boolean))]
 }
 
@@ -114,14 +86,11 @@ function isValidMapsLink(str) {
   try {
     const u = new URL(str.trim())
     return u.protocol === 'http:' || u.protocol === 'https:'
-  } catch {
-    return false
-  }
+  } catch { return false }
 }
 
 function buildMapsUrl(property) {
   if (isValidMapsLink(property.maps_url)) return property.maps_url.trim()
-
   const query = property.address
     || [property.title, property.location].filter(Boolean).join(', ')
     || property.location
@@ -133,16 +102,10 @@ function buildMapsUrl(property) {
 // ─── Time formatting helper ───────────────────────────────────────────────────
 function formatTime(time) {
   if (!time) return ''
-
   const [hours, minutes] = time.split(':')
   const date = new Date()
   date.setHours(hours, minutes)
-
-  return date.toLocaleTimeString([], {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 // ─── Lightbox / Slider ──────────────────────────────────────────────────────────
@@ -230,7 +193,7 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
   )
 }
 
-// ─── Photo Grid ────
+// ─── Photo Grid (Airbnb-style) ──────────────────────────────────────────────────
 // 5+ images → 1 big left + 2×2 right grid, with a "Show all photos" button.
 // Degrades cleanly for 1–4 images. Every tile opens the Lightbox carousel.
 
@@ -260,7 +223,6 @@ function BentoGallery({ images, title, onOpen }) {
         ) : (
           <Fallback className="w-full h-full" />
         )}
-        {/* subtle hover darken */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition pointer-events-none" />
       </div>
     )
@@ -271,7 +233,6 @@ function BentoGallery({ images, title, onOpen }) {
   const frame = "grid gap-2 overflow-hidden rounded-3xl"
   const h = { height: 'clamp(340px, 58vh, 560px)' }
 
-  // ── 0–1 image: single hero ────────────────────────────────────────────────
   if (count <= 1) {
     return (
       <div className={wrap}>
@@ -283,7 +244,6 @@ function BentoGallery({ images, title, onOpen }) {
     )
   }
 
-  // ── 2 images: side by side ────────────────────────────────────────────────
   if (count === 2) {
     return (
       <div className={wrap}>
@@ -296,7 +256,6 @@ function BentoGallery({ images, title, onOpen }) {
     )
   }
 
-  // ── 3 images: big left + 2 stacked right ──────────────────────────────────
   if (count === 3) {
     return (
       <div className={wrap}>
@@ -310,7 +269,6 @@ function BentoGallery({ images, title, onOpen }) {
     )
   }
 
-  // ── 4 images: big left + 3 stacked (or 1 + column) ────────────────────────
   if (count === 4) {
     return (
       <div className={wrap}>
@@ -319,29 +277,25 @@ function BentoGallery({ images, title, onOpen }) {
           <Tile index={1} />
           <Tile index={2} rounded="rounded-tr-3xl" />
           <Tile index={3} />
-          {/* fill the empty bottom-middle by letting index 3 sit bottom-right */}
         </div>
         <TopBar title={title} count={count} onShowAll={() => onOpen(0)} />
       </div>
     )
   }
 
-  // ── 5+ images: classic Airbnb — 1 big left + 2×2 right ────────────────────
+  // 5+ images: classic Airbnb — 1 big left + 2×2 right
   return (
     <div className={wrap}>
       <div
         className={frame}
         style={{ ...h, gridTemplateColumns: '1fr 0.5fr 0.5fr', gridTemplateRows: '1fr 1fr' }}>
-        {/* Big hero — left, spans both rows */}
         <Tile index={0} rounded="rounded-l-3xl" className="row-span-2" />
-        {/* 2×2 on the right */}
         <Tile index={1} />
         <Tile index={2} rounded="rounded-tr-3xl" />
         <Tile index={3} />
         <Tile index={4} rounded="rounded-br-3xl" />
       </div>
 
-      {/* Show all photos — bottom-right, like Airbnb */}
       <button
         onClick={() => onOpen(0)}
         className="absolute bottom-4 right-10 lg:right-14 flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 shadow-md hover:shadow-lg hover:bg-slate-50 transition">
@@ -382,7 +336,7 @@ function TopBar({ title, onShowAll, count }) {
         </button>
         <button
           onClick={() => setWish(w => !w)}
-          className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center  transition cursor-pointer ${wish ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
+          className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition cursor-pointer ${wish ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
           aria-label="Wishlist">
           <Heart className={`w-4 h-4 ${wish ? 'fill-white' : ''}`} />
         </button>
@@ -394,8 +348,7 @@ function TopBar({ title, onShowAll, count }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SignaturePropertyPage() {
-  const { slug }       = useParams()
-  console.log('slug:', slug)
+  const { slug }     = useParams()
   const [property,   setProperty]   = useState(null)
   const [loading,    setLoading]    = useState(true)
   const [fetchError, setFetchError] = useState(null)
@@ -408,12 +361,7 @@ export default function SignaturePropertyPage() {
 
     supabase
       .from('Properties')
-      .select(
-        'id, name, location, property_type, property_category, ' +
-        'price_per_night, cover_image_url, images_url, amenities, ' +
-        'description, is_active, checkin_time, checkout_time, ' +
-        'meals_included, cancellation_policy, pet_policy, address, maps_url, slug'
-      )
+      .select('*')
       .eq('slug', slug)
       .eq('is_active', true)
       .single()
@@ -424,32 +372,21 @@ export default function SignaturePropertyPage() {
           return
         }
 
-        const collected = collectImages(data)
-
-        // Debug: confirm what was stored vs. what we parsed
-        console.log('🖼️ Image fetch debug:', {
-          raw_images_url:  data.images_url,
-          type:            typeof data.images_url,
-          cover_image_url: data.cover_image_url,
-          parsed:          collected,
-          count:           collected.length,
-        })
-
         const norm = {
           ...data,
-          checkin_time: formatTime(data.checkin_time),
-          checkout_time: formatTime(data.checkout_time),
           title:             data.name,
           tag:               data.property_type,
           price_per_person:  data.price_per_night,
           duration_display:  'Per night',
           blurb:             data.description,
           amenities:         Array.isArray(data.amenities) ? data.amenities : [],
-          image:             collected,
+          image:             collectImages(data),
           maps_url:          data.maps_url || null,
+          checkin_time:      formatTime(data.checkin_time),
+          checkout_time:     formatTime(data.checkout_time),
           rating:            data.rating       || 0,
           review_count:      data.review_count || 0,
-          highlights:        data.highlights   || [],
+          highlights:        data.highlights        || [],
           what_included:     data.what_included     || [],
           what_not_included: data.what_not_included || [],
           cancellation:      data.cancellation_policy || null,
@@ -494,9 +431,7 @@ export default function SignaturePropertyPage() {
 
   const images     = property.image?.length ? property.image : []
   const totalPrice = Number(property.price_per_person || 0) * guests * nights
-
-  // Prefer the admin-saved maps_url column; fall back to an address-based search
-  const mapsUrl = buildMapsUrl(property)
+  const mapsUrl    = buildMapsUrl(property)
 
   // Lightbox controls
   const openLightbox  = (i = 0) => setLightbox({ open: true, index: Math.min(i, images.length - 1) })
@@ -509,9 +444,9 @@ export default function SignaturePropertyPage() {
     const msg = encodeURIComponent(
       `Hi! I'm interested in booking ${property.title} in ${property.location}.\n\n` +
       `Guests: ${guests} and Nights: ${nights}\n` +
-      `Could you please share:
-      • Availability for this stay
-      • Best available pricing`
+      `Could you please share:\n` +
+      `• Availability for this stay\n` +
+      `• Best available pricing`
     )
     window.open(`https://wa.me/+919752377323?text=${msg}`, '_blank')
   }
@@ -522,7 +457,7 @@ export default function SignaturePropertyPage() {
       <Navbar />
       <div className="pt-20 pb-20">
 
-        {/* ── Bento Gallery ──────────────────────────────────────────────── */}
+        {/* ── Gallery ──────────────────────────────────────────────────────── */}
         <BentoGallery
           images={images}
           title={property.title}
@@ -570,18 +505,18 @@ export default function SignaturePropertyPage() {
                 )}
               </div>
 
-              <div className="flex items-center mb-6 -mt-2 gap-3">
               {mapsUrl && (
-                    <a
-                      href={mapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-2xl bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
-                      View on Google Maps
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  </div>
+                <div className="flex items-center mb-6 -mt-2 gap-3">
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-2xl bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
+                    View on Google Maps
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
 
               <hr className="border-slate-200 mb-6" />
 
@@ -725,7 +660,17 @@ export default function SignaturePropertyPage() {
                   {property.address && (
                     <p className="text-sm text-slate-600 leading-relaxed">{property.address}</p>
                   )}
-                  
+                  {mapsUrl && (
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white border border-violet-200 px-3.5 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-50 hover:border-violet-300 transition">
+                      <MapPin className="w-3.5 h-3.5" />
+                      View on Google Maps
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
               )}
             </div>
@@ -801,9 +746,6 @@ export default function SignaturePropertyPage() {
                       className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl cursor-pointer">
                       <Phone className="w-5 h-5" />Call to enquire
                     </button>
-                  {/*  <p className="text-center text-xs text-slate-400 pt-1">
-                      No payment collected here · We confirm availability first
-                    </p> */}
                   </div>
                 </div>
 

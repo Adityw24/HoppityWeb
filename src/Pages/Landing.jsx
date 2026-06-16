@@ -36,7 +36,7 @@ const STAY_CATEGORIES = [
     label: 'Affordable',
     title: 'Budget stays',
     desc: "Honest, clean, and wallet-friendly — hostels, guesthouses, and homestays that don't cut corners.",
-    count: '6 stays',
+    count: '',
     icon: '🎒',
     image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800&q=80',
     flagship: false,
@@ -46,7 +46,7 @@ const STAY_CATEGORIES = [
     label: 'Boutique',
     title: 'Signature stays',
     desc: 'Handpicked properties with soul — treehouses, heritage havelis, hilltop cottages.',
-    count: '1 stay',
+    count: '',
     icon: '🏡',
     image: 'https://images.unsplash.com/photo-1600011689032-8b628b8a8747?w=800&q=80',
     flagship: false,
@@ -56,7 +56,7 @@ const STAY_CATEGORIES = [
     label: 'FLAGSHIP',
     title: 'Flagship properties',
     desc: 'Our most iconic stays — personally walked through, slept in, and stood behind completely.',
-    count: '6 stays',
+    count: '',
     icon: '✦',
     image: 'https://images.unsplash.com/photo-1587922546307-776227941871?w=800&q=85',
     flagship: true,
@@ -81,6 +81,25 @@ export default function LandingPage() {
   const [imagesLoaded, setImagesLoaded] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const searchRef = useRef(null)
+
+  // Count stays by category for the "Where to stay" section
+  const [stayCounts, setStayCounts] = useState({})
+
+  useEffect(() => {
+    supabase
+      .from('Properties')
+      .select('property_category')
+      .eq('is_active', true)
+      .then(({ data, error }) => {
+        if (error || !data) return
+        const tally = {}
+        data.forEach(r => {
+          if (!r.property_category) return
+          tally[r.property_category] = (tally[r.property_category] || 0) + 1
+        })
+        setStayCounts(tally)
+      })
+  }, [])
 
   useEffect(() => {
     let didCancel = false
@@ -273,7 +292,7 @@ export default function LandingPage() {
             Find your kind of stay.
           </h2>
         </div>
- 
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {STAY_CATEGORIES.map((card) => (
             <Link
@@ -290,7 +309,7 @@ export default function LandingPage() {
                 decoding="async"
                 onError={e => { e.currentTarget.style.display = 'none' }}
               />
- 
+
               {/* Gradient overlay */}
               <div
                 className="absolute inset-0 pointer-events-none"
@@ -300,7 +319,7 @@ export default function LandingPage() {
                     : 'linear-gradient(to bottom, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.26) 45%, rgba(0,0,0,0.76) 100%)',
                 }}
               />
- 
+
               {/* Flagship: gold shimmer line at top */}
               {card.flagship && (
                 <div
@@ -311,7 +330,7 @@ export default function LandingPage() {
                   }}
                 />
               )}
- 
+
               {/* Top badges */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
                 <span
@@ -337,10 +356,10 @@ export default function LandingPage() {
                   </span>
                 )}
               </div>
- 
+
               {/* Bottom content */}
               <div className="absolute bottom-0 left-0 right-0 p-5">
- 
+
                 {/* Icon + Title */}
                 <div className="flex items-center gap-2.5 mb-2">
                   <div
@@ -356,19 +375,18 @@ export default function LandingPage() {
                     {card.title}
                   </p>
                 </div>
- 
+
                 {/* Description */}
                 <p className="text-xs text-white/80 leading-relaxed mb-3 drop-shadow">
                   {card.desc}
                 </p>
- 
+
                 {/* Flagship perks */}
                 {card.flagship && card.perks && (
                   <div className="flex flex-col gap-1.5 mb-3">
-                    
                   </div>
                 )}
- 
+
                 {/* Count + Explore */}
                 <div
                   className="flex items-center justify-between pt-3 border-t"
@@ -382,7 +400,11 @@ export default function LandingPage() {
                       borderColor: card.flagship ? 'rgba(196,163,90,0.36)' : 'rgba(255,255,255,0.26)',
                     }}
                   >
-                    {card.count}
+                    {(() => {
+                      const n = stayCounts[card.slug]
+                      if (n == null) return card.count          // fallback until fetch resolves
+                      return `${n} ${n === 1 ? 'stay' : 'stays'}`
+                    })()}
                   </span>
                   <span
                     className="text-sm font-bold text-white flex items-center gap-1 drop-shadow"
@@ -425,7 +447,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-{/* ── WAITLIST ──────────────────────────────────────────────── */}
+      {/* ── WAITLIST ──────────────────────────────────────────────── */}
       <section id="waitlist" className="mx-auto max-w-7xl px-6 lg:px-10 pb-14">
         <div className="rounded-[2rem] bg-gradient-to-br from-slate-950 via-violet-950 to-fuchsia-800 px-8 py-12 text-white shadow-2xl lg:px-14 lg:py-16">
           <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
@@ -477,55 +499,55 @@ export default function LandingPage() {
 
       {/* ── FOOTER ────────────────────────────────────────────────── */}
       <footer className="border-t border-violet-100 bg-white">
-  <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-      <div>
-        <p className="font-black text-slate-900 text-lg">Hoppity</p>
-        <p className="text-xs text-slate-500 mt-0.5">Discover Real Travel · India</p>
-      </div>
-      <nav className="flex flex-wrap gap-5 text-sm text-slate-500">
-        <a href="#catalog" className="hover:text-violet-700 transition">Itineraries</a>
-        <Link to="/itineraries" className="hover:text-violet-700 transition">All Tours</Link>
-        <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
-        <Link to="/about" className="hover:text-violet-700 transition">About</Link>
-        <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
-        <Link to="/privacy" className="hover:text-violet-700 transition">Privacy Policy</Link>
-      </nav>
-      <div className="flex items-center gap-4">
-        <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110"><FaInstagram /></a>
-        <a href="https://www.linkedin.com/company/triffair/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 text-xl transition hover:scale-110"><FaLinkedin /></a>
-        <a href="https://www.facebook.com/Hoppityin" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 text-xl transition hover:scale-110"><FaFacebook /></a>
-        <a href="https://wa.me/919752377323" target="_blank" rel="noopener noreferrer"
-          className="ml-2 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 hover:bg-green-100 transition">
-          💬 WhatsApp us
-        </a>
-      </div>
-    </div>
+        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div>
+              <p className="font-black text-slate-900 text-lg">Hoppity</p>
+              <p className="text-xs text-slate-500 mt-0.5">Discover Real Travel · India</p>
+            </div>
+            <nav className="flex flex-wrap gap-5 text-sm text-slate-500">
+              <a href="#catalog" className="hover:text-violet-700 transition">Itineraries</a>
+              <Link to="/itineraries" className="hover:text-violet-700 transition">All Tours</Link>
+              <Link to="/blog" className="hover:text-violet-700 transition">Stories</Link>
+              <Link to="/about" className="hover:text-violet-700 transition">About</Link>
+              <Link to="/contact" className="hover:text-violet-700 transition">Contact</Link>
+              <Link to="/privacy" className="hover:text-violet-700 transition">Privacy Policy</Link>
+            </nav>
+            <div className="flex items-center gap-4">
+              <a href="https://www.instagram.com/hoppity_in" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-500 text-xl transition hover:scale-110"><FaInstagram /></a>
+              <a href="https://www.linkedin.com/company/triffair/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 text-xl transition hover:scale-110"><FaLinkedin /></a>
+              <a href="https://www.facebook.com/Hoppityin" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 text-xl transition hover:scale-110"><FaFacebook /></a>
+              <a href="https://wa.me/919752377323" target="_blank" rel="noopener noreferrer"
+                className="ml-2 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 hover:bg-green-100 transition">
+                💬 WhatsApp us
+              </a>
+            </div>
+          </div>
 
-    {/* DPIIT & Startup India recognition badge row */}
-    <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Recognised by</span>
-        <div className="flex items-center gap-4">
-          <img
-            src={dpiitlogo}
-            alt="DPIIT - Department for Promotion of Industry and Internal Trade"
-            className="h-8 w-auto object-contain opacity-80 opacity-100 transition"
-          />
-          <img
-            src={startuplogo}
-            alt="Startup India"
-            className="h-7 w-auto object-contain opacity-80 opacity-100 transition"
-          />
+          {/* DPIIT & Startup India recognition badge row */}
+          <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Recognised by</span>
+              <div className="flex items-center gap-4">
+                <img
+                  src={dpiitlogo}
+                  alt="DPIIT - Department for Promotion of Industry and Internal Trade"
+                  className="h-8 w-auto object-contain opacity-100 transition"
+                />
+                <img
+                  src={startuplogo}
+                  alt="Startup India"
+                  className="h-7 w-auto object-contain opacity-100 transition"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-400">
+              <span>© 2026 Hoppity (Triffair). All rights reserved.</span>
+              <a href="mailto:sales@hoppity.in" className="hover:text-violet-600 transition sm:ml-4">sales@hoppity.in</a>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-400">
-        <span>© 2026 Hoppity (Triffair). All rights reserved.</span>
-        <a href="mailto:sales@hoppity.in" className="hover:text-violet-600 transition sm:ml-4">sales@hoppity.in</a>
-      </div>
-    </div>
-  </div>
-</footer>
+      </footer>
     </div>
   )
 }
