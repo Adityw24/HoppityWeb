@@ -505,14 +505,13 @@ export default function TripDetails() {
       {/* ── Stats ───────────────────────────────────────────────────── */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4 md:gap-5">
             {[
-              { num: '500+', label: 'Happy Travellers' },
               { num: '4.9★',  label: 'Average Rating' },
               { num: '20+',  label: 'Unique Trips' },
               { num: '24/7', label: 'Support Available' },
             ].map((s, i) => (
-              <div key={i} className="stat-box opacity-0 scale-in" style={{animationDelay:`${(i+1)*0.1}s`}}>
+              <div key={i} className="stat-box w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.75rem)] lg:w-[calc(25%-0.75rem)] opacity-0 scale-in" style={{animationDelay:`${(i+1)*0.1}s`}}>
                 <div className="text-3xl font-bold gradient-text">{s.num}</div>
                 <div className="text-gray-500 text-sm mt-2">{s.label}</div>
               </div>

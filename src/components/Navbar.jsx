@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, User, LogOut, Menu, X, Sparkles, PenSquare } from 'lucide-react'
+import { Search, User, LogOut, Menu, X, Sparkles, PenSquare, Settings } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 import logo from '../assets/logo1.png'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const { profile } = useProfile()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -15,8 +18,21 @@ export default function Navbar() {
     setMenuOpen(false)
   }
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Account'
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Account'
   const initials = displayName.slice(0, 2).toUpperCase()
+  const avatarUrl = !imgFailed ? profile?.profile_pic : null
+
+  const Avatar = ({ size = 'w-6 h-6', text = 'text-xs' }) => (
+    <div className={`${size} rounded-full overflow-hidden bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white ${text} font-black flex-shrink-0`}>
+      {avatarUrl
+        ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" onError={() => setImgFailed(true)} />
+        : initials}
+    </div>
+  )
 
   return (
     <header className="flex items-center justify-between rounded-full border border-white/60 bg-white/90 px-5 py-3 backdrop-blur-xl shadow-sm fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-6xl z-50">
@@ -48,21 +64,24 @@ export default function Navbar() {
           className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-500 text-white rounded-full px-3 py-2 text-sm font-semibold shadow-sm hover:shadow-md transition">
           <Sparkles className="w-3.5 h-3.5" /><span>Ask AI</span>
         </Link>
-        {user && (
-          <Link to="/write"
-            className="hidden md:flex items-center gap-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-full px-3 py-2 text-sm font-semibold transition">
-            <PenSquare className="w-3.5 h-3.5" /><span>Write</span>
-          </Link>
-        )}
+
         {user ? (
           <div className="relative group">
             <button className="flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 pl-2 pr-3 py-1.5 text-sm font-semibold text-violet-700 cursor-pointer hover:bg-violet-100 transition">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-black">{initials}</div>
+              <Avatar />
               {displayName.split(' ')[0]}
             </button>
-            <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-violet-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150">
-              <Link to="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700"><User className="w-3.5 h-3.5" /> My Profile</Link>
-              <button onClick={handleSignOut} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 cursor-pointer"><LogOut className="w-3.5 h-3.5" /> Sign Out</button>
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-violet-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150">
+              <Link to="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700">
+                <User className="w-3.5 h-3.5" /> My Profile
+              </Link>
+              <Link to="/settings" className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700">
+                <Settings className="w-3.5 h-3.5" /> Account Settings
+              </Link>
+              <div className="my-1 border-t border-slate-100" />
+              <button onClick={handleSignOut} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 cursor-pointer">
+                <LogOut className="w-3.5 h-3.5" /> Sign Out
+              </button>
             </div>
           </div>
         ) : (
@@ -93,7 +112,13 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link to="/profile" onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition">👤 My Profile</Link>
+                  className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition">
+                  <Avatar size="w-7 h-7" text="text-[11px]" /> My Profile
+                </Link>
+                <Link to="/settings" onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition">
+                  <Settings className="w-4 h-4" /> Account Settings
+                </Link>
                 <button onClick={handleSignOut} className="block w-full text-left px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer">Sign Out</button>
               </>
             ) : (

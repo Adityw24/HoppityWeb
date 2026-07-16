@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import React from "react"
-import { ArrowRight, Search, Clock, Star } from "lucide-react"
+import { ArrowRight, Search, Clock, Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
@@ -13,6 +13,7 @@ import poojaImg    from "../assets/pooja.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
+import mandugraphic from "../graphics/mandu.jpeg"
 
 function normaliseLanding(row) {
   return {
@@ -20,6 +21,21 @@ function normaliseLanding(row) {
     image: row.images?.length ? row.images : (row.cover_image_url ? [row.cover_image_url] : []),
   }
 }
+
+// 👇 Itinerary detail route. Change ONLY this line if it ever differs.
+const tripHref = (slug) => `/itinerary/${slug}`
+
+/* ─────────────────────────────────────────────────────────────
+   DUMMY UPCOMING TRIPS  (placeholder slides)
+   • Drop your own customised landscape graphic into `image`
+     (e.g. import it up top, or paste a URL).
+   • Set each `slug` to the real itinerary slug — routing then
+     sends users to /itinerary/<slug>.
+   • Add / remove entries freely; the carousel adapts.
+   ───────────────────────────────────────────────────────────── */
+const DUMMY_UPCOMING = [
+  { id: 'up-1', slug: '/maheshwar-mandu-in-the-footsteps-of-history', title: 'Upcoming Trip 1', location: 'India', duration: '2 Days', tag: 'New', image: mandugraphic },
+]
 
 const VIBE_CHIPS = [
   { label: '🏔️ Mountain high', q: 'mountain trek himalaya' },
@@ -66,6 +82,146 @@ const STAY_CATEGORIES = [
     ],
   },
 ]
+
+/* ─────────────────────────────────────────────────────────────
+   UPCOMING TRIPS CAROUSEL  (clean — no vignette)
+   - Auto-advances every 6s, pauses on hover / touch
+   - Prev / next arrows, clickable dots, swipe on mobile
+   - Each slide shows only your graphic + navigates via onOpen
+   ───────────────────────────────────────────────────────────── */
+function UpcomingTripsCarousel({ trips, onOpen }) {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const startX = useRef(null)
+  const moved = useRef(0)
+  const suppressClick = useRef(false)
+  const count = trips.length
+
+  useEffect(() => {
+    if (index >= count) setIndex(0)
+  }, [count, index])
+
+  useEffect(() => {
+    if (count <= 1 || paused) return
+    const id = setInterval(() => setIndex(i => (i + 1) % count), 6000)
+    return () => clearInterval(id)
+  }, [count, paused])
+
+  if (count === 0) return null
+
+  const go = (dir) => setIndex(i => (i + dir + count) % count)
+
+  const onTouchStart = (e) => {
+    startX.current = e.touches[0].clientX
+    moved.current = 0
+    suppressClick.current = false
+  }
+  const onTouchMove = (e) => {
+    if (startX.current == null) return
+    moved.current = e.touches[0].clientX - startX.current
+    if (Math.abs(moved.current) > 8) suppressClick.current = true
+  }
+  const onTouchEnd = () => {
+    if (Math.abs(moved.current) > 45) go(moved.current < 0 ? 1 : -1)
+    startX.current = null
+    moved.current = 0
+  }
+
+  const handleOpen = (slug) => {
+    if (suppressClick.current) { suppressClick.current = false; return }
+    onOpen(slug)
+  }
+
+  return (
+    <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-10">
+      <div className="mb-6">
+      {/*  <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
+          Upcoming trips
+        </p> */}
+        <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+          Upcoming trips
+        </h2>
+      </div>
+
+      <div
+        className="relative overflow-hidden rounded-[1.4rem] ring-1 ring-violet-100 select-none"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Sliding track — landscape banner */}
+        <div
+          className="flex h-[500px] transition-transform duration-700 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {trips.map((trip) => (
+            <button
+              key={trip.id}
+              onClick={() => handleOpen(trip.slug)}
+              className="group relative h-full w-full flex-shrink-0 cursor-pointer"
+            >
+              {trip.image ? (
+                <img
+        src={trip.image}
+        alt={trip.title}
+        className="absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-105"
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+        />
+              ) : (
+                // Clean neutral placeholder until you add the graphic
+                <div className="absolute inset-0 flex items-center justify-center bg-violet-50">
+                  <span className="text-violet-400 text-sm font-semibold tracking-wide">
+                    Add trip graphic here
+                  </span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Prev / next arrows */}
+        {count > 1 && (
+          <>
+            <button
+              aria-label="Previous trip"
+              onClick={(e) => { e.stopPropagation(); go(-1) }}
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              aria-label="Next trip"
+              onClick={(e) => { e.stopPropagation(); go(1) }}
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {count > 1 && (
+          <div className="absolute bottom-4 right-5 z-10 flex items-center gap-1.5">
+            {trips.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={(e) => { e.stopPropagation(); setIndex(i) }}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  i === index ? 'w-6 bg-white shadow' : 'w-1.5 bg-white/60 hover:bg-white/90'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
 
 export default function LandingPage() {
   useEffect(() => {
@@ -281,6 +437,12 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── UPCOMING TRIPS CAROUSEL ───────────────────────────────────── */}
+      <UpcomingTripsCarousel
+        trips={DUMMY_UPCOMING}
+        onOpen={(slug) => navigate(tripHref(slug))}
+      />
 
       {/* ── STAY CATEGORIES ───────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-6 lg:px-10 pb-10">

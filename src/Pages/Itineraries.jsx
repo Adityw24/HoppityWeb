@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, ArrowLeft, Star } from "lucide-react"
-import { useEffect, useState } from "react"
+import { ArrowRight, ArrowLeft, Star, ChevronDown, Check, SlidersHorizontal, X } from "lucide-react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import { setPageSEO } from '../lib/seo'
@@ -15,30 +15,42 @@ function normalise(row) {
         : [],
     cityStops: row.city_stops || [],
     itinerary: row.itinerary_days || [],
+    // Normalised to a lowercase array. Handles "Cultural", " cultural ",
+    // "Cultural, Heritage", ["Cultural","Heritage"].
+    categories: toCategoryList(row.category),
   }
 }
 
-// Category → gradient fallback when no photo exists
+function toCategoryList(raw) {
+  if (!raw) return []
+  const parts = Array.isArray(raw) ? raw : String(raw).split(',')
+  return parts.map(c => String(c).trim().toLowerCase()).filter(Boolean)
+}
+
+// Canonical display order. Anything outside this list still shows — appended,
+// so a new category in the DB never silently disappears from the filter.
+const CANONICAL = ['Cultural', 'Wildlife', 'Adventure', 'Trekking', 'Heritage', 'Spiritual', 'Culinary']
+
 const CAT_GRADIENTS = {
-  Cultural:   'from-amber-700 to-orange-900',
-  Wildlife:   'from-green-700 to-emerald-900',
-  Adventure:  'from-blue-700 to-indigo-900',
-  Trekking:   'from-slate-600 to-slate-900',
-  Heritage:   'from-rose-700 to-red-900',
-  Spiritual:  'from-violet-700 to-purple-900',
-  Culinary:   'from-yellow-600 to-amber-800',
+  cultural:   'from-amber-700 to-orange-900',
+  wildlife:   'from-green-700 to-emerald-900',
+  adventure:  'from-blue-700 to-indigo-900',
+  trekking:   'from-slate-600 to-slate-900',
+  heritage:   'from-rose-700 to-red-900',
+  spiritual:  'from-violet-700 to-purple-900',
+  culinary:   'from-yellow-600 to-amber-800',
 }
 const CAT_EMOJI = {
-  Cultural: '🏛️', Wildlife: '🐘', Adventure: '🏄', Trekking: '🥾',
-  Heritage: '🕌', Spiritual: '🕉️', Culinary: '🍛',
+  cultural: '🏛️', wildlife: '🐘', adventure: '🏄', trekking: '🥾',
+  heritage: '🕌', spiritual: '🕉️', culinary: '🍛',
 }
+
+const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function Itineraries() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('All')
-
-  const CATEGORIES = ['All', 'Cultural', 'Wildlife', 'Adventure', 'Trekking', 'Heritage', 'Spiritual', 'Culinary']
+  const [filter, setFilter] = useState('all')   // lowercase key; 'all' = no filter
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -47,53 +59,48 @@ export default function Itineraries() {
       description: 'Browse Hoppity\'s full catalogue of curated India travel experiences — tribal Northeast India, Ladakh expeditions, wildlife safaris, heritage trails, spiritual journeys, and more.',
       canonical: '/itineraries',
     })
+  }, [])
 
-  //fetch active itineraries for listing page
-  supabase
-  .from("Itineraries")
-  .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
-  .eq("is_active", true)   // ← this is the fix
-  .order("id", { ascending: true })
-  .then(({ data, error }) => {
-    if (error) console.error('Itineraries fetch error:', error)
-    setTrips((data || []).map(normalise))
-    setLoading(false)
-  })
-  .catch(err => {
-    console.error('Itineraries fetch failed:', err)
-    setLoading(false)
-  })
-
-  /*  // DEBUG: also fetch recent itineraries without the `is_active` filter
-    // This helps check if new uploads are saved but not marked active.
+  useEffect(() => {
+    let cancelled = false
     supabase
       .from("Itineraries")
-      .select("id,slug,is_active,created_at")
-      .order('created_at', { ascending: false })
-      .limit(50)
+      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,category,blurb,cover_image_url,images,is_active,rating,review_count")
+      .eq("is_active", true)
+      .order("id", { ascending: true })
       .then(({ data, error }) => {
-        if (error) return console.error('Itineraries debug fetch error:', error)
-        console.log('Itineraries debug (recent 50):', data?.length || 0)
-        const inactive = (data || []).filter(r => !r.is_active)
-        if (inactive.length > 0) console.warn('Inactive itineraries (debug):', inactive.map(i => ({ slug: i.slug, id: i.id })))
+        if (cancelled) return
+        if (error) console.error('Itineraries fetch error:', error)
+        setTrips((data || []).map(normalise))
+        setLoading(false)
       })
-      .catch(err => console.error('Itineraries debug fetch failed:', err))
-      */
-
-    // DEBUG: get exact count and the id/slug list visible to this anon key
-    supabase
-      .from('Itineraries')
-      .select('id,slug', { count: 'exact' })
-      .order('id', { ascending: true })
-      .then(({ data, count, error }) => {
-        if (error) return console.error('Itineraries count fetch error:', error)
-        console.log('Itineraries visible count:', count, 'rows returned:', (data || []).length)
-        console.log('Itineraries visible ids/slugs:', (data || []).map(r => ({ id: r.id, slug: r.slug })))
+      .catch(err => {
+        if (cancelled) return
+        console.error('Itineraries fetch failed:', err)
+        setLoading(false)
       })
-      .catch(err => console.error('Itineraries count fetch failed:', err))
-  }, []) 
+    return () => { cancelled = true }
+  }, [])
 
-  const filtered = filter === 'All' ? trips : trips.filter(t => t.category === filter)
+  // Categories built FROM the data, so a filter option always has cards behind it.
+  const categories = useMemo(() => {
+    const counts = new Map()
+    for (const t of trips) {
+      for (const c of t.categories) counts.set(c, (counts.get(c) || 0) + 1)
+    }
+    const canonical = CANONICAL.map(c => c.toLowerCase()).filter(c => counts.has(c))
+    const extras = [...counts.keys()].filter(c => !canonical.includes(c)).sort()
+
+    return [
+      { key: 'all', label: 'All journeys', count: trips.length },
+      ...[...canonical, ...extras].map(c => ({ key: c, label: titleCase(c), count: counts.get(c) })),
+    ]
+  }, [trips])
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return trips
+    return trips.filter(t => t.categories.includes(filter))
+  }, [trips, filter])
 
   if (loading) return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
@@ -107,6 +114,23 @@ export default function Itineraries() {
   return (
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
+
+      <style>{`
+        @keyframes tripsIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: none; }
+        }
+        .trips-grid > * { animation: tripsIn 180ms ease-out both; }
+        @keyframes popIn {
+          from { opacity: 0; transform: translateY(-4px) scale(.98); }
+          to   { opacity: 1; transform: none; }
+        }
+        .filter-pop { animation: popIn 120ms ease-out both; transform-origin: top right; }
+        @media (prefers-reduced-motion: reduce) {
+          .trips-grid > *, .filter-pop { animation: none; }
+        }
+      `}</style>
+
       <div className="px-6 pt-24 pb-16 lg:px-10">
         <div className="max-w-7xl mx-auto mb-6">
           <Link to="/"
@@ -128,42 +152,32 @@ export default function Itineraries() {
           </p>
         </div>
 
-        {/* Category filter */}
-        <div className="max-w-7xl mx-auto flex flex-wrap gap-2 justify-center mb-8">
-          {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => setFilter(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition cursor-pointer border-2 ${
-                filter === cat
-                  ? 'bg-slate-900 text-white border-slate-900'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-700'
-              }`}>
-              {cat !== 'All' && CAT_EMOJI[cat] ? `${CAT_EMOJI[cat]} ` : ''}{cat}
-            </button>
-          ))}
+        {/* One-line control bar: count on the left, filter dropdown on the right */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-6">
+          <p className="text-sm text-slate-400">
+            {filtered.length} journey{filtered.length !== 1 ? 's' : ''}
+          </p>
+          <CategoryFilter
+            categories={categories}
+            value={filter}
+            onChange={setFilter}
+          />
         </div>
-
-        {/* Results count */}
-        <p className="max-w-7xl mx-auto text-sm text-slate-400 mb-5 px-1">
-          {filtered.length} journey{filtered.length !== 1 ? 's' : ''}
-          {filter !== 'All' && ` in ${filter}`}
-        </p>
 
         {/* Grid */}
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">{CAT_EMOJI[filter] || '🗺️'}</div>
-            <h3 className="text-xl font-bold text-slate-900">No {filter} journeys yet</h3>
+            <h3 className="text-xl font-bold text-slate-900">Nothing here yet</h3>
             <p className="text-slate-500 mt-2">Check back soon — more are being added.</p>
-            <button onClick={() => setFilter('All')}
+            <button onClick={() => setFilter('all')}
               className="mt-4 text-violet-600 text-sm font-semibold hover:underline cursor-pointer">
               See all journeys →
             </button>
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map(trip => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+          <div key={filter} className="trips-grid max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map(trip => <TripCard key={trip.id} trip={trip} />)}
           </div>
         )}
       </div>
@@ -171,10 +185,94 @@ export default function Itineraries() {
   )
 }
 
+/* ── Compact category dropdown ──────────────────────────────────────────
+  Replaces the 8-chip row. Collapses to a single pill that names the
+  active filter; the options live in a popover so they cost no page height.
+--------------------------------------------------------------------- */
+function CategoryFilter({ categories, value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef(null)
+
+  const active = categories.find(c => c.key === value) || categories[0]
+  const isFiltered = value !== 'all'
+
+  // Close on outside click / Escape
+  useEffect(() => {
+    if (!open) return
+    const onDown = e => { if (!wrapRef.current?.contains(e.target)) setOpen(false) }
+    const onKey  = e => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const pick = (key) => { onChange(key); setOpen(false) }
+
+  return (
+    <div className="relative flex items-center gap-2" ref={wrapRef}>
+      {/* Clear button, only once something is actually filtered */}
+      {isFiltered && (
+        <button onClick={() => pick('all')}
+          className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-700 transition cursor-pointer">
+          <X className="w-3.5 h-3.5" /> Clear
+        </button>
+      )}
+
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`flex items-center gap-2 rounded-full border-2 pl-4 pr-3 py-2 text-sm font-semibold transition cursor-pointer ${
+          isFiltered
+            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+            : 'bg-white text-slate-700 border-slate-200 hover:border-violet-300 hover:text-violet-700'
+        }`}>
+        {isFiltered
+          ? <span>{CAT_EMOJI[active.key] ? `${CAT_EMOJI[active.key]} ` : ''}{active.label}</span>
+          : <><SlidersHorizontal className="w-4 h-4" /><span>Filter</span></>}
+        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+          isFiltered ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+        }`}>{active.count}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div role="listbox"
+          className="filter-pop absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-violet-100 shadow-xl shadow-violet-100/50 p-2 z-40 max-h-[70vh] overflow-y-auto">
+          {categories.map(cat => {
+            const selected = cat.key === value
+            return (
+              <button
+                key={cat.key}
+                role="option"
+                aria-selected={selected}
+                onClick={() => pick(cat.key)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer text-left ${
+                  selected ? 'bg-violet-50 text-violet-800' : 'text-slate-600 hover:bg-slate-50'
+                }`}>
+                <span className="w-5 text-base flex-shrink-0">
+                  {cat.key === 'all' ? '🗺️' : CAT_EMOJI[cat.key] || '•'}
+                </span>
+                <span className="flex-1 truncate">{cat.label}</span>
+                <span className="text-xs font-bold text-slate-400">{cat.count}</span>
+                {selected && <Check className="w-4 h-4 text-violet-700 flex-shrink-0" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TripCard({ trip }) {
   const hasImage = trip.image?.length > 0 && trip.image[0]
-  const gradient = CAT_GRADIENTS[trip.category] || 'from-violet-700 to-purple-900'
-  const emoji = CAT_EMOJI[trip.category] || '🗺️'
+  const primary = trip.categories?.[0]
+  const gradient = CAT_GRADIENTS[primary] || 'from-violet-700 to-purple-900'
+  const emoji = CAT_EMOJI[primary] || '🗺️'
   const duration = trip.duration_display || trip.duration || ''
   const price = trip.price_per_person
     ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')}`
@@ -184,30 +282,23 @@ function TripCard({ trip }) {
     <Link to={`/itinerary/${trip.slug}`}
       className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer flex flex-col">
 
-      {/* Image area */}
       <div className="relative h-56 overflow-hidden flex-shrink-0">
-
-        {/* Gradient fallback — always the base layer */}
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
           <span className="text-6xl opacity-40">{emoji}</span>
         </div>
 
-        {/* Photo on top — hides itself if URL broken or missing */}
         {hasImage && (
           <img
             src={trip.image[0]}
             alt={trip.title}
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
-            onError={e => {
-              e.currentTarget.style.display = 'none'
-            }}
+            onError={e => { e.currentTarget.style.display = 'none' }}
           />
         )}
 
-        {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
 
-        {/* Tag pill — top left */}
         {trip.tag && (
           <div className="absolute top-4 left-4">
             <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
@@ -216,7 +307,6 @@ function TripCard({ trip }) {
           </div>
         )}
 
-        {/* Rating — top right */}
         {trip.rating > 0 && (
           <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1">
             <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
@@ -224,7 +314,6 @@ function TripCard({ trip }) {
           </div>
         )}
 
-        {/* Location + Title — bottom of image */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
           {trip.location && (
             <p className="text-xs uppercase tracking-[0.15em] text-violet-200 truncate mb-1">
@@ -237,7 +326,6 @@ function TripCard({ trip }) {
         </div>
       </div>
 
-      {/* Card body */}
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center justify-between text-sm mb-3">
           <span className="text-slate-500">{duration}</span>

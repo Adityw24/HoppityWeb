@@ -1,15 +1,15 @@
 import { useEffect, useState, useMemo } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, Info, CheckCircle2, Lock } from "lucide-react"
+import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, CheckCircle2, Lock } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 
 
-// ─── Pricing config — edit these as needed ────────────────────────────────────
-const PLATFORM_FEE_PERCENT = 2.5     // 2.5% platform fee
-const GST_PERCENT          = 5         // 5% GST on base price
-const CONVENIENCE_FEE_FLAT = 99       // flat ₹99 convenience fee per booking
-const ADVANCE_PERCENT      = 30     // 30% advance to confirm booking
+// ─── Pricing config — DISPLAY ONLY. The server recomputes and is authoritative.
+const PLATFORM_FEE_PERCENT = 3     // 3% platform fee
+const GST_PERCENT          = 5     // 5% GST on base price
+
+const FUNCTIONS_BASE = "https://wenhudcyvlhilpgazylg.supabase.co/functions/v1"
 
 
 // ─── Normalise Supabase row ───────────────────────────────────────────────────
@@ -43,10 +43,11 @@ export default function Checkout() {
   const [trip, setTrip]           = useState(null)
   const [loading, setLoading]     = useState(true)
   const [travelers, setTravelers] = useState(1)
-  const [payMode, setPayMode]     = useState("advance") // "advance" | "full"
   const [showBreakdown, setShowBreakdown] = useState(false)
   const [paying, setPaying]       = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [success, setSuccess]     = useState(false)
+  const [verifyError, setVerifyError] = useState(null)
 
   // Form state
   const navigate = useNavigate()
@@ -59,12 +60,12 @@ export default function Checkout() {
   useEffect(() => {
     window.scrollTo(0, 0)
     supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) {
-      navigate("/login?redirect=/checkout/" + slug)
-      return
-    }
-  })
-  if (!slug) { setLoading(false); return }
+      if (!session) {
+        navigate("/login?redirect=/checkout/" + slug)
+        return
+      }
+    })
+    if (!slug) { setLoading(false); return }
 
     supabase
       .from("Itineraries")
@@ -79,7 +80,7 @@ export default function Checkout() {
       })
   }, [slug])
 
-  // ─── Pricing calculations ─────────────────────────────────────────────────
+  // ─── Pricing calculations (display only — server recomputes) ───────────────
   const pricing = useMemo(() => {
     if (!trip) return null
     const basePerPerson = Number(trip.price_per_person) || 0
@@ -87,22 +88,19 @@ export default function Checkout() {
 
     const platformFee   = Math.round((baseTotal * PLATFORM_FEE_PERCENT) / 100)
     const gst           = Math.round((baseTotal * GST_PERCENT) / 100)
-    const hasPricing = basePerPerson > 0
-    const convFee = hasPricing ? CONVENIENCE_FEE_FLAT : 0
-    const grandTotal    = baseTotal + platformFee + gst + convFee
-    const advanceAmount = Math.round((grandTotal * ADVANCE_PERCENT) / 100)
-    const balanceDue    = grandTotal - advanceAmount
-    const payNow = payMode === "advance" ? advanceAmount : grandTotal
+    const hasPricing    = basePerPerson > 0
+    const taxesAndFees  = gst
+    const grandTotal    = baseTotal + taxesAndFees
 
     return {
       basePerPerson, baseTotal,
-      platformFee, gst, convFee,
-      grandTotal, advanceAmount, balanceDue, payNow,
+      platformFee, gst, taxesAndFees,
+      grandTotal,
       hasPricing,
     }
-  }, [trip, travelers, payMode])
+  }, [trip, travelers])
 
-  
+
   // ─── Validation ───────────────────────────────────────────────────────────
   function validate() {
     const e = {}
@@ -119,34 +117,33 @@ export default function Checkout() {
 
   // ─── Razorpay payment handler ─────────────────────────────────────────────
   async function handlePay() {
-  if (!validate()) return
-  setPaying(true)
+    if (!validate()) return
+    setVerifyError(null)
+    setPaying(true)
 
-  const loaded = await loadRazorpay()
-  if (!loaded) {
-    alert("Failed to load payment gateway. Please try again.")
-    setPaying(false)
-    return
-  }
-
-  // ── Step 1: Create Razorpay order ──────────────────────────
-  let order_id    = null
-  let booking_id  = null
-  let orderAmount = null
-  let keyId       = null
-
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session?.access_token) {
-      alert("Please log in to continue booking.")
+    const loaded = await loadRazorpay()
+    if (!loaded) {
+      alert("Failed to load payment gateway. Please try again.")
       setPaying(false)
       return
     }
 
-    const res = await fetch(
-      `https://wenhudcyvlhilpgazylg.supabase.co/functions/v1/create-razorpay-order`,
-      {
+    // ── Step 1: Create Razorpay order (server inserts the pending booking) ──
+    let order_id    = null
+    let booking_id  = null
+    let orderAmount = null
+    let keyId       = null
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        alert("Please log in to continue booking.")
+        setPaying(false)
+        return
+      }
+
+      const res = await fetch(`${FUNCTIONS_BASE}/create-razorpay-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -157,124 +154,126 @@ export default function Checkout() {
           num_persons:     travelers,
           booking_date:    form.travelDate,
           special_request: form.specialReq || null,
-          pay_mode:        payMode,
+          pay_mode:        "full",
         }),
-      }
-    )
+      })
 
-    const data = await res.json()
-    if (!res.ok) {
-      alert(data.error || "Could not initiate payment. Please try again.")
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "Could not initiate payment. Please try again.")
+        setPaying(false)
+        return
+      }
+
+      order_id    = data.order_id
+      booking_id  = data.booking_id
+      orderAmount = data.amount      // paise, server-authoritative
+      keyId       = data.key_id      // from server, not hardcoded
+
+    } catch (err) {
+      console.error("Order creation failed:", err)
+      alert("Could not initiate payment. Please try again.")
       setPaying(false)
       return
     }
 
-    order_id    = data.order_id
-    booking_id  = data.booking_id
-    orderAmount = data.amount      // paise, already advance or full
-    keyId       = data.key_id      // from server, not hardcoded
+    // ── Step 2: Open Razorpay checkout ─────────────────────────
+    const options = {
+      key:         keyId,
+      amount:      orderAmount,
+      currency:    "INR",
+      name:        "Hoppity",
+      order_id:    order_id,
+      description: `${trip.title} — ${travelers} traveller${travelers > 1 ? "s" : ""}`,
+      image:       trip.image?.[0] || "",
 
-  } catch (err) {
-    console.error("Order creation failed:", err)
-    alert("Could not initiate payment. Please try again.")
-    setPaying(false)
-    return
-  }
+      prefill: {
+        name:    form.name,
+        email:   form.email,
+        contact: form.phone,
+      },
 
-  // ── Step 2: Open Razorpay checkout ─────────────────────────
-  const options = {
-    key:         keyId,
-    amount:      orderAmount,
-    currency:    "INR",
-    name:        "Hoppity",
-    order_id:    order_id,
-    description: `${trip.title} — ${travelers} traveller${travelers > 1 ? "s" : ""}`,
-    image:       trip.image?.[0] || "",
+      notes: {
+        slug:           trip.slug,
+        travelers:      String(travelers),
+        travel_date:    form.travelDate,
+        pay_mode:       "full",
+        special_req:    form.specialReq || "",
+        traveler_name:  form.name,
+        traveler_email: form.email,
+        traveler_phone: form.phone,
+      },
 
-    prefill: {
-      name:    form.name,
-      email:   form.email,
-      contact: form.phone,
-    },
+      theme: { color: "#7c3aed" },
 
-    notes: {
-      slug:        trip.slug,
-      travelers:   String(travelers),
-      travel_date: form.travelDate,
-      pay_mode:    payMode,
-      special_req: form.specialReq || "",
-    },
+      // ── Step 3: Hand the signature to the server.
+      // The browser NEVER writes to Bookings or Payments. verify-razorpay-payment
+      // re-computes the HMAC and calls confirm_razorpay_booking, which flips the
+      // booking to paid and inserts the Payments row atomically — same path iOS
+      // and Flutter use.
+      handler: async function (response) {
+        setPaying(false)
+        setVerifying(true)
 
-    theme: { color: "#7c3aed" },
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
 
-    handler: async function (response) {
-      // ── Step 3: Update booking to confirmed ──────────────
-      const { error: bookingError } = await supabase
-        .from("Bookings")
-        .update({
-          status:            "confirmed",
-          payment_status:    "paid",
-          razorpay_payment_id:  response.razorpay_payment_id,  // ← add this
-        })
-        .eq("id", booking_id)
+          const res = await fetch(`${FUNCTIONS_BASE}/verify-razorpay-payment`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              booking_id:          booking_id,
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+            }),
+          })
 
-      if (bookingError) {
-        console.error("Booking update error:", bookingError.message)
-        // Don't block — payment went through, just log it
-      }
+          const data = await res.json()
 
-      // ── Step 4: Insert payment record ────────────────────
-      const { error: paymentError } = await supabase
-        .from("Payments")
-        .insert({
-          booking_id:          booking_id,
-          amount:              orderAmount / 100,  // ← server's actual charged amount
-          gateway:             "razorpay",
-          status:              "captured",
-          currency:            "INR",
-          razorpay_order_id:   response.razorpay_order_id   || null,
-          razorpay_payment_id: response.razorpay_payment_id || null,
-          razorpay_signature:  response.razorpay_signature  || null,
-          metadata: {
-            traveler_name:   form.name,
-            traveler_email:  form.email,
-            traveler_phone:  form.phone,
-            num_travelers:   travelers,
-            pay_mode:        payMode,
-            base_amount:     pricing.baseTotal,
-            gst:             pricing.gst,
-            convenience_fee: pricing.convFee,
-            grand_total:     pricing.grandTotal,
-            balance_due:     payMode === "advance" ? pricing.balanceDue : 0,
-            trip_slug:       trip.slug,
-            trip_title:      trip.title,
-          },
-        })
+          if (!res.ok || !data.success) {
+            // The money may well have been captured — razorpay-webhook is the
+            // server-side backstop. Never tell the user the payment failed here,
+            // or they will pay twice.
+            console.error("Verification failed:", data)
+            setVerifying(false)
+            setVerifyError(
+              "Your payment went through, but we couldn't confirm the booking automatically. " +
+              "Our team will confirm it shortly — please don't pay again."
+            )
+            return
+          }
 
-      if (paymentError) {
-        console.error("Payment record error:", paymentError.message)
-        // Don't block — payment went through, just log it
-      }
+          setVerifying(false)
+          setSuccess(true)
+          window.scrollTo(0, 0)
 
-      // ── Step 5: Always show success ───────────────────────
+        } catch (err) {
+          console.error("Verification request failed:", err)
+          setVerifying(false)
+          setVerifyError(
+            "Your payment went through, but we couldn't reach our servers to confirm it. " +
+            "Our team will confirm your booking shortly — please don't pay again."
+          )
+        }
+      },
+
+      modal: {
+        ondismiss: () => setPaying(false),
+      },
+    }
+
+    const rzp = new window.Razorpay(options)
+    rzp.on("payment.failed", (resp) => {
+      console.error("Payment failed:", resp.error)
+      alert(`Payment failed: ${resp.error.description}`)
       setPaying(false)
-      setSuccess(true)
-      window.scrollTo(0, 0)
-    },
-
-    modal: {
-      ondismiss: () => setPaying(false),
-    },
+    })
+    rzp.open()
   }
-
-  const rzp = new window.Razorpay(options)
-  rzp.on("payment.failed", (resp) => {
-    console.error("Payment failed:", resp.error)
-    alert(`Payment failed: ${resp.error.description}`)
-    setPaying(false)
-  })
-  rzp.open()
-}
 
   // ─── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
@@ -288,6 +287,20 @@ export default function Checkout() {
       <div className="text-6xl mb-5">🗺️</div>
       <h1 className="text-2xl font-black text-slate-900 mb-2">Trip not found</h1>
       <Link to="/itineraries" className="mt-4 text-violet-700 font-semibold hover:underline">← Browse all trips</Link>
+    </div>
+  )
+
+  // ─── Verifying screen ─────────────────────────────────────────────────────
+  if (verifying) return (
+    <div className="min-h-screen bg-[#f7f1ff]">
+      <Navbar />
+      <div className="max-w-xl mx-auto px-6 pt-32 pb-20 text-center">
+        <div className="bg-white rounded-3xl border border-violet-100 shadow-sm p-12">
+          <div className="w-12 h-12 border-2 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto mb-6" />
+          <h1 className="text-2xl font-black text-slate-900 mb-2">Confirming your booking…</h1>
+          <p className="text-slate-500 text-sm">Payment received. Please don't close this window.</p>
+        </div>
+      </div>
     </div>
   )
 
@@ -312,14 +325,8 @@ export default function Checkout() {
               <div className="flex justify-between"><span className="text-slate-500">Travel Date</span><span className="font-semibold text-slate-800">{new Date(form.travelDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span></div>
               <div className="flex justify-between border-t border-violet-100 pt-2 mt-2">
                 <span className="text-slate-500">Amount Paid</span>
-                <span className="font-black text-violet-700 text-base">{formatINR(pricing.payNow)}</span>
+                <span className="font-black text-violet-700 text-base">{formatINR(pricing.grandTotal)}</span>
               </div>
-              {payMode === "advance" && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Balance Due</span>
-                  <span className="font-semibold text-slate-700">{formatINR(pricing.balanceDue)}</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -337,10 +344,6 @@ export default function Checkout() {
       </div>
     </div>
   )
-
-  //const displayPrice = trip.price_per_person
-   // ? `₹${Number(trip.price_per_person).toLocaleString("en-IN")} / person`
-    //: trip.price || "On Request"
 
   return (
     <div className="min-h-screen bg-[#f7f1ff] font-sans">
@@ -361,13 +364,6 @@ export default function Checkout() {
         .input-field:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
         .input-field.error { border-color: #ef4444; }
         .input-label { font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block; }
-        .toggle-pill {
-          flex: 1; padding: 0.625rem 1rem; border-radius: 1rem; font-size: 0.8125rem;
-          font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1.5px solid transparent; text-align: center;
-        }
-        .toggle-pill.active { background: white; border-color: #7c3aed; color: #7c3aed; box-shadow: 0 2px 8px rgba(124,58,237,0.12); }
-        .toggle-pill.inactive { background: transparent; color: #6b7280; }
-        .toggle-pill.inactive:hover { background: white/50; color: #374151; }
       `}} />
 
       <Navbar />
@@ -379,6 +375,19 @@ export default function Checkout() {
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-700 font-semibold mb-8 transition fade-up">
           <ArrowLeft className="w-4 h-4" /> Back to itinerary
         </Link>
+
+        {/* Verification fallback banner */}
+        {verifyError && (
+          <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 fade-up">
+            <p className="text-sm font-semibold text-amber-800 mb-1">Payment received — confirmation pending</p>
+            <p className="text-xs text-amber-700 leading-relaxed">{verifyError}</p>
+            <a href="https://wa.me/919752377323?text=Hi%20Hoppity%2C%20my%20payment%20went%20through%20but%20my%20booking%20isn%27t%20confirmed"
+              target="_blank" rel="noopener noreferrer"
+              className="inline-block mt-2 text-xs font-bold text-amber-900 underline">
+              Contact us on WhatsApp →
+            </a>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-[1fr_420px] gap-8 items-start">
 
@@ -414,28 +423,6 @@ export default function Checkout() {
                   </span>
                 )}
               </div>
-            </div>
-
-            {/* ── Payment Mode ── */}
-            <div className="bg-white rounded-2xl border border-violet-100 p-6 shadow-sm">
-              <h2 className="text-base font-black text-slate-900 mb-1">Payment Option</h2>
-              <p className="text-xs text-slate-400 mb-4">Choose how much you'd like to pay now</p>
-              <div className="flex gap-2 bg-[#f8f5ff] rounded-xl p-1.5">
-                <button onClick={() => setPayMode("advance")} className={`toggle-pill ${payMode === "advance" ? "active" : "inactive"}`}>
-                  {ADVANCE_PERCENT}% Advance {pricing && `(${formatINR(pricing.advanceAmount)})`}
-                </button>
-                <button onClick={() => setPayMode("full")} className={`toggle-pill ${payMode === "full" ? "active" : "inactive"}`}>
-                  Full Payment {pricing && `(${formatINR(pricing.grandTotal)})`}
-                </button>
-              </div>
-              {payMode === "advance" && pricing && (
-                <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 p-3">
-                  <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-amber-700 leading-relaxed">
-                    Pay {ADVANCE_PERCENT}% ({formatINR(pricing.advanceAmount)}) now to confirm your slot. The remaining balance of <strong>{formatINR(pricing.balanceDue)}</strong> is due 7 days before departure.
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* ── Traveller Details ── */}
@@ -547,25 +534,22 @@ export default function Checkout() {
                   <button onClick={() => setShowBreakdown(b => !b)}
                     className="w-full flex items-center justify-between text-xs text-violet-600 font-semibold py-1 hover:opacity-80 transition cursor-pointer">
                     <span>Taxes & fees</span>
-                    {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span className="flex items-center gap-1">
+                      {formatINR(pricing.taxesAndFees)}
+                      {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </span>
                   </button>
 
                   {showBreakdown && (
                     <div className="bg-[#f8f5ff] rounded-xl p-3 space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">GST ({GST_PERCENT}%)</span>
+                        <span className="text-slate-500">GST</span>
                         <span className="text-slate-700">{formatINR(pricing.gst)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Platform fee ({PLATFORM_FEE_PERCENT}%)</span>
+                        <span className="text-slate-500">Platform fee</span>
                         <span className="text-slate-700">{formatINR(pricing.platformFee)}</span>
                       </div>
-                      {pricing.hasPricing && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Convenience fee</span>
-                        <span className="text-slate-700">{formatINR(pricing.convFee)}</span>
-                      </div>
-                      )}
                     </div>
                   )}
 
@@ -576,50 +560,41 @@ export default function Checkout() {
                 </div>
 
                 {/* Pay now box */}
-
                 {pricing.hasPricing && (
-                <div className="mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-violet-700">
-                      {payMode === "advance" ? `Pay Now (${ADVANCE_PERCENT}% Advance)` : "Pay Now (Full)"}
-                    </span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div className="text-3xl font-black" style={{
-                      background: "linear-gradient(135deg,#7c3aed,#a78bfa)",
-                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
-                    }}>
-                      {formatINR(pricing.payNow)}
+                  <div className="mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-violet-700">Pay Now</span>
                     </div>
-                    {payMode === "advance" && (
-                      <div className="text-right">
-                        <p className="text-xs text-slate-400">Balance due later</p>
-                        <p className="text-sm font-bold text-slate-600">{formatINR(pricing.balanceDue)}</p>
+                    <div className="flex items-end justify-between">
+                      <div className="text-3xl font-black" style={{
+                        background: "linear-gradient(135deg,#7c3aed,#a78bfa)",
+                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
+                      }}>
+                        {formatINR(pricing.grandTotal)}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
                 )}
 
                 {/* Pay button */}
                 {pricing.hasPricing ? (
-                <button onClick={handlePay} disabled={paying}
-                  className={`shimmer-button w-full mt-4 py-4 rounded-2xl text-white font-black text-base cursor-pointer transition ${paying ? "opacity-70 cursor-not-allowed" : "hover:shadow-xl hover:-translate-y-0.5"}`}>
-                  {paying
-                    ? <span className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Opening Payment...
-                      </span>
-                    : `Pay ${formatINR(pricing.payNow)} →`
-                  }
-                </button>
+                  <button onClick={handlePay} disabled={paying}
+                    className={`shimmer-button w-full mt-4 py-4 rounded-2xl text-white font-black text-base cursor-pointer transition ${paying ? "opacity-70 cursor-not-allowed" : "hover:shadow-xl hover:-translate-y-0.5"}`}>
+                    {paying
+                      ? <span className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Opening Payment...
+                        </span>
+                      : `Pay ${formatINR(pricing.grandTotal)} →`
+                    }
+                  </button>
                 ) : (
-    <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20a%20quote%20for%20${encodeURIComponent(trip.title)}`}
-    target="_blank" rel="noopener noreferrer"
-    className="flex items-center justify-center gap-2 w-full mt-4 py-4 rounded-2xl bg-slate-900 text-white font-black text-base hover:bg-slate-700 transition">
-    💬 Request a Price Quote
-    </a>
-)}
+                  <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20a%20quote%20for%20${encodeURIComponent(trip.title)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full mt-4 py-4 rounded-2xl bg-slate-900 text-white font-black text-base hover:bg-slate-700 transition">
+                    💬 Request a Price Quote
+                  </a>
+                )}
 
                 <div className="flex items-center justify-center gap-1.5 mt-3">
                   <Lock className="w-3 h-3 text-slate-400" />

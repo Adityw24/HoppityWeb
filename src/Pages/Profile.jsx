@@ -3,13 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   LogOut, Camera, MapPin, Calendar, Users, Star,
   Bookmark, MessageSquare, Heart, Clock, Edit3,
-  Check, X, PenSquare, ArrowRight, Award
+  Check, X, PenSquare, ArrowRight, Award, AlertTriangle
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { AVATAR_BUCKET, avatarPath } from '../lib/storage'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 import Navbar from '../components/Navbar'
-
-const SUPABASE_URL = 'https://wenhudcyvlhilpgazylg.supabase.co'
 
 function badgeColors(tier) {
   switch (tier) {
@@ -20,20 +20,72 @@ function badgeColors(tier) {
   }
 }
 
+const inr = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
+
+// Bookings has two independent state columns:
+//   status         → confirmed | cancelled                     (the booking)
+//   payment_status → pending | paid | failed | refunded | na    (the money)
+// pay_mode (advance | full) decides how much of total_amount was due at checkout.
+function bookingMoney(b) {
+  const total     = Number(b.total_amount || 0)
+  const advance   = Number(b.advance_amount || 0)
+  const isAdvance = b.pay_mode === 'advance' && advance > 0
+  const expected  = isAdvance ? advance : total                 // due at checkout
+  const paid      = b.payment_status === 'paid' ? expected : 0  // actually collected
+  return { total, isAdvance, expected, paid }
+}
+
+const PAY = {
+  paid:     { label: 'Paid',            cls: 'text-green-700 bg-green-50 border-green-200' },
+  pending:  { label: 'Payment pending', cls: 'text-amber-700 bg-amber-50 border-amber-200' },
+  failed:   { label: 'Payment failed',  cls: 'text-red-700 bg-red-50 border-red-200' },
+  refunded: { label: 'Refunded',        cls: 'text-slate-600 bg-slate-50 border-slate-200' },
+  na:       { label: 'No payment due',  cls: 'text-slate-600 bg-slate-50 border-slate-200' },
+}
+
+// Every column we actually read off a Bookings row. No embeds — the Itineraries
+// join is done as a second query and stitched on below, because PostgREST has to
+// disambiguate three FKs on this table (Users, Tour_Schedules, Itineraries) and a
+// failed inference returns `data: null` with an error nobody was reading.
+const BOOKING_COLS = [
+  'id',
+  'status',
+  'payment_status',
+  'pay_mode',
+  'total_amount',
+  'advance_amount',
+  'num_persons',
+  'booking_date',
+  'created_at',
+  'razorpay_payment_id',
+  'tour_id',
+].join(',')
+
+const TOUR_COLS = 'id,title,cover_image_url,category,location,duration_display,slug'
+
+// PostgrestBuilder is a thenable, not a real Promise — `.catch()` on it is not
+// dependable. Wrap it so a throwing RPC can never take the whole load down.
+const safe = (builder, fallback = { data: null, error: null }) =>
+  Promise.resolve(builder).then(
+    (res) => res,
+    (err) => ({ ...fallback, error: err })
+  )
+
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth()
+  const { profile, setProfile } = useProfile()   // shared with Navbar
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const avatarInputRef = useRef(null)
 
   const [tab, setTab] = useState(searchParams.get('tab') || 'trips')
-  const [profile, setProfile]       = useState(null)
   const [bookings, setBookings]     = useState([])
   const [savedTours, setSavedTours] = useState([])
   const [reviews, setReviews]       = useState([])
   const [badges, setBadges]         = useState([])
   const [myPosts, setMyPosts]       = useState([])
   const [loading, setLoading]       = useState(true)
+  const [loadErrors, setLoadErrors] = useState([])   // surfaced, not swallowed
   const [editing, setEditing]       = useState(false)
   const [editForm, setEditForm]     = useState({ full_name: '', bio: '', location: '' })
   const [savingProfile, setSavingProfile] = useState(false)
@@ -48,37 +100,123 @@ export default function ProfilePage() {
 
   const loadAll = async () => {
     setLoading(true)
+    setLoadErrors([])
     const uid = user.id
-    const [profRes, bookRes, savedRes, revRes, badgeRes, postsRes] = await Promise.all([
-      supabase.from('Users').select('*').eq('user_id', uid).single(),
-      supabase.from('Bookings')
-        .select('*, Itineraries(id,title,cover_image_url,category,location,duration_display,slug)')
-        .eq('user_id', uid).order('created_at', { ascending: false }),
-      supabase.from('Property_Saves').select('tour_id').eq('user_id', uid).not('tour_id', 'is', null),
-      supabase.from('Tour_Reviews')
-        .select('*, Itineraries(title,cover_image_url,slug)')
-        .eq('user_id', uid).order('created_at', { ascending: false }),
-      supabase.rpc('get_my_badges', { p_user_id: uid }).catch(() => ({ data: [] })),
-      supabase.from('Blog_Posts')
-        .select('id,title,slug,status,category,cover_image_url,likes_count,comments_count,views_count,published_at,created_at,admin_notes')
-        .eq('author_id', uid).order('created_at', { ascending: false }),
+    const errors = []
+
+    const settled = await Promise.allSettled([
+      safe(supabase.from('Users').select('*').eq('user_id', uid).single()),
+
+      // Trips — flat fetch keyed on user_id, exactly like the iOS client does it.
+      safe(
+        supabase.from('Bookings')
+          .select(BOOKING_COLS)
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false })
+      ),
+
+      safe(
+        supabase.from('Property_Saves')
+          .select('tour_id')
+          .eq('user_id', uid)
+          .not('tour_id', 'is', null)
+      ),
+
+      safe(
+        supabase.from('Tour_Reviews')
+          .select('*, Itineraries(title,cover_image_url,slug)')
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false })
+      ),
+
+      safe(supabase.rpc('get_my_badges', { p_user_id: uid }), { data: [] }),
+
+      safe(
+        supabase.from('Blog_Posts')
+          .select('id,title,slug,status,category,cover_image_url,likes_count,comments_count,views_count,published_at,created_at,admin_notes')
+          .eq('author_id', uid)
+          .order('created_at', { ascending: false })
+      ),
     ])
-    const prof = profRes.data
-    setProfile(prof)
-    setEditForm({ full_name: prof?.full_name || '', bio: prof?.bio || '', location: prof?.location || '' })
-    setBookings(bookRes.data || [])
-    setReviews(revRes.data || [])
-    setBadges(badgeRes.data || [])
-    setMyPosts(postsRes.data || [])
-    const ids = (savedRes.data || []).map(s => s.tour_id)
-    if (ids.length > 0) {
-      const { data } = await supabase.from('Itineraries')
+
+    // Normalise: allSettled wraps in { status, value }; safe() guarantees a
+    // { data, error } shape on the happy path.
+    const unwrap = (i, label) => {
+      const s = settled[i]
+      if (s.status === 'rejected') {
+        console.error(`${label} threw:`, s.reason)
+        errors.push(`${label}: ${s.reason?.message || 'request failed'}`)
+        return null
+      }
+      const { data, error } = s.value || {}
+      if (error) {
+        console.error(`${label} failed:`, error)
+        errors.push(`${label}: ${error.message || error.code || 'unknown error'}`)
+        return null
+      }
+      return data
+    }
+
+    const prof        = unwrap(0, 'Profile')
+    const rawBookings = unwrap(1, 'Bookings') || []
+    const savedRows   = unwrap(2, 'Saved tours') || []
+    const revRows     = unwrap(3, 'Reviews') || []
+    const badgeRows   = unwrap(4, 'Badges') || []
+    const postRows    = unwrap(5, 'Stories') || []
+
+    // ── Hydrate tours for the bookings, one round-trip ─────────────────────
+    // Bookings.tour_id is bigint, Itineraries.id is bigint, Bookings.id is uuid.
+    // Key the lookup on String() so nothing rides on JS number coercion.
+    let hydratedBookings = rawBookings.map(b => ({ ...b, Itineraries: null }))
+    const tourIds = [...new Set(rawBookings.map(b => b.tour_id).filter(v => v !== null && v !== undefined))]
+
+    if (tourIds.length > 0) {
+      const { data: tours, error: tourErr } = await supabase
+        .from('Itineraries')
+        .select(TOUR_COLS)
+        .in('id', tourIds)
+
+      if (tourErr) {
+        console.error('Itineraries hydrate failed:', tourErr)
+        errors.push(`Tour details: ${tourErr.message || tourErr.code}`)
+      } else {
+        const byId = Object.fromEntries((tours || []).map(t => [String(t.id), t]))
+        hydratedBookings = rawBookings.map(b => ({
+          ...b,
+          Itineraries: byId[String(b.tour_id)] || null,
+        }))
+      }
+    }
+
+    if (prof) {
+      setProfile(prof)
+      setEditForm({
+        full_name: prof.full_name || '',
+        bio:       prof.bio || '',
+        location:  prof.location || '',
+      })
+    }
+    setBookings(hydratedBookings)
+    setReviews(revRows)
+    setBadges(badgeRows)
+    setMyPosts(postRows)
+
+    // ── Saved tours ───────────────────────────────────────────────────────
+    const savedIds = savedRows.map(s => s.tour_id)
+    if (savedIds.length > 0) {
+      const { data, error } = await supabase.from('Itineraries')
         .select('id,slug,title,location,cover_image_url,category,duration_display,price_per_person')
-        .in('id', ids).eq('is_active', true)
+        .in('id', savedIds).eq('is_active', true)
+      if (error) {
+        console.error('Saved tours hydrate failed:', error)
+        errors.push(`Saved tours: ${error.message || error.code}`)
+      }
       setSavedTours(data || [])
     } else {
       setSavedTours([])
     }
+
+    setLoadErrors(errors)
     setLoading(false)
   }
 
@@ -109,7 +247,6 @@ export default function ProfilePage() {
 
   const uploadAvatar = async (file) => {
     if (!file) return
-    // Validate file type and size client-side before hitting Supabase
     if (!file.type.startsWith('image/')) {
       showToast('Please select an image file.', 'err'); return
     }
@@ -118,7 +255,6 @@ export default function ProfilePage() {
     }
     setAvatarUploading(true)
     try {
-      // Compress + crop to 400×400 square via canvas
       const blob = await new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onerror = () => reject(new Error('Could not read file'))
@@ -126,77 +262,89 @@ export default function ProfilePage() {
           const img = new window.Image()
           img.onerror = () => reject(new Error('Could not decode image'))
           img.onload = () => {
-  // largest centered square from the SOURCE (don't cap this at 400)
-  const srcSize = Math.min(img.width, img.height)
-  const sx = (img.width  - srcSize) / 2
-  const sy = (img.height - srcSize) / 2
+            const srcSize = Math.min(img.width, img.height)
+            const sx = (img.width  - srcSize) / 2
+            const sy = (img.height - srcSize) / 2
+            const out = Math.min(512, srcSize)   // never upscale
 
-  // OUTPUT size — cap here, and never upscale a small image
-  const out = Math.min(512, srcSize)
+            const canvas = document.createElement('canvas')
+            canvas.width = out
+            canvas.height = out
 
-  const canvas = document.createElement('canvas')
-  canvas.width = out
-  canvas.height = out
+            const ctx = canvas.getContext('2d')
+            ctx.imageSmoothingEnabled = true
+            ctx.imageSmoothingQuality = 'high'
+            ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, out, out)
 
-  const ctx = canvas.getContext('2d')
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'   // proper averaging on downscale
-
-  ctx.drawImage(
-    img,
-    sx, sy, srcSize, srcSize,  // read the WHOLE centered square
-    0, 0, out, out             // scale it down to the output square
-  )
-
-  canvas.toBlob(b => {
-    if (!b) reject(new Error('Canvas produced empty blob'))
-    else resolve(b)
-  }, 'image/jpeg', 0.9)         // bumped from 0.85
-}
+            canvas.toBlob(b => {
+              if (!b) reject(new Error('Canvas produced empty blob'))
+              else resolve(b)
+            }, 'image/jpeg', 0.9)
+          }
           img.src = e.target.result
         }
         reader.readAsDataURL(file)
       })
 
-      const storagePath = `avatars/${user.id}.jpg`
+      const path = avatarPath(user.id)          // profilepic/<uid>.jpg
+
       const { error: uploadError } = await supabase.storage
-        .from('user-media')
-        .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: true })
+        .from(AVATAR_BUCKET)
+        .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
       if (uploadError) throw uploadError
 
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/user-media/${storagePath}?t=${Date.now()}`
+      const { data: pub } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
+      const publicUrl = `${pub.publicUrl}?t=${Date.now()}`
+
       const { error: dbError } = await supabase
         .from('Users')
         .update({ profile_pic: publicUrl })
         .eq('user_id', user.id)
       if (dbError) throw dbError
 
-      setProfile(p => ({ ...p, profile_pic: publicUrl }))
+      setProfile(p => ({ ...p, profile_pic: publicUrl }))   // navbar updates instantly
       showToast('Photo updated ✓')
     } catch (e) {
       console.error('uploadAvatar:', e)
       showToast(e.message || 'Upload failed. Try again.', 'err')
     } finally {
       setAvatarUploading(false)
-      // Reset the input so same file can be re-selected
       if (avatarInputRef.current) avatarInputRef.current.value = ''
     }
   }
 
   const cancelBooking = async (id) => {
     if (!confirm('Cancel this booking?')) return
-    await supabase.from('Bookings').update({ status: 'cancelled' }).eq('id', id)
-    loadAll()
+    const { error } = await supabase.from('Bookings').update({ status: 'cancelled' }).eq('id', id)
+    if (error) {
+      console.error('cancelBooking:', error)
+      showToast('Could not cancel booking. Try again.', 'err')
+      return
+    }
+    // optimistic — no full reload needed
+    setBookings(p => p.map(b => (b.id === id ? { ...b, status: 'cancelled' } : b)))
+    showToast('Booking cancelled')
   }
 
   const deleteSaved = async (tourId) => {
-    await supabase.from('Property_Saves').delete().eq('user_id', user.id).eq('tour_id', tourId)
+    const { error } = await supabase.from('Property_Saves')
+      .delete().eq('user_id', user.id).eq('tour_id', tourId)
+    if (error) {
+      console.error('deleteSaved:', error)
+      showToast('Could not remove. Try again.', 'err')
+      return
+    }
     setSavedTours(p => p.filter(t => t.id !== tourId))
   }
 
   const deletePost = async (pid) => {
     if (!confirm('Delete this draft permanently?')) return
-    await supabase.from('Blog_Posts').delete().eq('id', pid)
+    const { error } = await supabase.from('Blog_Posts').delete().eq('id', pid)
+    if (error) {
+      console.error('deletePost:', error)
+      showToast('Could not delete draft. Try again.', 'err')
+      return
+    }
     setMyPosts(p => p.filter(x => x.id !== pid))
   }
 
@@ -208,12 +356,15 @@ export default function ProfilePage() {
 
   const displayName = profile?.full_name || profile?.username || user.email?.split('@')[0] || 'Traveller'
   const initials = displayName.slice(0, 2).toUpperCase()
-  const upcoming  = bookings.filter(b => b.status !== 'cancelled' && (!b.booking_date || new Date(b.booking_date) > new Date()))
-  const past      = bookings.filter(b => b.status !== 'cancelled' && b.booking_date && new Date(b.booking_date) <= new Date())
-  const cancelled = bookings.filter(b => b.status === 'cancelled')
+
+  // Users may not have a member_since column (or it may be null on older rows).
+  // auth.users.created_at is always populated, so this can never come up empty.
+  const memberSince = profile?.member_since || profile?.created_at || user?.created_at
+
+  const tripsCount = bookings.length
 
   const TABS = [
-    { id: 'trips',   label: 'Trips',    count: bookings.filter(b => b.status !== 'cancelled').length },
+    { id: 'trips',   label: 'Trips',    count: tripsCount },
     { id: 'saved',   label: 'Saved',    count: savedTours.length },
     { id: 'reviews', label: 'Reviews',  count: reviews.length },
     { id: 'stories', label: 'Stories',  count: myPosts.length },
@@ -224,17 +375,38 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
 
-      {/* Toast notification */}
       {toast && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold transition-all animate-fade-in ${
-          toast.type === 'err'
-            ? 'bg-red-600 text-white'
-            : 'bg-slate-900 text-white'
+          toast.type === 'err' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'
         }`}>
           {toast.type === 'err' ? '✗' : '✓'} {toast.msg}
         </div>
       )}
+
       <div className="max-w-3xl mx-auto px-4 pt-28 pb-20">
+
+        {/* Load errors — never fail silently again */}
+        {loadErrors.length > 0 && (
+          <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-red-800">Some data couldn't be loaded</p>
+                <ul className="mt-1 space-y-0.5">
+                  {loadErrors.map((e, i) => (
+                    <li key={i} className="text-xs text-red-700 break-words">• {e}</li>
+                  ))}
+                </ul>
+                <button onClick={loadAll} className="mt-2 text-xs font-bold text-red-800 underline cursor-pointer">
+                  Retry
+                </button>
+              </div>
+              <button onClick={() => setLoadErrors([])} className="text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Profile card */}
         <div className="bg-white rounded-3xl border border-violet-100 p-6 mb-5 shadow-sm">
@@ -252,7 +424,6 @@ export default function ProfilePage() {
                   ? <div className="w-3.5 h-3.5 border border-white/50 border-t-white rounded-full animate-spin" />
                   : <Camera className="w-4 h-4 text-white" />}
               </button>
-              {/* No capture attribute — lets user choose from their photo library on mobile */}
               <input ref={avatarInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                 className="hidden" onChange={e => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
             </div>
@@ -286,23 +457,29 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-black text-slate-900">{displayName}</h2>
                     {profile?.is_creator && <span className="bg-violet-700 text-white text-[10px] font-bold px-2 py-0.5 rounded">★ CREATOR</span>}
                   </div>
-                  <p className="text-sm text-slate-500 mt-0.5">{user.email}</p>
-                  {profile?.location && <p className="flex items-center gap-1 text-xs text-slate-400 mt-1"><MapPin className="w-3 h-3" />{profile.location}</p>}
-                  {profile?.bio && <p className="text-sm text-slate-600 mt-2 leading-relaxed">{profile.bio}</p>}
-                  {profile?.member_since && <p className="text-xs text-slate-400 mt-1.5">Member since {new Date(profile.member_since).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</p>}
+                  {profile?.location && (
+                    <p className="flex items-center gap-1 text-xs text-slate-400 mt-1">
+                      <MapPin className="w-3 h-3" />{profile.location}
+                    </p>
+                  )}
+
+                  {profile?.bio && (
+                    <p className="text-sm text-slate-600 mt-2 leading-relaxed">{profile.bio}</p>
+                  )}
+
+                  {memberSince && (
+                    <p className="text-xs text-slate-400 mt-1.5">
+                      Member since {new Date(memberSince).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                    </p>
+                  )}
                 </>
               )}
             </div>
-
             {!editing && (
               <div className="flex flex-col gap-2 flex-shrink-0">
                 <button onClick={() => setEditing(true)}
                   className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-violet-700 bg-slate-50 border border-slate-200 hover:border-violet-300 px-3 py-2 rounded-xl transition cursor-pointer">
                   <Edit3 className="w-3.5 h-3.5" /> Edit
-                </button>
-                <button onClick={async () => { await signOut(); navigate('/') }}
-                  className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 bg-red-50 border border-red-100 px-3 py-2 rounded-xl transition cursor-pointer">
-                  <LogOut className="w-3.5 h-3.5" /> Sign out
                 </button>
               </div>
             )}
@@ -310,7 +487,7 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-4 gap-2 mt-5 pt-4 border-t border-slate-50">
             {[
-              { label: 'Trips',     v: profile?.trips_count    || bookings.filter(b => b.status !== 'cancelled').length },
+              { label: 'Trips',     v: tripsCount },
               { label: 'Reviews',   v: profile?.reviews_count  || reviews.length },
               { label: 'Saved',     v: profile?.wishlist_count || savedTours.length },
               { label: 'Followers', v: profile?.followers_count || 0 },
@@ -349,10 +526,14 @@ export default function ProfilePage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 rounded-2xl bg-white border border-violet-100 animate-pulse" />)}</div>
+          <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-28 rounded-2xl bg-white border border-violet-100 animate-pulse" />)}</div>
         ) : (
           <>
-            {tab === 'trips'   && <BookingSection upcoming={upcoming} past={past} cancelled={cancelled} onCancel={cancelBooking} />}
+            {/* Trips — every booking this user made, newest first */}
+            {tab === 'trips' && (bookings.length === 0
+              ? <EmptyState icon="📅" title="No trips yet" sub="Book a tour and it shows up here" cta="/itineraries" ctaLabel="Browse tours" />
+              : <div className="space-y-3">{bookings.map(b => <BookingCard key={b.id} booking={b} onCancel={cancelBooking} />)}</div>)}
+
             {tab === 'saved'   && (savedTours.length === 0
               ? <EmptyState icon="🔖" title="No saved tours" sub="Bookmark tours from the listing to save them here" cta="/itineraries" ctaLabel="Browse tours" />
               : <div className="grid gap-3 sm:grid-cols-2">{savedTours.map(t => <SavedCard key={t.id} tour={t} onRemove={() => deleteSaved(t.id)} />)}</div>)}
@@ -380,51 +561,80 @@ export default function ProfilePage() {
   )
 }
 
-function BookingSection({ upcoming, past, cancelled, onCancel }) {
-  const [sub, setSub] = useState('upcoming')
-  const list = sub === 'upcoming' ? upcoming : sub === 'past' ? past : cancelled
-  return (
-    <>
-      <div className="flex gap-2 mb-4">
-        {[{ id:'upcoming', l:`Upcoming (${upcoming.length})`}, {id:'past', l:`Past (${past.length})`}, {id:'cancelled', l:`Cancelled (${cancelled.length})`}].map(t => (
-          <button key={t.id} onClick={() => setSub(t.id)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full transition cursor-pointer ${sub === t.id ? 'bg-violet-700 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-violet-300'}`}>
-            {t.l}
-          </button>
-        ))}
-      </div>
-      {list.length === 0
-        ? <EmptyState icon={sub==='upcoming'?'📅':'📖'} title={sub==='upcoming'?'No upcoming trips':'No trips yet'} cta="/itineraries" ctaLabel="Browse tours" />
-        : <div className="space-y-3">{list.map(b => <BookingCard key={b.id} booking={b} sub={sub} onCancel={onCancel} />)}</div>}
-    </>
-  )
-}
-
-function BookingCard({ booking: b, sub, onCancel }) {
+function BookingCard({ booking: b, onCancel }) {
   const t = b.Itineraries
-  const sc = { confirmed:'text-violet-700 bg-violet-50', completed:'text-blue-700 bg-blue-50', cancelled:'text-red-600 bg-red-50', pending:'text-amber-700 bg-amber-50' }
+  const { total, isAdvance, expected, paid } = bookingMoney(b)
+  const pay = PAY[b.payment_status] || PAY.pending
+  const isCancelled = b.status === 'cancelled'
+  const isFailed    = b.payment_status === 'failed'
+
   return (
-    <div className="bg-white rounded-2xl border border-violet-100 overflow-hidden">
+    <div className={`bg-white rounded-2xl border overflow-hidden ${isFailed ? 'border-red-200' : 'border-violet-100'} ${isCancelled ? 'opacity-70' : ''}`}>
       <div className="flex gap-3 p-4">
-        {t?.cover_image_url && <img src={t.cover_image_url} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />}
+        {t?.cover_image_url
+          ? <img src={t.cover_image_url} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+          : <div className="w-20 h-20 rounded-xl bg-violet-50 flex items-center justify-center text-2xl flex-shrink-0">🏔️</div>}
+
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <Link to={`/itinerary/${t?.slug}`} className="font-bold text-sm text-slate-900 leading-snug line-clamp-2 hover:text-violet-700">{t?.title || 'Tour'}</Link>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${sc[b.status]||'text-slate-600 bg-slate-50'}`}>{b.status}</span>
+            {/* Tour may be missing if the itinerary was deleted — don't render a dead link */}
+            {t?.slug ? (
+              <Link to={`/itinerary/${t.slug}`} className="font-bold text-sm text-slate-900 leading-snug line-clamp-2 hover:text-violet-700">
+                {t.title || 'Tour'}
+              </Link>
+            ) : (
+              <span className="font-bold text-sm text-slate-900 leading-snug line-clamp-2">
+                {t?.title || 'Tour'}
+              </span>
+            )}
+            {isCancelled && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 text-red-600 bg-red-50">cancelled</span>
+            )}
           </div>
-          {t?.location && <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5"><MapPin className="w-2.5 h-2.5" />{t.location}</p>}
-          <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-            {b.booking_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(b.booking_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</span>}
-            <span className="flex items-center gap-1"><Users className="w-3 h-3" />{b.num_persons} person{b.num_persons!==1?'s':''}</span>
-            {b.total_amount && <span className="font-semibold text-slate-600">₹{Number(b.total_amount).toLocaleString('en-IN')}</span>}
+
+          {t?.location && (
+            <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+              <MapPin className="w-2.5 h-2.5" />{t.location}
+            </p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
+            {b.booking_date && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {new Date(b.booking_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            )}
+            {t?.duration_display && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{t.duration_display}</span>}
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3" />{b.num_persons} person{b.num_persons !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
       </div>
-      {sub === 'upcoming' && b.status === 'confirmed' && (
-        <div className="border-t border-slate-50 px-4 pb-3 pt-2 flex justify-end">
-          <button onClick={() => onCancel(b.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer">Cancel booking</button>
+
+      {/* Money row */}
+      <div className="border-t border-slate-50 px-4 py-3 flex items-center justify-between gap-3">
+        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pay.cls}`}>{pay.label}</span>
+        <div className="text-right leading-tight">
+          <p className={`text-sm font-black ${b.payment_status === 'paid' ? 'text-slate-900' : isFailed ? 'text-red-600' : 'text-slate-500'}`}>
+            {inr(b.payment_status === 'paid' ? paid : expected)}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            {b.payment_status === 'paid'
+              ? (isAdvance ? `advance of ${inr(total)}` : 'paid in full')
+              : (isAdvance ? 'advance due' : 'due')}
+          </p>
         </div>
-      )}
+      </div>
+
+    {/*  {!isCancelled && (
+        <div className="border-t border-slate-50 px-4 py-2.5 flex justify-end">
+          <button onClick={() => onCancel(b.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer">
+            Cancel booking
+          </button>
+        </div>
+      )} */}
     </div>
   )
 }
@@ -442,7 +652,7 @@ function SavedCard({ tour: t, onRemove }) {
           <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5"><MapPin className="w-2.5 h-2.5" />{t.location}</p>
           <div className="flex items-center justify-between mt-1.5">
             <span className="text-xs text-slate-400">{t.duration_display}</span>
-            <span className="text-xs font-bold text-violet-700">{t.price_per_person?`₹${Number(t.price_per_person).toLocaleString('en-IN')}`:'On Request'}</span>
+            <span className="text-xs font-bold text-violet-700">{t.price_per_person ? inr(t.price_per_person) : 'On Request'}</span>
           </div>
         </div>
       </Link>
