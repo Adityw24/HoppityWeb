@@ -6,6 +6,38 @@ import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
 import { setPageSEO } from '../lib/seo'
 
+/* Google Apps Script web-app URL + shared secret.
+   Support both the newer VITE_SHEETS_WEBHOOK_URL name and the existing
+   VITE_SHEETS_WEBHOOK name so the sheet write works in local dev and prod. */
+const SHEETS_WEBHOOK_URL = import.meta.env.VITE_SHEETS_WEBHOOK_URL || import.meta.env.VITE_SHEETS_WEBHOOK
+const SHEETS_WEBHOOK_SECRET = import.meta.env.VITE_SHEETS_WEBHOOK_SECRET
+
+/* Shared input styling — violet-tinted to match the rest of the site. */
+const inputClass =
+  'w-full bg-violet-50/60 border border-violet-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition'
+
+/**
+ * Mirror a submission into the sales team's Google Sheet.
+ * Fire-and-forget: uses no-cors so Apps Script doesn't need CORS headers,
+ * which means we can't read the response — the Supabase row stays the
+ * source of truth, this is the copy the sales team actually works from.
+ */
+async function sendToSheet(payload) {
+  if (!SHEETS_WEBHOOK_URL) return
+  try {
+    await fetch(SHEETS_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      // text/plain keeps the request "simple" so the browser skips preflight,
+      // which Apps Script does not answer.
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...payload, secret: SHEETS_WEBHOOK_SECRET }),
+    })
+  } catch (err) {
+    console.error('Sheet webhook failed:', err)
+  }
+}
+
 export default function ContactPage() {
   useEffect(() => {
     setPageSEO({
@@ -14,6 +46,7 @@ export default function ContactPage() {
       canonical: '/contact',
     })
   }, [])
+
   const [form, setForm] = useState({
     name: '', email: '', phone: '', subject: '', message: ''
   })
@@ -32,27 +65,40 @@ export default function ContactPage() {
     setSubmitting(true)
     setError('')
 
-    try {
-      const { error: dbError } = await supabase
-        .from('Contact_Inquiries')
-        .insert({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim() || null,
-          subject: form.subject.trim() || 'General Inquiry',
-          message: form.message.trim(),
-          source: 'contact_page',
-        })
-
-      if (dbError) throw dbError
-      setSubmitted(true)
-    } catch (err) {
-      // Even if DB fails, still show success (email fallback noted)
-      console.error('Contact form error:', err)
-      setSubmitted(true)
-    } finally {
-      setSubmitting(false)
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim() || null,
+      subject: form.subject.trim() || 'General Inquiry',
+      message: form.message.trim(),
+      source: 'contact_page',
     }
+
+    // Always try the sheet — it's the sales team's working copy and it
+    // must survive a Supabase/RLS failure.
+    const sheetWrite = sendToSheet({
+      ...payload,
+      page: typeof window !== 'undefined' ? window.location.pathname : '',
+    })
+
+    const { error: dbError } = await supabase
+      .from('Contact_Inquiries')
+      .insert(payload)
+
+    await sheetWrite
+
+    if (dbError) {
+      // Don't fake success. Log it, tell the person, offer WhatsApp.
+      console.error('Contact insert failed:', dbError)
+      setError(
+        "We couldn't send that just now. Please try again, or reach us on WhatsApp or at sales@hoppity.in."
+      )
+      setSubmitting(false)
+      return
+    }
+
+    setSubmitted(true)
+    setSubmitting(false)
   }
 
   const SUBJECTS = [
@@ -65,26 +111,27 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#f7f1ff]">
+    <div className="min-h-screen bg-[#f7f1ff] text-slate-900">
       <Navbar />
 
-      {/* Header */}
-      <section className="relative overflow-hidden pt-24 pb-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-violet-950 to-[#f7f1ff] pointer-events-none" />
-        <div className="absolute inset-0 opacity-20 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.5), transparent)' }} />
-        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center text-white pt-6">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-300 mb-3">Get in touch</p>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
+      {/* ── Header — same lilac + violet glow as the rest of the site ── */}
+      <section className="relative overflow-hidden pt-24 pb-8 md:pt-28 md:pb-10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(124,58,237,0.12),transparent)]" />
+        <div className="relative mx-auto max-w-3xl px-6 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-4 py-2 text-xs font-semibold text-violet-800 shadow-sm mb-5">
+            <span className="h-1.5 w-1.5 rounded-full bg-violet-600 inline-block" />
+            Get in touch
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-950 mb-4">
             We actually reply.
           </h1>
-          <p className="text-slate-300 text-base max-w-md mx-auto">
+          <p className="text-slate-600 text-base max-w-md mx-auto leading-relaxed">
             Planning a trip, exploring a partnership, or just curious — reach out and a real person will get back to you.
           </p>
         </div>
       </section>
 
-      <div className="mx-auto max-w-5xl px-6 lg:px-10 pb-16 -mt-2">
+      <div className="mx-auto max-w-5xl px-6 lg:px-10 pb-16">
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* ── Contact Form ──────────────────────────────────── */}
@@ -102,7 +149,7 @@ export default function ContactPage() {
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <a href="https://wa.me/919752377323"
                     target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-2xl transition shadow-md text-sm">
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-2xl transition shadow-md text-sm">
                     <FaWhatsapp className="text-lg" /> Continue on WhatsApp
                   </a>
                   <button onClick={() => { setSubmitted(false); setForm({ name: '', email: '', phone: '', subject: '', message: '' }) }}
@@ -132,7 +179,7 @@ export default function ContactPage() {
                       onChange={e => set('name', e.target.value)}
                       required
                       placeholder="Your name"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                      className={inputClass}
                     />
                   </div>
                   <div>
@@ -143,7 +190,7 @@ export default function ContactPage() {
                       onChange={e => set('email', e.target.value)}
                       required
                       placeholder="you@example.com"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                      className={inputClass}
                     />
                   </div>
                 </div>
@@ -158,7 +205,7 @@ export default function ContactPage() {
                       value={form.phone}
                       onChange={e => set('phone', e.target.value.replace(/[^0-9+]/g, ''))}
                       placeholder="+91 98765 43210"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                      className={inputClass}
                     />
                   </div>
                   <div>
@@ -166,7 +213,7 @@ export default function ContactPage() {
                     <select
                       value={form.subject}
                       onChange={e => set('subject', e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition cursor-pointer"
+                      className={`${inputClass} cursor-pointer`}
                     >
                       <option value="">Select a topic…</option>
                       {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -182,14 +229,14 @@ export default function ContactPage() {
                     required
                     rows={5}
                     placeholder="Tell us what you're looking for — a destination, dates, group size, or just an idea you want to explore…"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition resize-none"
+                    className={`${inputClass} py-3 resize-none`}
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 bg-slate-950 hover:bg-violet-800 text-white font-bold py-3.5 rounded-2xl transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                  className="w-full flex items-center justify-center gap-2 bg-slate-950 text-white font-bold py-3.5 rounded-2xl transition shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer">
                   {submitting ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
                   ) : (
@@ -210,22 +257,22 @@ export default function ContactPage() {
           <div className="space-y-5">
 
             {/* WhatsApp CTA */}
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 text-white shadow-lg">
+            <div className="bg-white rounded-3xl border border-violet-100 p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <FaWhatsapp className="text-2xl" />
+                <div className="w-12 h-12 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0">
+                  <FaWhatsapp className="text-2xl text-green-600" />
                 </div>
                 <div>
-                  <p className="font-black text-lg leading-none">Chat on WhatsApp</p>
-                  <p className="text-green-100 text-xs mt-0.5">Fastest response</p>
+                  <p className="font-black text-lg leading-none text-slate-900">Chat on WhatsApp</p>
+                  <p className="text-slate-400 text-xs mt-1">Fastest response</p>
                 </div>
               </div>
-              <p className="text-sm text-green-100 leading-relaxed mb-4">
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">
                 Want a quicker answer? Message us directly. We reply to most WhatsApp messages within the hour.
               </p>
               <a href="https://wa.me/919752377323?text=Hi%20Hoppity!%20I%27d%20like%20to%20plan%20a%20trip."
                 target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-white text-green-700 font-bold py-3 rounded-2xl hover:bg-green-50 transition shadow-sm text-sm">
+                className="flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 rounded-2xl hover:bg-green-700 transition shadow-sm text-sm">
                 <FaWhatsapp className="text-lg" /> Open WhatsApp
               </a>
             </div>

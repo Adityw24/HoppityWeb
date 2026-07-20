@@ -47,6 +47,7 @@ export default function Navbar() {
 
       <nav className="hidden items-center gap-5 text-sm text-slate-700 md:flex">
         <Link to="/itineraries" className="hover:text-violet-700 font-semibold">Itineraries</Link>
+        <Link to="/stays" className="hover:text-violet-700 font-semibold">Stays</Link>
         <Link to="/about" className="hover:text-violet-700 font-semibold">About Us</Link>
         <Link to="/blog" className="hover:text-violet-700 font-semibold">Blog</Link>
         <Link to="/for-you" className="hover:text-violet-700 font-semibold flex items-center gap-1">

@@ -61,45 +61,55 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[#f7f1ff]">
       <Navbar />
 
-      {/* ── Compact header ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-violet-100 pt-16">
-        <div className="max-w-6xl mx-auto px-5 py-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* ── Header — sits on the page background, no white band ────── */}
+      <section className="relative overflow-hidden pt-24 pb-6 md:pt-28 md:pb-8">
+        {/* Soft violet glow behind the navbar + title */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(124,58,237,0.12),transparent)]" />
+
+        <div className="relative max-w-6xl mx-auto px-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-violet-600 mb-1">The Stories</p>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-950 tracking-tight">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1.5">The Stories</p>
+              <h1 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight">
                 Travel Stories
               </h1>
-              <p className="mt-1 text-sm text-slate-500 max-w-sm leading-relaxed hidden sm:block">
+              <p className="mt-2 text-sm text-slate-600 max-w-md leading-relaxed">
                 First-hand accounts and honest guides from India's most curious travellers.
               </p>
             </div>
+
             {/* Search */}
-            <div className="relative w-full sm:w-64 flex-shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <div className="relative w-full sm:w-72 flex-shrink-0">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search stories…"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-9 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="w-full bg-white rounded-2xl border border-violet-200 pl-11 pr-10 py-3 text-sm outline-none shadow-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
-                  <X className="w-3.5 h-3.5 text-slate-400" />
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-pointer"
+                >
+                  <X className="w-4 h-4 text-slate-400 hover:text-slate-600 transition" />
                 </button>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-6xl mx-auto px-5 pt-5 pb-12">
+      <div className="max-w-6xl mx-auto px-5 pb-16">
         {/* ── Category chips ──────────────────────────────────────── */}
-        <div className="flex gap-1.5 flex-wrap mb-5">
+        <div className="flex gap-1.5 flex-wrap mb-6">
           <button
             onClick={() => setCategory(null)}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer border-2 ${
-              !category ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer border ${
+              !category
+                ? 'bg-slate-950 text-white border-slate-950 shadow-sm'
+                : 'bg-white/70 text-slate-600 border-violet-100 hover:border-violet-300 hover:bg-white'
             }`}
           >
             All
@@ -108,8 +118,10 @@ export default function BlogPage() {
             <button
               key={cat}
               onClick={() => setCategory(cat === category ? null : cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer border-2 ${
-                category === cat ? 'bg-violet-700 text-white border-violet-700' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer border ${
+                category === cat
+                  ? 'bg-violet-700 text-white border-violet-700 shadow-sm'
+                  : 'bg-white/70 text-slate-600 border-violet-100 hover:border-violet-300 hover:bg-white'
               }`}
             >
               {cat}
@@ -122,11 +134,11 @@ export default function BlogPage() {
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="rounded-3xl bg-white border border-violet-100 overflow-hidden animate-pulse">
-                <div className="h-40 bg-slate-100" />
+                <div className="h-40 bg-violet-50" />
                 <div className="p-5 space-y-3">
-                  <div className="h-4 bg-slate-100 rounded w-1/3" />
-                  <div className="h-5 bg-slate-100 rounded w-3/4" />
-                  <div className="h-4 bg-slate-100 rounded" />
+                  <div className="h-4 bg-violet-50 rounded w-1/3" />
+                  <div className="h-5 bg-violet-50 rounded w-3/4" />
+                  <div className="h-4 bg-violet-50 rounded" />
                 </div>
               </div>
             ))}
@@ -149,7 +161,7 @@ export default function BlogPage() {
             {!search && !category && (
               <div className="mt-5 w-full max-w-xs flex flex-col gap-3">
                 {/* Launching badge */}
-                <div className="flex items-center justify-center gap-2 bg-violet-50 border border-violet-200 rounded-2xl px-4 py-2">
+                <div className="flex items-center justify-center gap-2 bg-white/70 border border-violet-200 rounded-2xl px-4 py-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                   <span className="text-xs font-semibold text-violet-700">Launching soon</span>
                 </div>
@@ -196,11 +208,11 @@ export default function BlogPage() {
             <div className="mb-6">
               {user ? (
                 <Link to="/write"
-                  className="inline-flex items-center gap-2 bg-violet-700 hover:bg-violet-800 text-white text-sm font-semibold px-5 py-2.5 rounded-2xl transition shadow-sm">
+                  className="inline-flex items-center gap-2 bg-slate-950 hover:-translate-y-0.5 text-white text-sm font-bold px-5 py-2.5 rounded-2xl transition shadow-lg">
                   <PenLine className="w-4 h-4" /> Write your own story
                 </Link>
               ) : (
-                <div className="flex items-center gap-3 bg-white border border-violet-200 rounded-2xl px-5 py-3 shadow-sm w-fit">
+                <div className="flex items-center gap-3 bg-white border border-violet-100 rounded-2xl px-5 py-3 shadow-sm w-fit">
                   <span className="text-sm text-slate-600">Want to share your journey?</span>
                   <Link to="/auth"
                     className="inline-flex items-center gap-1.5 text-sm font-bold text-violet-700 hover:text-violet-900 transition">
@@ -213,7 +225,7 @@ export default function BlogPage() {
             {/* Featured posts */}
             {featured.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs font-bold uppercase tracking-widest text-violet-600 mb-3">Featured</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-3">Featured</p>
                 <div className={`grid gap-5 ${featured.length === 1 ? '' : 'md:grid-cols-2'}`}>
                   {featured.map(post => (
                     <FeaturedCard key={post.id} post={post} large={featured.length === 1} />
@@ -226,7 +238,7 @@ export default function BlogPage() {
             {regular.length > 0 && (
               <>
                 {featured.length > 0 && (
-                  <p className="text-xs font-bold uppercase tracking-widest text-violet-600 mb-3">Latest Stories</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-3">Latest Stories</p>
                 )}
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {regular.map(post => <PostCard key={post.id} post={post} />)}
@@ -244,7 +256,7 @@ export default function BlogPage() {
                     load(category, next * PER_PAGE)
                   }}
                   disabled={loading}
-                  className="rounded-2xl bg-white border border-violet-200 px-8 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 transition disabled:opacity-50 cursor-pointer"
+                  className="rounded-2xl bg-white border border-violet-200 px-8 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 transition disabled:opacity-50 cursor-pointer shadow-sm"
                 >
                   {loading ? 'Loading…' : 'Load more stories →'}
                 </button>

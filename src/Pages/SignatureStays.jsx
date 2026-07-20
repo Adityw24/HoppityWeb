@@ -117,7 +117,6 @@ export default function SignatureStaysPage() {
       .from('Properties')
       .select('*')
       .eq('is_active', true)
-      .eq('property_category', 'signature')
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (error) {
@@ -127,21 +126,29 @@ export default function SignatureStaysPage() {
           return
         }
 
-        // Map Properties columns to the shape the card expects
-        const normalised = (data || []).map(row => ({
-          id:               row.id,
-          title:            row.name,
-          slug:             row.slug,
-          location:         row.location,
-          tag:              row.property_type,
-          price_per_person: row.price_per_night,
-          duration_display: 'Per night',
-          blurb:            row.description,
-          amenities:        Array.isArray(row.amenities) ? row.amenities : [],
-          rating:           row.rating       || 0,
-          review_count:     row.review_count || 0,
-          image:            collectImages(row),
-        }))
+        // Some records use different casing or field names for the category, so
+        // we normalize them client-side instead of relying on a single exact match.
+        const normalised = (data || [])
+          .filter(row => {
+            const category = String(row.property_category || row.property_type || row.category || '')
+              .trim()
+              .toLowerCase()
+            return category === 'signature' || category.includes('signature')
+          })
+          .map(row => ({
+            id:               row.id,
+            title:            row.name,
+            slug:             row.slug,
+            location:         row.location,
+            tag:              row.property_type,
+            price_per_person: row.price_per_night,
+            duration_display: 'Per night',
+            blurb:            row.description,
+            amenities:        Array.isArray(row.amenities) ? row.amenities : [],
+            rating:           row.rating       || 0,
+            review_count:     row.review_count || 0,
+            image:            collectImages(row),
+          }))
 
         setStays(normalised)
         const locs = [...new Set(normalised.map(s => s.location).filter(Boolean))]

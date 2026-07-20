@@ -27,6 +27,7 @@ import SignatureProperty from './Pages/SignatureProperty'
 import BudgetProperty from './Pages/BudgetPropertyPage'
 import FlagshipProperty from './Pages/FlagshipProperty'
 import SettingsPage from './Pages/AccountsSettings'
+import Stays from './Pages/Stays'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -71,6 +72,7 @@ const App = () => (
         <Route path="/stays/budget/:slug"   element={<BudgetProperty />} />
         <Route path="/stays/flagship/:slug"   element={<FlagshipProperty />} />
         <Route path ="/settings" element={<SettingsPage />} />
+        <Route path="/stays" element={<Stays />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>
