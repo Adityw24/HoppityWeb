@@ -34,9 +34,9 @@ const tripHref = (slug) => `/itinerary/${slug}`
      sends users to /itinerary/<slug>.
    • Add / remove entries freely; the carousel adapts.
    ───────────────────────────────────────────────────────────── */
-const DUMMY_UPCOMING = [
+const UPCOMING_TRIPS = [
   { id: 'up-1', slug: '/maheshwar-mandu-in-the-footsteps-of-history', title: 'Upcoming Trip 1', location: 'India', duration: '2 Days', tag: 'New', image: mandugraphic },
-  { id: 'up-2', slug: '/pachmarhi-hill-station-of-madhya-pradesh', title: 'Upcoming Trip 2', location: 'India', duration: '3 Days', tag: 'New', image: pachmarhigraphic },
+  { id: 'up-2', slug: '/chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 2', location: 'India', duration: '3 Days', tag: 'New', image: pachmarhigraphic },
 ]
 
 const VIBE_CHIPS = [
@@ -100,9 +100,9 @@ function UpcomingTripsCarousel({ trips, onOpen }) {
   return (
     <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-10">
       <div className="mb-6">
-      {/*  <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
-          Upcoming trips
-        </p> */}
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
+          Check Out
+        </p> 
         <h2 className="text-2xl md:text-3xl font-black tracking-tight">
           Upcoming trips
         </h2>
@@ -386,7 +386,7 @@ export default function LandingPage() {
 
       {/* ── UPCOMING TRIPS CAROUSEL ───────────────────────────────────── */}
       <UpcomingTripsCarousel
-        trips={DUMMY_UPCOMING}
+        trips={UPCOMING_TRIPS}
         onOpen={(slug) => navigate(tripHref(slug))}
       />
 

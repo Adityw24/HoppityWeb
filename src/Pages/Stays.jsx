@@ -52,7 +52,7 @@ export default function Stays() {
 
   useEffect(() => {
     setPageSEO({
-      title: 'Stays — Budget, Signature & Flagship Properties',
+      title: 'Stays',
       description:
         'Browse Hoppity stays across India — affordable homestays, boutique signature properties, and our flagship stays, each personally vetted by the team.',
       canonical: '/stays',
