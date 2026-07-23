@@ -125,6 +125,45 @@ export default function TripDetails() {
     ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')} / person`
     : (trip.price || 'On Request');
 
+  /* ── Gallery markup, reused for mobile + desktop ────────────────────
+     A plain function (not a component) so React keeps the same DOM node
+     between renders — a nested component would remount and flash the
+     image every time you tap an arrow.                                 */
+  const renderGallery = (aspect) => (
+    <div className="glass-card rounded-2xl sm:rounded-3xl p-2.5 sm:p-5">
+      {hasImages ? (
+        <div className={`${aspect} rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 relative`}>
+          <img src={trip.image[currentImage]} alt={trip.title}
+            className="w-full h-full object-cover transition duration-500" />
+
+          {trip.image.length > 1 && (
+            <>
+              <button onClick={prevImage} aria-label="Previous photo"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <button onClick={nextImage} aria-label="Next photo"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition">
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
+                {trip.image.map((_, i) => (
+                  <button key={i} onClick={() => setCurrentImage(i)} aria-label={`Photo ${i + 1}`}
+                    className={`h-1.5 sm:h-2 rounded-full transition-all ${i === currentImage ? 'w-5 sm:w-6 bg-white' : 'w-1.5 sm:w-2 bg-white/50'}`} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className={`${aspect} rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 flex flex-col items-center justify-center gap-3 sm:gap-4`}>
+          <div className="text-5xl sm:text-7xl">🏔️</div>
+          <p className="text-violet-600 font-semibold text-xs sm:text-sm">Photos coming soon</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen font-sans text-[#1a1a1a] bg-white overflow-x-hidden selection:bg-purple-100">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -168,8 +207,9 @@ export default function TripDetails() {
         .stat-box {
           background: linear-gradient(135deg,rgba(124,58,237,0.08),rgba(167,139,250,0.06));
           border: 1px solid rgba(124,58,237,0.15);
-          padding:1.5rem; border-radius:1rem; text-align:center;
+          padding:1.25rem; border-radius:1rem; text-align:center;
         }
+        @media (min-width: 640px) { .stat-box { padding: 1.5rem; } }
       `}} />
 
       {/* ── Shared Navbar ───────────────────────────────────────────── */}
@@ -179,15 +219,15 @@ export default function TripDetails() {
       <section className="relative min-h-screen flex items-center pt-24 pb-12"
         style={{ background: 'radial-gradient(ellipse 100% 80% at 50% 0%,rgba(124,58,237,0.08),transparent), #ffffff' }}>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
             {/* Left */}
-            <div className="space-y-7">
+            <div className="space-y-4 sm:space-y-7">
               {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm text-slate-500">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
                 <Link to="/itineraries" className="hover:text-violet-700 transition flex items-center gap-1.5 font-semibold">
-                  <ArrowLeft className="w-4 h-4" /> Itineraries
+                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Itineraries
                 </Link>
                 {trip.category && (
                   <><span className="text-slate-300">/</span>
@@ -197,14 +237,19 @@ export default function TripDetails() {
 
               {/* Tag pill */}
               {trip.tag && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-sm fade-up">
-                  <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass-card text-xs sm:text-sm fade-up">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 animate-pulse" />
                   <span className="text-gray-700">{trip.tag}</span>
                 </div>
               )}
 
+              {/* Gallery — mobile/tablet only, sits ABOVE the title */}
+              <div className="lg:hidden scale-in">
+                {renderGallery('aspect-[4/3] sm:aspect-[16/10]')}
+              </div>
+
               {/* Title */}
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight fade-up" style={{animationDelay:'0.1s'}}>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold leading-tight fade-up" style={{animationDelay:'0.1s'}}>
                 {trip.title.split(' ').length > 1
                   ? <>{trip.title.split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{trip.title.split(' ').pop()}</span></>
                   : <span className="gradient-text">{trip.title}</span>
@@ -212,30 +257,30 @@ export default function TripDetails() {
               </h1>
 
               {/* Blurb + stats */}
-              <div className="space-y-5 opacity-0 fade-up" style={{animationDelay:'0.2s'}}>
-                {trip.blurb && <p className="text-lg text-gray-600 max-w-lg leading-relaxed">{trip.blurb}</p>}
+              <div className="space-y-4 sm:space-y-5 opacity-0 fade-up" style={{animationDelay:'0.2s'}}>
+                {trip.blurb && <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-lg leading-relaxed">{trip.blurb}</p>}
 
-                <div className="flex flex-wrap gap-6 pt-2">
+                <div className="flex flex-wrap gap-4 sm:gap-6 pt-2">
                   <div>
-                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1 font-semibold">Duration</div>
-                    <div className="text-xl font-bold text-slate-900">{trip.duration_display || trip.duration}</div>
+                    <div className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider mb-1 font-semibold">Duration</div>
+                    <div className="text-base sm:text-lg lg:text-xl font-bold text-slate-900">{trip.duration_display || trip.duration}</div>
                   </div>
-                  <div className="h-10 w-px bg-gray-200 self-center" />
+                  <div className="h-8 sm:h-10 w-px bg-gray-200 self-center" />
                   <div>
-                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1 font-semibold">Location</div>
-                    <div className="text-xl font-bold text-slate-900">{trip.location}</div>
+                    <div className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider mb-1 font-semibold">Location</div>
+                    <div className="text-base sm:text-lg lg:text-xl font-bold text-slate-900">{trip.location}</div>
                   </div>
-                  <div className="h-10 w-px bg-gray-200 self-center" />
+                  <div className="h-8 sm:h-10 w-px bg-gray-200 self-center" />
                   <div>
-                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1 font-semibold">Price</div>
-                    <div className="text-xl font-bold text-violet-700">{displayPrice}</div>
+                    <div className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider mb-1 font-semibold">Price</div>
+                    <div className="text-base sm:text-lg lg:text-xl font-bold text-violet-700">{displayPrice}</div>
                   </div>
                 </div>
 
                 {/* Extra badges */}
                 <div className="flex flex-wrap gap-2 pt-1">
                   {trip.difficulty && (
-                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
+                    <span className={`text-[11px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full ${
                       trip.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
                       trip.difficulty === 'Challenging' ? 'bg-red-100 text-red-700' :
                       'bg-amber-100 text-amber-700'}`}>
@@ -243,12 +288,12 @@ export default function TripDetails() {
                     </span>
                   )}
                   {trip.max_group_size && (
-                    <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                    <span className="text-[11px] sm:text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1.5">
                       <Users className="w-3 h-3" /> Max {trip.max_group_size} people
                     </span>
                   )}
                   {trip.rating > 0 && (
-                    <span className="text-xs font-semibold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full">
+                    <span className="text-[11px] sm:text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full">
                       ★ {Number(trip.rating).toFixed(1)}
                       {trip.review_count > 0 && ` (${trip.review_count} reviews)`}
                     </span>
@@ -257,53 +302,22 @@ export default function TripDetails() {
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-wrap gap-3 opacity-0 fade-up" style={{animationDelay:'0.3s'}}>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2.5 sm:gap-3 opacity-0 fade-up" style={{animationDelay:'0.3s'}}>
                 <button onClick={() => navigate(`/booking/${trip.slug}`)}
-                  className="shimmer-button px-8 py-4 rounded-full text-base font-semibold hover:shadow-xl transition-all cursor-pointer">
+                  className="shimmer-button w-full sm:w-auto px-6 py-3 text-sm sm:px-8 sm:py-4 sm:text-base rounded-full font-semibold hover:shadow-xl transition-all cursor-pointer">
                   Book This Trip
                 </button>
-                <a href="tel:+919752377323" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-7 py-4 rounded-full border border-green-300 bg-green-50 text-green-800 text-sm font-semibold hover:bg-green-100 transition cursor-pointer">
-                  <PhoneCall className="w-5 h-5 text-green-500" />
+                <a href="tel:+919752377323"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 text-xs sm:px-7 sm:py-4 sm:text-sm rounded-full border border-green-300 bg-green-50 text-green-800 font-semibold hover:bg-green-100 transition cursor-pointer">
+                  <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
                   Talk with our Expert Before Booking
                 </a>
               </div>
             </div>
 
-            {/* Right — Image slider */}
+            {/* Right — Image slider, desktop only (mobile copy sits above the title) */}
             <div className="relative scale-in hidden lg:block" style={{animationDelay:'0.2s'}}>
-              <div className="glass-card rounded-3xl p-5">
-                {hasImages ? (
-                  <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-900 relative">
-                    <img src={trip.image[currentImage]} alt={trip.title}
-                      className="w-full h-full object-cover transition duration-500" />
-
-                    {trip.image.length > 1 && (
-                      <>
-                        <button onClick={prevImage}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-2 shadow cursor-pointer hover:bg-white/80 transition">
-                          <ChevronLeft size={20} />
-                        </button>
-                        <button onClick={nextImage}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-2 shadow cursor-pointer hover:bg-white/80 transition">
-                          <ChevronRight size={20} />
-                        </button>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                          {trip.image.map((_, i) => (
-                            <button key={i} onClick={() => setCurrentImage(i)}
-                              className={`h-2 rounded-full transition-all ${i === currentImage ? 'w-6 bg-white' : 'w-2 bg-white/50'}`} />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 flex flex-col items-center justify-center gap-4">
-                    <div className="text-7xl">🏔️</div>
-                    <p className="text-violet-600 font-semibold text-sm">Photos coming soon</p>
-                  </div>
-                )}
-              </div>
+              {renderGallery('aspect-[4/5]')}
             </div>
 
           </div>
@@ -312,31 +326,31 @@ export default function TripDetails() {
 
       {/* ── Day-by-day itinerary ─────────────────────────────────────── */}
       {hasItinerary ? (
-        <section className="py-20 bg-white">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="text-center mb-14 opacity-0 fade-up">
-              <h2 className="text-4xl md:text-5xl font-bold mb-3">
+        <section className="py-14 sm:py-20 bg-white">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6">
+            <div className="text-center mb-10 sm:mb-14 opacity-0 fade-up">
+              <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-3">
                 Your <span className="gradient-text">{trip.itinerary.length}-Day Journey</span>
               </h2>
-              <p className="text-gray-500 max-w-xl mx-auto">
+              <p className="text-sm sm:text-base text-gray-500 max-w-xl mx-auto">
                 A carefully curated experience through {trip.location}
               </p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {trip.itinerary.map((day, i) => (
-                <div key={i} className="day-card rounded-2xl p-7 opacity-0 fade-up"
+                <div key={i} className="day-card rounded-2xl p-5 sm:p-7 opacity-0 fade-up"
                   style={{ animationDelay: `${(i + 1) * 0.08}s` }}>
-                  <div className="flex flex-col md:flex-row items-start gap-5">
-                    <div className="w-20 h-20 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
-                      <span className="text-2xl font-bold gradient-text">{String(i + 1).padStart(2, '0')}</span>
+                  <div className="flex flex-col md:flex-row items-start gap-4 sm:gap-5">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+                      <span className="text-lg sm:text-2xl font-bold gradient-text">{String(i + 1).padStart(2, '0')}</span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-2">Day {i + 1}{day.title ? ` — ${day.title}` : ''}</h3>
-                      {day.description && <p className="text-gray-600 leading-relaxed mb-3">{day.description}</p>}
+                      <h3 className="text-base sm:text-lg lg:text-xl font-semibold mb-2">Day {i + 1}{day.title ? ` — ${day.title}` : ''}</h3>
+                      {day.description && <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-3">{day.description}</p>}
                       {day.activities?.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {day.activities.map((a, j) => (
-                            <span key={j} className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full">{a}</span>
+                            <span key={j} className="text-[11px] sm:text-xs bg-purple-100 text-purple-700 px-2.5 py-1 sm:px-3 rounded-full">{a}</span>
                           ))}
                         </div>
                       )}
@@ -348,16 +362,16 @@ export default function TripDetails() {
           </div>
         </section>
       ) : (
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-6 text-center">
-            <div className="rounded-3xl border border-violet-100 bg-violet-50 p-10">
-              <div className="text-4xl mb-4">📋</div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Detailed day-plan coming soon</h3>
-              <p className="text-slate-500 text-sm mb-5">
+        <section className="py-12 sm:py-16 bg-white">
+          <div className="max-w-3xl mx-auto px-5 sm:px-6 text-center">
+            <div className="rounded-2xl sm:rounded-3xl border border-violet-100 bg-violet-50 p-6 sm:p-10">
+              <div className="text-3xl sm:text-4xl mb-4">📋</div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">Detailed day-plan coming soon</h3>
+              <p className="text-slate-500 text-xs sm:text-sm mb-5">
                 We're putting the finishing touches on this itinerary. WhatsApp us for a full breakdown.
               </p>
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-2xl text-sm font-semibold hover:bg-violet-800 transition">
+                className="inline-flex items-center gap-2 bg-violet-700 text-white px-5 py-2.5 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-2xl font-semibold hover:bg-violet-800 transition">
                 💬 Get the full itinerary
               </a>
             </div>
@@ -367,17 +381,17 @@ export default function TripDetails() {
 
       {/* ── Highlights ──────────────────────────────────────────────── */}
       {hasHighlights && (
-        <section className="py-20 bg-[#f8f5ff]">
-          <div className="max-w-7xl mx-auto px-6">
-            <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">
+        <section className="py-14 sm:py-20 bg-[#f8f5ff]">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6">
+            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-8 sm:mb-12 text-center">
               Experience the <span className="gradient-text">Highlights</span>
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {trip.highlights.map((h, i) => (
-                <div key={i} className="highlight-badge rounded-2xl p-5 flex items-start gap-3 opacity-0 fade-up"
+                <div key={i} className="highlight-badge rounded-2xl p-4 sm:p-5 flex items-start gap-3 opacity-0 fade-up"
                   style={{ animationDelay: `${(i + 1) * 0.08}s` }}>
-                  <span className="text-purple-600 text-lg mt-0.5 flex-shrink-0">✔</span>
-                  <p className="text-gray-700 text-sm leading-relaxed">{h}</p>
+                  <span className="text-purple-600 text-base sm:text-lg mt-0.5 flex-shrink-0">✔</span>
+                  <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">{h}</p>
                 </div>
               ))}
             </div>
@@ -387,40 +401,40 @@ export default function TripDetails() {
 
       {/* ── Inclusions / Exclusions ──────────────────────────────────── */}
       {hasInEx && (
-        <section className="py-20 bg-[#f8f5ff]">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-14 opacity-0 fade-up">
-              <h2 className="text-4xl md:text-5xl font-bold mb-3">
+        <section className="py-14 sm:py-20 bg-[#f8f5ff]">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6">
+            <div className="text-center mb-10 sm:mb-14 opacity-0 fade-up">
+              <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-3">
                 Trip <span className="gradient-text">Details</span>
               </h2>
             </div>
-            <div className="bg-white rounded-3xl shadow-sm p-10 opacity-0 fade-up">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm p-6 sm:p-10 opacity-0 fade-up">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 relative">
                 <div className="hidden md:block absolute left-1/2 top-0 h-full w-px bg-gray-100" />
                 <div>
-                  <h3 className="text-xl font-bold mb-6 text-purple-700">What's Included</h3>
-                  <div className="space-y-4">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-5 sm:mb-6 text-purple-700">What's Included</h3>
+                  <div className="space-y-3.5 sm:space-y-4">
                     {trip.inclusions.length > 0
                       ? trip.inclusions.map((item, i) => (
                           <div key={i} className="flex items-start gap-3">
-                            <ShieldCheck className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                            <p className="text-gray-700 text-sm leading-relaxed">{item}</p>
+                            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">{item}</p>
                           </div>
                         ))
-                      : <p className="text-gray-400 italic text-sm">Contact us for inclusion details.</p>}
+                      : <p className="text-gray-400 italic text-xs sm:text-sm">Contact us for inclusion details.</p>}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-6 text-red-600">What's Excluded</h3>
-                  <div className="space-y-4">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-5 sm:mb-6 text-red-600">What's Excluded</h3>
+                  <div className="space-y-3.5 sm:space-y-4">
                     {trip.exclusions.length > 0
                       ? trip.exclusions.map((item, i) => (
                           <div key={i} className="flex items-start gap-3">
-                            <span className="text-red-400 text-lg mt-0.5 flex-shrink-0">✖</span>
-                            <p className="text-gray-700 text-sm leading-relaxed">{item}</p>
+                            <span className="text-red-400 text-base sm:text-lg mt-0.5 flex-shrink-0">✖</span>
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">{item}</p>
                           </div>
                         ))
-                      : <p className="text-gray-400 italic text-sm">Contact us for exclusion details.</p>}
+                      : <p className="text-gray-400 italic text-xs sm:text-sm">Contact us for exclusion details.</p>}
                   </div>
                 </div>
               </div>
@@ -431,18 +445,18 @@ export default function TripDetails() {
 
       {/* ── Tips ────────────────────────────────────────────────────── */}
       {hasTips && (
-        <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="rounded-3xl border border-violet-100 bg-white p-8 shadow-sm">
-              <div className="flex items-center gap-2 mb-6">
-                <Info className="text-violet-600 w-5 h-5" />
-                <h3 className="text-xl font-bold text-slate-900">Things to Keep in Mind</h3>
+        <section className="py-12 sm:py-16 bg-white">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6">
+            <div className="rounded-2xl sm:rounded-3xl border border-violet-100 bg-white p-5 sm:p-8 shadow-sm">
+              <div className="flex items-center gap-2 mb-5 sm:mb-6">
+                <Info className="text-violet-600 w-4 h-4 sm:w-5 sm:h-5" />
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900">Things to Keep in Mind</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
                 {trip.tips.map((tip, i) => (
-                  <div key={i} className="flex items-start gap-3 rounded-xl bg-[#faf7ff] p-4 hover:shadow-sm transition">
-                    <div className="mt-1.5 h-2 w-2 rounded-full bg-violet-500 flex-shrink-0" />
-                    <p className="text-sm text-slate-700 leading-relaxed">{tip}</p>
+                  <div key={i} className="flex items-start gap-3 rounded-xl bg-[#faf7ff] p-3.5 sm:p-4 hover:shadow-sm transition">
+                    <div className="mt-1.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-violet-500 flex-shrink-0" />
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">{tip}</p>
                   </div>
                 ))}
               </div>
@@ -453,14 +467,14 @@ export default function TripDetails() {
 
       {/* ── Route ───────────────────────────────────────────────────── */}
       {(hasRoute || hasCityStops) && (
-        <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-6">
-            <h2 className="text-3xl font-bold mb-8">Journey Route</h2>
+        <section className="py-12 sm:py-16 bg-white">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6">
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8">Journey Route</h2>
             {hasRoute && (
-              <div className="flex flex-wrap items-center gap-3 text-base text-gray-700 mb-8">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm md:text-base text-gray-700 mb-8">
                 {trip.route.split(' → ').map((stop, i, arr) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="bg-violet-50 border border-violet-100 text-violet-800 px-4 py-2 rounded-xl font-medium">{stop}</span>
+                  <div key={i} className="flex items-center gap-2 sm:gap-3">
+                    <span className="bg-violet-50 border border-violet-100 text-violet-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-medium">{stop}</span>
                     {i !== arr.length - 1 && <span className="text-violet-400 font-bold">→</span>}
                   </div>
                 ))}
@@ -468,10 +482,10 @@ export default function TripDetails() {
             )}
             {hasCityStops && (
               <div>
-                <h3 className="text-base font-semibold text-slate-600 mb-3">Night Stays</h3>
-                <div className="flex flex-wrap gap-3">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-600 mb-3">Night Stays</h3>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {trip.cityStops.map((city, i) => (
-                    <div key={i} className="bg-violet-50 text-violet-700 px-4 py-2 rounded-xl text-sm font-medium border border-violet-100">{city}</div>
+                    <div key={i} className="bg-violet-50 text-violet-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium border border-violet-100">{city}</div>
                   ))}
                 </div>
               </div>
@@ -481,21 +495,21 @@ export default function TripDetails() {
       )}
 
       {/* ── CTA ─────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#f8f5ff]">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 opacity-0 fade-up">
+      <section className="py-14 sm:py-20 bg-[#f8f5ff]">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-4 opacity-0 fade-up">
             Ready to explore <span className="gradient-text">{trip.location}</span>?
           </h2>
-          <p className="text-gray-500 text-base mb-8 opacity-0 fade-up">
+          <p className="text-gray-500 text-xs sm:text-sm md:text-base mb-7 sm:mb-8 opacity-0 fade-up">
             Limited slots available. Reach out to secure your adventure.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 fade-up">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-center opacity-0 fade-up">
             <button onClick={() => navigate(`/booking/${trip.slug}`)}
-              className="shimmer-button px-10 py-4 rounded-full text-base font-semibold shadow-xl cursor-pointer">
+              className="shimmer-button w-full sm:w-auto px-6 py-3 text-sm sm:px-10 sm:py-4 sm:text-base rounded-full font-semibold shadow-xl cursor-pointer">
               Book Your Adventure
             </button>
             <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20a%20quote%20for%20${encodeURIComponent(trip.title)}`} target="_blank" rel="noopener noreferrer"
-              className="px-10 py-4 rounded-full text-base font-medium glass-card flex items-center justify-center gap-3 cursor-pointer border border-green-300 text-green-800 hover:bg-green-50 transition-all w-full sm:w-auto">
+              className="w-full sm:w-auto px-6 py-3 text-sm sm:px-10 sm:py-4 sm:text-base rounded-full font-medium glass-card flex items-center justify-center gap-3 cursor-pointer border border-green-300 text-green-800 hover:bg-green-50 transition-all">
               💬 WhatsApp Us
             </a>
           </div>
@@ -503,17 +517,17 @@ export default function TripDetails() {
       </section>
 
       {/* ── Stats ───────────────────────────────────────────────────── */}
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4 md:gap-5">
+      <section className="py-12 sm:py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-5 sm:px-6">
+          <div className="mx-auto flex max-w-4xl flex-wrap justify-center gap-3 sm:gap-4 md:gap-5">
             {[
               { num: '4.9★',  label: 'Average Rating' },
               { num: '20+',  label: 'Unique Trips' },
               { num: '24/7', label: 'Support Available' },
             ].map((s, i) => (
               <div key={i} className="stat-box w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.75rem)] lg:w-[calc(25%-0.75rem)] opacity-0 scale-in" style={{animationDelay:`${(i+1)*0.1}s`}}>
-                <div className="text-3xl font-bold gradient-text">{s.num}</div>
-                <div className="text-gray-500 text-sm mt-2">{s.label}</div>
+                <div className="text-2xl sm:text-3xl font-bold gradient-text">{s.num}</div>
+                <div className="text-gray-500 text-xs sm:text-sm mt-2">{s.label}</div>
               </div>
             ))}
           </div>
@@ -521,10 +535,10 @@ export default function TripDetails() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
-        <div className="max-w-7xl mx-auto px-6">
+      <footer className="bg-white border-t border-gray-100 py-8 sm:py-10 text-center text-gray-400 text-xs sm:text-sm">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6">
           <p>© 2026 Hoppity — Discover Real India</p>
-          <a href="mailto:sales@hoppity.in" className="mt-1 block text-sm hover:text-violet-600 transition">
+          <a href="mailto:sales@hoppity.in" className="mt-1 block hover:text-violet-600 transition">
             sales@hoppity.in
           </a>
         </div>

@@ -14,7 +14,7 @@ import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
 import mandugraphic from "../graphics/mandu.jpeg"
-import pachmarhigraphic from "../graphics/pachmarhi.png"
+import pachmrhigraphic from "../graphics/pachmrhi.png"
 
 function normaliseLanding(row) {
   return {
@@ -24,19 +24,22 @@ function normaliseLanding(row) {
 }
 
 // 👇 Itinerary detail route. Change ONLY this line if it ever differs.
-const tripHref = (slug) => `/itinerary/${slug}`
+// (Leading slashes on a slug are stripped so `/itinerary//foo` can never happen.)
+const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}`
 
 /* ─────────────────────────────────────────────────────────────
    DUMMY UPCOMING TRIPS  (placeholder slides)
-   • Drop your own customised landscape graphic into `image`
-     (e.g. import it up top, or paste a URL).
-   • Set each `slug` to the real itinerary slug — routing then
-     sends users to /itinerary/<slug>.
-   • Add / remove entries freely; the carousel adapts.
+   • `image`      — your landscape graphic (import it up top, or a URL)
+   • `mobileImage`— OPTIONAL taller crop (portrait / square) used under
+                    640px. Use this if you want a BIGGER banner on phones
+                    — a wide graphic can only ever be as tall as its own
+                    proportions allow once it's shown uncropped.
+   • `slug`       — the real itinerary slug (with or without a leading /)
+   Add / remove entries freely; the carousel adapts.
    ───────────────────────────────────────────────────────────── */
 const UPCOMING_TRIPS = [
-  { id: 'up-1', slug: '/maheshwar-mandu-in-the-footsteps-of-history', title: 'Upcoming Trip 1', location: 'India', duration: '2 Days', tag: 'New', image: mandugraphic },
-  { id: 'up-2', slug: '/chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 2', location: 'India', duration: '3 Days', tag: 'New', image: pachmarhigraphic },
+  { id: 'up-1', slug: 'chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 1', location: 'India', duration: '3 Days', tag: 'New', image: pachmrhigraphic },
+  { id: 'up-2', slug: 'maheshwar-mandu-in-the-footsteps-of-history', title: 'Upcoming Trip 2', location: 'India', duration: '2 Days', tag: 'New', image: mandugraphic },
 ]
 
 const VIBE_CHIPS = [
@@ -49,28 +52,66 @@ const VIBE_CHIPS = [
 ]
 
 /* ─────────────────────────────────────────────────────────────
-   UPCOMING TRIPS CAROUSEL  (clean — no vignette)
-   - Auto-advances every 6s, pauses on hover / touch
-   - Prev / next arrows, clickable dots, swipe on mobile
-   - Each slide shows only your graphic + navigates via onOpen
+   RESPONSIVE CAROUSEL  (reusable — drop it anywhere)
+
+   SIZING — why it no longer crops:
+   The slide box used to be a fixed ratio (16:10 on phones) filled with
+   `object-cover`. When the graphic is WIDER than the box, cover scales it
+   up until it covers the box and trims the overflow off both sides — so a
+   logo sitting near the left edge got sliced off.
+
+   Now each slide is sized BY the graphic: the image renders at full width
+   with `h-auto`, so the banner is exactly as tall as the artwork needs and
+   not a single pixel is cropped, on any screen.
+
+   Pass `aspect` only if you deliberately want a fixed-ratio, cropping
+   banner (a full-bleed photo hero, say):
+
+     <UpcomingTripsCarousel
+       trips={SOME_OTHER_LIST}
+       onOpen={(slug) => navigate(tripHref(slug))}
+       eyebrow="Just launched"
+       title="Monsoon specials"
+       aspect="aspect-[16/9] lg:aspect-[21/9]"   // opts back into cropping
+     />
    ───────────────────────────────────────────────────────────── */
-function UpcomingTripsCarousel({ trips, onOpen }) {
+function UpcomingTripsCarousel({
+  trips,
+  onOpen,
+  eyebrow = 'Check Out',
+  title = 'Upcoming trips',
+  interval = 6000,
+  aspect = null,          // null = size to the graphic (no cropping)
+}) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
   const startX = useRef(null)
+  const startY = useRef(null)
   const moved = useRef(0)
   const suppressClick = useRef(false)
   const count = trips.length
+  const fixed = Boolean(aspect)   // fixed-ratio mode = crops; default mode = never crops
+
+  // Respect the OS "reduce motion" setting — no autoplay, no slide easing.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => setReducedMotion(mq.matches)
+    apply()
+    mq.addEventListener?.('change', apply)
+    return () => mq.removeEventListener?.('change', apply)
+  }, [])
 
   useEffect(() => {
     if (index >= count) setIndex(0)
   }, [count, index])
 
   useEffect(() => {
-    if (count <= 1 || paused) return
-    const id = setInterval(() => setIndex(i => (i + 1) % count), 6000)
+    if (count <= 1 || paused || reducedMotion) return
+    const id = setInterval(() => setIndex(i => (i + 1) % count), interval)
     return () => clearInterval(id)
-  }, [count, paused])
+  }, [count, paused, reducedMotion, interval])
 
   if (count === 0) return null
 
@@ -78,18 +119,29 @@ function UpcomingTripsCarousel({ trips, onOpen }) {
 
   const onTouchStart = (e) => {
     startX.current = e.touches[0].clientX
+    startY.current = e.touches[0].clientY
     moved.current = 0
     suppressClick.current = false
   }
   const onTouchMove = (e) => {
     if (startX.current == null) return
-    moved.current = e.touches[0].clientX - startX.current
-    if (Math.abs(moved.current) > 8) suppressClick.current = true
+    const dx = e.touches[0].clientX - startX.current
+    const dy = e.touches[0].clientY - startY.current
+    // Vertical scroll wins — don't hijack the page scroll on mobile.
+    if (Math.abs(dy) > Math.abs(dx)) return
+    moved.current = dx
+    if (Math.abs(dx) > 8) suppressClick.current = true
   }
   const onTouchEnd = () => {
     if (Math.abs(moved.current) > 45) go(moved.current < 0 ? 1 : -1)
     startX.current = null
+    startY.current = null
     moved.current = 0
+  }
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(1) }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(-1) }
   }
 
   const handleOpen = (slug) => {
@@ -98,48 +150,70 @@ function UpcomingTripsCarousel({ trips, onOpen }) {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-10">
-      <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
-          Check Out
-        </p> 
-        <h2 className="text-2xl md:text-3xl font-black tracking-tight">
-          Upcoming trips
+    <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-8 sm:pb-10">
+      <div className="mb-4 sm:mb-6">
+        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
+          {eyebrow}
+        </p>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
+          {title}
         </h2>
       </div>
 
       <div
-        className="relative overflow-hidden rounded-[1.4rem] ring-1 ring-violet-100 select-none"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label={title}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        className={`group/carousel relative w-full overflow-hidden rounded-2xl sm:rounded-[1.4rem] ring-1 ring-violet-100 bg-violet-50 select-none outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${fixed ? aspect : ''}`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Sliding track — landscape banner */}
+        {/* Sliding track. Default mode: height comes from the artwork. */}
         <div
-          className="flex h-[500px] transition-transform duration-700 ease-out"
+          className={`flex w-full items-center ${fixed ? 'h-full' : ''} ${reducedMotion ? '' : 'transition-transform duration-700 ease-out'}`}
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
-          {trips.map((trip) => (
+          {trips.map((trip, i) => (
             <button
               key={trip.id}
+              type="button"
               onClick={() => handleOpen(trip.slug)}
-              className="group relative h-full w-full flex-shrink-0 cursor-pointer"
+              aria-hidden={i !== index}
+              tabIndex={i === index ? 0 : -1}
+              aria-label={`Open ${trip.title}`}
+              className={`group relative w-full flex-shrink-0 basis-full cursor-pointer overflow-hidden ${fixed ? 'h-full' : ''}`}
             >
               {trip.image ? (
-                <img
-        src={trip.image}
-        alt={trip.title}
-        className="absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-105"
-        loading="lazy"
-        decoding="async"
-        draggable="false"
-        />
+                <picture>
+                  {trip.mobileImage && (
+                    <source media="(max-width: 639px)" srcSet={trip.mobileImage} />
+                  )}
+                  <img
+                    src={trip.image}
+                    alt={trip.title}
+                    className={
+                      fixed
+                        // fixed-ratio mode: fill the box, accept the crop
+                        ? 'absolute inset-0 h-full w-full object-cover object-center transition duration-700 md:group-hover:scale-105'
+                        // default: full width, natural height — nothing is ever cut off
+                        : 'block h-auto w-full transition duration-700 md:group-hover:scale-105'
+                    }
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchpriority={i === 0 ? 'high' : 'auto'}
+                    decoding="async"
+                    draggable="false"
+                  />
+                </picture>
               ) : (
-                // Clean neutral placeholder until you add the graphic
-                <div className="absolute inset-0 flex items-center justify-center bg-violet-50">
-                  <span className="text-violet-400 text-sm font-semibold tracking-wide">
+                <div className={`flex items-center justify-center bg-violet-50 px-4 py-16 text-center ${fixed ? 'absolute inset-0' : 'w-full'}`}>
+                  <span className="text-violet-400 text-xs sm:text-sm font-semibold tracking-wide">
                     Add trip graphic here
                   </span>
                 </div>
@@ -148,36 +222,40 @@ function UpcomingTripsCarousel({ trips, onOpen }) {
           ))}
         </div>
 
-        {/* Prev / next arrows */}
+        {/* Prev / next arrows — smaller on phones, always tappable */}
         {count > 1 && (
           <>
             <button
+              type="button"
               aria-label="Previous trip"
               onClick={(e) => { e.stopPropagation(); go(-1) }}
-              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
+              className="absolute left-2 sm:left-3 top-1/2 z-10 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
             >
-              <ChevronLeft className="w-5 h-5"  />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
             <button
+              type="button"
               aria-label="Next trip"
               onClick={(e) => { e.stopPropagation(); go(1) }}
-              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
+              className="absolute right-2 sm:right-3 top-1/2 z-10 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-md flex items-center justify-center backdrop-blur transition hover:scale-105 cursor-pointer"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </>
         )}
 
         {/* Dot indicators */}
         {count > 1 && (
-          <div className="absolute bottom-4 right-5 z-10 flex items-center gap-1.5">
+          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-5 z-10 flex items-center gap-1.5 rounded-full bg-black/15 px-2 py-1.5 backdrop-blur-sm">
             {trips.map((_, i) => (
               <button
                 key={i}
+                type="button"
                 aria-label={`Go to slide ${i + 1}`}
+                aria-current={i === index}
                 onClick={(e) => { e.stopPropagation(); setIndex(i) }}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  i === index ? 'w-6 bg-white shadow' : 'w-1.5 bg-white/60 hover:bg-white/90'
+                  i === index ? 'w-5 sm:w-6 bg-white shadow' : 'w-1.5 bg-white/60 hover:bg-white/90'
                 }`}
               />
             ))}
@@ -327,7 +405,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f1ff] text-slate-900">
+    <div className="min-h-screen overflow-x-hidden bg-[#f7f1ff] text-slate-900">
       <Navbar />
 
       {/* ── HERO — tight, search-first ──────────────────────────────── */}

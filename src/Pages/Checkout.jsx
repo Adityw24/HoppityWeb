@@ -546,10 +546,10 @@ export default function Checkout() {
                         <span className="text-slate-500">GST</span>
                         <span className="text-slate-700">{formatINR(pricing.gst)}</span>
                       </div>
-                      <div className="flex justify-between">
+                  {/*    <div className="flex justify-between">
                         <span className="text-slate-500">Platform fee</span>
                         <span className="text-slate-700">{formatINR(pricing.platformFee)}</span>
-                      </div>
+                      </div> */}
                     </div>
                   )}
 

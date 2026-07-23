@@ -475,7 +475,7 @@ export default function BookingPage() {
               <div className="border-t border-slate-100 pt-2 flex justify-between font-black text-base">
                 <span>Total</span>
                 <span className="text-violet-700">₹{total.toLocaleString('en-IN')}</span>
-              </div>
+              </div> 
             </div>
           </div>
         )}
