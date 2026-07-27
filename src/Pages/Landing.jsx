@@ -13,7 +13,6 @@ import poojaImg    from "../assets/pooja.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
-import mandugraphic from "../graphics/mandu.jpeg"
 import pachmrhigraphic from "../graphics/pachmrhi.png"
 
 function normaliseLanding(row) {
@@ -38,8 +37,7 @@ const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}
    Add / remove entries freely; the carousel adapts.
    ───────────────────────────────────────────────────────────── */
 const UPCOMING_TRIPS = [
-  { id: 'up-1', slug: 'chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 1', location: 'India', duration: '3 Days', tag: 'New', image: pachmrhigraphic },
-  { id: 'up-2', slug: 'maheshwar-mandu-in-the-footsteps-of-history', title: 'Upcoming Trip 2', location: 'India', duration: '2 Days', tag: 'New', image: mandugraphic },
+  { id: 'up-1', slug: 'chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 1', location: 'India', duration: '3 Days', tag: 'New', image: pachmrhigraphic }
 ]
 
 const VIBE_CHIPS = [
