@@ -201,11 +201,11 @@ export default function SignatureStaysPage() {
 
         {/* Back button */}
         <div className="max-w-7xl mx-auto mb-6">
-          <Link to="/"
-            aria-label="Back to home"
+          <Link to="/stays"
+            aria-label="Go Back"
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#f7f1ff]">
             <ArrowLeft className="w-5 h-5" />
-            <span className="sr-only">Back to home</span>
+            <span className="sr-only">Go Back</span>
           </Link>
         </div>
 

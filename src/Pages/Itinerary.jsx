@@ -115,6 +115,7 @@ export default function TripDetails() {
   );
 
   const hasImages      = trip.image.length > 0;
+  const hasVideo       = Boolean(trip.video_url && String(trip.video_url).trim());
   const hasItinerary   = trip.itinerary.length > 0;
   const hasHighlights  = trip.highlights.length > 0;
   const hasInEx        = trip.inclusions.length > 0 || trip.exclusions.length > 0;
@@ -125,14 +126,16 @@ export default function TripDetails() {
     ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')} / person`
     : (trip.price || 'On Request');
 
+  const videoPoster    = trip.image?.[0] || trip.cover_image_url || undefined;
+
   /* ── Gallery markup, reused for mobile + desktop ────────────────────
      A plain function (not a component) so React keeps the same DOM node
      between renders — a nested component would remount and flash the
      image every time you tap an arrow.                                 */
   const renderGallery = (aspect) => (
-    <div className="glass-card rounded-2xl sm:rounded-3xl p-2.5 sm:p-5">
+    <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl shadow-violet-200/50">
       {hasImages ? (
-        <div className={`${aspect} rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 relative`}>
+        <div className={`${aspect} bg-slate-900 relative`}>
           <img src={trip.image[currentImage]} alt={trip.title}
             className="w-full h-full object-cover transition duration-500" />
 
@@ -156,7 +159,7 @@ export default function TripDetails() {
           )}
         </div>
       ) : (
-        <div className={`${aspect} rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 flex flex-col items-center justify-center gap-3 sm:gap-4`}>
+        <div className={`${aspect} bg-gradient-to-br from-violet-100 to-purple-100 flex flex-col items-center justify-center gap-3 sm:gap-4`}>
           <div className="text-5xl sm:text-7xl">🏔️</div>
           <p className="text-violet-600 font-semibold text-xs sm:text-sm">Photos coming soon</p>
         </div>
@@ -324,6 +327,37 @@ export default function TripDetails() {
         </div>
       </section>
 
+      {/* ── Feature video ───────────────────────────────────────────────
+           Renders trip.video_url (single video column). object-contain +
+           height cap so vertical app-feed reels AND landscape clips both
+           display without cropping.                                       */}
+      {hasVideo && (
+        <section className="py-12 sm:py-16 bg-white">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6">
+            <div className="text-center mb-6 sm:mb-8 opacity-0 fade-up">
+              <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-2">
+                Watch the <span className="gradient-text">Journey</span>
+              </h2>
+              <p className="text-sm sm:text-base text-gray-500">
+                A glimpse of what awaits{trip.location ? ` in ${trip.location}` : ''}
+              </p>
+            </div>
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl shadow-violet-200/50 scale-in">
+              <div className="bg-slate-900 flex justify-center">
+                <video
+                  src={trip.video_url}
+                  poster={videoPoster}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-auto max-w-full max-h-[75vh]"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Day-by-day itinerary ─────────────────────────────────────── */}
       {hasItinerary ? (
         <section className="py-14 sm:py-20 bg-white">
@@ -370,7 +404,7 @@ export default function TripDetails() {
               <p className="text-slate-500 text-xs sm:text-sm mb-5">
                 We're putting the finishing touches on this itinerary. WhatsApp us for a full breakdown.
               </p>
-              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"
+              <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20the%20full%20itinerary%20for%20${encodeURIComponent(trip.title)}`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-violet-700 text-white px-5 py-2.5 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-2xl font-semibold hover:bg-violet-800 transition">
                 💬 Get the full itinerary
               </a>

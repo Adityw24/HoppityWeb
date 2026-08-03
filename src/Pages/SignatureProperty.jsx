@@ -4,7 +4,7 @@ import {
   ArrowLeft, Star, MapPin, Clock, Wifi, Coffee, Flame,
   Anchor, Utensils, Shield, Users, Waves, Phone, MessageCircle,
   Check, Share2, Heart, Calendar, Images, X, ChevronLeft, ChevronRight,
-  ExternalLink
+  ExternalLink, Play
 } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
@@ -46,9 +46,16 @@ const AMENITY_ICONS = {
   'Parking':            Shield,
 }
 
+// ─── Media type helper ─────────────────────────────────────────────────────────
+// Detects video URLs so the gallery/lightbox can render <video> instead of <img>.
+
+const VIDEO_RE = /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i
+const isVideo = (url) => typeof url === 'string' && VIDEO_RE.test(url.trim())
+
 // ─── Image collection helper ───────────────────────────────────────────────────
-// Gathers cover_image_url + images_url (array / JSON string / unquoted brackets /
-// comma list / single URL) into one de-duplicated array.
+// Gathers cover_image_url + images_url + any video column(s)
+// (array / JSON string / unquoted brackets / comma list / single URL)
+// into one de-duplicated array.
 
 function collectImages(data) {
   const out = []
@@ -74,6 +81,12 @@ function collectImages(data) {
 
   pushFrom(data.images_url)
   pushFrom(data.images)
+
+  // Video columns — adjust these names to match your real Properties schema.
+  pushFrom(data.video_url)
+  pushFrom(data.videos_url)
+  pushFrom(data.videos)
+
   return [...new Set(out.filter(Boolean))]
 }
 
@@ -126,6 +139,8 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
     }
   }, [onClose, onPrev, onNext])
 
+  const current = images[index]
+
   return (
     <div
       className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col"
@@ -144,7 +159,7 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
         </button>
       </div>
 
-      {/* Main image + nav */}
+      {/* Main media + nav */}
       <div className="flex-1 flex items-center justify-center px-4 relative" onClick={e => e.stopPropagation()}>
         {images.length > 1 && (
           <button
@@ -155,12 +170,23 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
           </button>
         )}
 
-        <img
-          src={images[index]}
-          alt={`Image ${index + 1}`}
-          className="max-h-[72vh] max-w-[92vw] object-contain rounded-2xl select-none"
-          draggable={false}
-        />
+        {isVideo(current) ? (
+          <video
+            key={current}
+            src={current}
+            className="max-h-[72vh] max-w-[92vw] object-contain rounded-2xl"
+            controls
+            autoPlay
+            playsInline
+          />
+        ) : (
+          <img
+            src={current}
+            alt={`Image ${index + 1}`}
+            className="max-h-[72vh] max-w-[92vw] object-contain rounded-2xl select-none"
+            draggable={false}
+          />
+        )}
 
         {images.length > 1 && (
           <button
@@ -184,7 +210,16 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSelect }) {
               className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
                 i === index ? 'border-violet-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
               }`}>
-              <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" draggable={false} />
+              {isVideo(src) ? (
+                <>
+                  <video src={src} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Play className="w-4 h-4 text-white fill-white" />
+                  </span>
+                </>
+              ) : (
+                <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" draggable={false} />
+              )}
             </button>
           ))}
         </div>
@@ -214,12 +249,34 @@ function BentoGallery({ images, title, onOpen }) {
         onClick={() => src && onOpen(index)}
         className={`relative overflow-hidden ${rounded} ${src ? 'cursor-zoom-in' : ''} ${className} group`}>
         {src && !errored[index] ? (
-          <img
-            src={src}
-            alt={`${title} ${index + 1}`}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            onError={() => mark(index)}
-          />
+          isVideo(src) ? (
+            <>
+              <video
+                src={src}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onError={() => mark(index)}
+                onMouseEnter={e => e.currentTarget.play().catch(() => {})}
+                onMouseLeave={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0 }}
+              />
+              {/* Play badge so users know it's a video */}
+              <span className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition">
+                <span className="w-12 h-12 rounded-full bg-black/45 backdrop-blur-sm flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white fill-white" />
+                </span>
+              </span>
+            </>
+          ) : (
+            <img
+              src={src}
+              alt={`${title} ${index + 1}`}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              onError={() => mark(index)}
+            />
+          )
         ) : (
           <Fallback className="w-full h-full" />
         )}

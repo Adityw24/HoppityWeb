@@ -13,7 +13,6 @@ import poojaImg    from "../assets/pooja.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
 import { setPageSEO } from '../lib/seo'
-import pachmrhigraphic from "../graphics/pachmrhi.png"
 
 function normaliseLanding(row) {
   return {
@@ -37,7 +36,7 @@ const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}
    Add / remove entries freely; the carousel adapts.
    ───────────────────────────────────────────────────────────── */
 const UPCOMING_TRIPS = [
-  { id: 'up-1', slug: 'chasing-fireflies-weekend-escape-to-satpura-forests-pachmarhi', title: 'Upcoming Trip 1', location: 'India', duration: '3 Days', tag: 'New', image: pachmrhigraphic }
+  {}
 ]
 
 const VIBE_CHIPS = [
@@ -149,14 +148,14 @@ function UpcomingTripsCarousel({
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-8 sm:pb-10">
-      <div className="mb-4 sm:mb-6">
+    {/*  <div className="mb-4 sm:mb-6">
         <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
           {eyebrow}
         </p>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
           {title}
         </h2>
-      </div>
+      </div> */}
 
       <div
         role="region"
@@ -242,7 +241,7 @@ function UpcomingTripsCarousel({
           </>
         )}
 
-        {/* Dot indicators */}
+        {/* Dot indicators
         {count > 1 && (
           <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-5 z-10 flex items-center gap-1.5 rounded-full bg-black/15 px-2 py-1.5 backdrop-blur-sm">
             {trips.map((_, i) => (
@@ -258,7 +257,7 @@ function UpcomingTripsCarousel({
               />
             ))}
           </div>
-        )}
+        )} */}
       </div>
     </section>
   )
@@ -460,11 +459,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── UPCOMING TRIPS CAROUSEL ───────────────────────────────────── */}
-      <UpcomingTripsCarousel
+      {/* ── UPCOMING TRIPS CAROUSEL — hidden for now, nothing to show ──── */}
+      {/* <UpcomingTripsCarousel
         trips={UPCOMING_TRIPS}
         onOpen={(slug) => navigate(tripHref(slug))}
-      />
+      /> */}
 
       {/* ── REVIEWS ───────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-6 lg:px-10 pb-12">
@@ -525,7 +524,7 @@ export default function LandingPage() {
                     placeholder="you@example.com" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5">WhatsApp <span className="font-normal text-slate-400">(optional)</span></label>
+                  <label className="block text-sm font-semibold mb-1.5">Contact No. <span className="font-normal text-slate-400"></span></label>
                   <input name="contact" value={form.contact} onChange={handleChange} type="tel" maxLength={10}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 transition"
                     placeholder="9876543210" />

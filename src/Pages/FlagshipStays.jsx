@@ -492,7 +492,7 @@ export default function FlagshipStaysPage() {
 
           {/* Back + ornament */}
           <div className="fu fu1" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 44 }}>
-            <Link to="/" aria-label="Back to home" className="fp-back">
+            <Link to="/stays" aria-label="Go Back" className="fp-back">
               <ArrowLeft style={{ width: 18, height: 18 }} />
             </Link>
             <div className="fp-orn" />
