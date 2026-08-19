@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, CheckCircle2, Lock } from "lucide-react"
+import { ArrowLeft, Shield, Users, Clock, MapPin, ChevronDown, ChevronUp, CheckCircle2, Lock, X } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 
@@ -23,6 +23,38 @@ function normalise(row) {
 
 function formatINR(n) {
   return `₹${Math.round(n).toLocaleString("en-IN")}`
+}
+
+// ─── BATCH: format a "YYYY-MM-DD" date string for display. Parsed as LOCAL time
+// (not new Date("2026-09-01") which is UTC midnight and can shift a day back in
+// IST). withYear toggles the trailing year.
+function fmtBatchDate(d, withYear = true) {
+  if (!d) return ""
+  const [y, m, day] = String(d).split("-").map(Number)
+  if (!y || !m || !day) return d
+  return new Date(y, m - 1, day).toLocaleDateString("en-IN", {
+    day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}),
+  })
+}
+
+// ─── BATCH: seats remaining in a batch (null = unlimited / not tracked) ───────
+function seatsLeft(b) {
+  if (b.seats_total == null || b.seats_total === "") return null
+  const total  = Number(b.seats_total)
+  const booked = b.seats_booked == null || b.seats_booked === "" ? 0 : Number(b.seats_booked)
+  return total - booked
+}
+
+// ─── COUPON: map RPC reason codes → friendly messages ─────────────────────────
+function couponMessage(reason) {
+  switch (reason) {
+    case "not_found":    return "This code isn't valid."
+    case "already_used": return "This code has already been used."
+    case "expired":      return "This code has expired."
+    case "min_amount":   return "Your booking doesn't meet the minimum for this code."
+    case "not_yours":    return "This code is linked to another account."
+    default:             return "This code can't be applied."
+  }
 }
 
 // ─── Load Razorpay script ─────────────────────────────────────────────────────
@@ -49,6 +81,15 @@ export default function Checkout() {
   const [success, setSuccess]     = useState(false)
   const [verifyError, setVerifyError] = useState(null)
 
+  // ─── BATCH: which departure batch is selected (index into the open list) ────
+  const [selectedBatchIdx, setSelectedBatchIdx] = useState(-1)
+
+  // ─── COUPON: state ─────────────────────────────────────────────────────────
+  const [couponCode, setCouponCode]       = useState("")
+  const [coupon, setCoupon]               = useState(null)   // { code, discount, coupon_id }
+  const [couponError, setCouponError]     = useState(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+
   // Form state
   const navigate = useNavigate()
   const [form, setForm] = useState({
@@ -69,7 +110,7 @@ export default function Checkout() {
 
     supabase
       .from("Itineraries")
-      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,blurb,max_group_size,images,cover_image_url,rating,review_count,inclusions")
+      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,blurb,max_group_size,images,cover_image_url,rating,review_count,inclusions,batches")
       .eq("slug", slug)
       .eq("is_active", true)
       .single()
@@ -79,6 +120,43 @@ export default function Checkout() {
         setLoading(false)
       })
   }, [slug])
+
+  // ─── BATCH: does this trip define batches at all? (any status, any date) ────
+  // If it does, batch selection is REQUIRED. If it doesn't, we fall back to the
+  // old free-date input so non-batch / custom trips still work.
+  const tripHasBatches = (trip?.batches?.length || 0) > 0
+
+  // ─── BATCH: bookable batches — open + not in the past — sorted by date ──────
+  const openBatches = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0]
+    return (trip?.batches || [])
+      .filter(b => (b.status || "open") === "open" && b.start_date && b.start_date >= today)
+      .sort((a, b) => a.start_date.localeCompare(b.start_date))
+  }, [trip])
+
+  const selectedBatch = openBatches[selectedBatchIdx] || null
+
+  // ─── BATCH: pick a batch. Sets travelDate (so the rest of the flow — pricing,
+  // order body, success screen — keeps working unchanged) and clamps the
+  // traveller count down if the batch has fewer seats than currently selected.
+  function chooseBatch(idx, b) {
+    const left = seatsLeft(b)
+    if (left != null && left <= 0) return
+    setSelectedBatchIdx(idx)
+    setForm(f => ({ ...f, travelDate: b.start_date }))
+    setErrors(e => ({ ...e, travelDate: null }))
+    if (left != null && travelers > left) setTravelers(Math.max(1, left))
+  }
+
+  // ─── COUPON: clear applied coupon if traveller count changes, since the
+  // discounted total (and the min-booking check) is no longer guaranteed valid.
+  useEffect(() => {
+    if (coupon) {
+      setCoupon(null)
+      setCouponError("Traveller count changed — re-apply your coupon.")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [travelers])
 
   // ─── Pricing calculations (display only — server recomputes) ───────────────
   const pricing = useMemo(() => {
@@ -90,15 +168,67 @@ export default function Checkout() {
     const gst           = Math.round((baseTotal * GST_PERCENT) / 100)
     const hasPricing    = basePerPerson > 0
     const taxesAndFees  = gst
-    const grandTotal    = baseTotal + taxesAndFees
+
+    // ─── COUPON: flat ₹ off, applied to the payable total, clamped so it can
+    // never exceed the amount due. Server MUST mirror this exact formula.
+    const couponDiscount = coupon
+      ? Math.min(Number(coupon.discount) || 0, baseTotal + taxesAndFees)
+      : 0
+
+    const grandTotal    = Math.max(0, baseTotal + taxesAndFees - couponDiscount)
 
     return {
       basePerPerson, baseTotal,
       platformFee, gst, taxesAndFees,
+      couponDiscount,
       grandTotal,
       hasPricing,
     }
-  }, [trip, travelers])
+  }, [trip, travelers, coupon])
+
+
+  // ─── COUPON: validate against the server RPC (single source of truth) ──────
+  async function applyCoupon() {
+    const code = couponCode.trim()
+    if (!code || !pricing) return
+    setCouponError(null)
+    setCouponLoading(true)
+    try {
+      // validate_coupon uses auth.uid() for the "not transferable" check; the
+      // user is already logged in on this page, so the RPC runs as them.
+      const { data, error } = await supabase.rpc("validate_coupon", {
+        p_code: code,
+        p_booking_amount: pricing.baseTotal,
+      })
+      if (error) throw error
+
+      const row = Array.isArray(data) ? data[0] : data
+      if (!row || !row.valid) {
+        setCoupon(null)
+        setCouponError(couponMessage(row?.reason))
+        return
+      }
+
+      setCoupon({
+        code: code.toUpperCase(),
+        discount: Number(row.discount_amount) || 0,
+        coupon_id: row.coupon_id,
+      })
+      setCouponError(null)
+    } catch (err) {
+      console.error("Coupon validation failed:", err)
+      setCoupon(null)
+      setCouponError("Could not validate coupon. Please try again.")
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  function removeCoupon() {
+    setCoupon(null)
+    setCouponCode("")
+    setCouponError(null)
+  }
 
 
   // ─── Validation ───────────────────────────────────────────────────────────
@@ -109,7 +239,8 @@ export default function Checkout() {
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email"
     if (!form.phone.trim())       e.phone     = "Phone number is required"
     else if (form.phone.length < 10) e.phone  = "Enter a valid 10-digit number"
-    if (!form.travelDate)         e.travelDate = "Please select a travel date"
+    // BATCH: batch trips require a chosen batch; others require a free date.
+    if (!form.travelDate)         e.travelDate = tripHasBatches ? "Please select a departure batch" : "Please select a travel date"
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -153,8 +284,10 @@ export default function Checkout() {
           tour_id:         trip.id,
           num_persons:     travelers,
           booking_date:    form.travelDate,
+          batch_start:     selectedBatch?.start_date || form.travelDate || null, // ─── BATCH: the chosen departure (server should validate + reserve seats)
           special_request: form.specialReq || null,
           pay_mode:        "full",
+          coupon_code:     coupon?.code || null,   // ─── COUPON: server validates + applies + stores it
         }),
       })
 
@@ -167,7 +300,7 @@ export default function Checkout() {
 
       order_id    = data.order_id
       booking_id  = data.booking_id
-      orderAmount = data.amount      // paise, server-authoritative
+      orderAmount = data.amount      // paise, server-authoritative (already discounted)
       keyId       = data.key_id      // from server, not hardcoded
 
     } catch (err) {
@@ -197,11 +330,13 @@ export default function Checkout() {
         slug:           trip.slug,
         travelers:      String(travelers),
         travel_date:    form.travelDate,
+        batch_start:    selectedBatch?.start_date || "",   // ─── BATCH: audit reference
         pay_mode:       "full",
         special_req:    form.specialReq || "",
         traveler_name:  form.name,
         traveler_email: form.email,
         traveler_phone: form.phone,
+        coupon_code:    coupon?.code || "",   // ─── COUPON: for reference/audit only
       },
 
       theme: { color: "#7c3aed" },
@@ -322,7 +457,17 @@ export default function Checkout() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">Trip</span><span className="font-semibold text-slate-800">{trip.title}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Travellers</span><span className="font-semibold text-slate-800">{travelers}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Travel Date</span><span className="font-semibold text-slate-800">{new Date(form.travelDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span></div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">{selectedBatch ? "Departure" : "Travel Date"}</span>
+                <span className="font-semibold text-slate-800">
+                  {selectedBatch && selectedBatch.end_date
+                    ? `${fmtBatchDate(selectedBatch.start_date, false)} – ${fmtBatchDate(selectedBatch.end_date)}`
+                    : fmtBatchDate(form.travelDate)}
+                </span>
+              </div>
+              {coupon && (
+                <div className="flex justify-between"><span className="text-slate-500">Coupon ({coupon.code})</span><span className="font-semibold text-green-700">−{formatINR(pricing.couponDiscount)}</span></div>
+              )}
               <div className="flex justify-between border-t border-violet-100 pt-2 mt-2">
                 <span className="text-slate-500">Amount Paid</span>
                 <span className="font-black text-violet-700 text-base">{formatINR(pricing.grandTotal)}</span>
@@ -415,13 +560,23 @@ export default function Checkout() {
                   <span className="text-3xl font-black text-slate-900">{travelers}</span>
                   <p className="text-xs text-slate-400 mt-0.5">{travelers === 1 ? "traveller" : "travellers"}</p>
                 </div>
-                <button onClick={() => setTravelers(t => Math.min(trip.max_group_size || 20, t + 1))}
+                <button
+                  onClick={() => setTravelers(t => {
+                    // BATCH: cap at the selected batch's remaining seats, if any.
+                    const batchCap = selectedBatch && seatsLeft(selectedBatch) != null ? seatsLeft(selectedBatch) : Infinity
+                    const cap = Math.min(trip.max_group_size || 20, batchCap)
+                    return Math.min(cap, t + 1)
+                  })}
                   className="w-10 h-10 rounded-xl border border-violet-200 text-violet-700 font-black text-xl hover:bg-violet-50 transition cursor-pointer flex items-center justify-center">+</button>
-                {trip.max_group_size && (
+                {selectedBatch && seatsLeft(selectedBatch) != null ? (
+                  <span className="text-xs text-slate-400 flex items-center gap-1 ml-2">
+                    <Users className="w-3.5 h-3.5" /> {seatsLeft(selectedBatch)} left in this batch
+                  </span>
+                ) : trip.max_group_size ? (
                   <span className="text-xs text-slate-400 flex items-center gap-1 ml-2">
                     <Users className="w-3.5 h-3.5" /> Max {trip.max_group_size}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -459,13 +614,59 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="input-label">Preferred Travel Date *</label>
-                  <input type="date" className={`input-field ${errors.travelDate ? "error" : ""}`}
-                    min={new Date().toISOString().split("T")[0]}
-                    value={form.travelDate} onChange={e => setForm({ ...form, travelDate: e.target.value })} />
-                  {errors.travelDate && <p className="text-xs text-red-500 mt-1">{errors.travelDate}</p>}
-                </div>
+                {/* ── BATCH picker (batch trips) / free date (everything else) ── */}
+                {tripHasBatches ? (
+                  <div>
+                    <label className="input-label">Select a Departure Batch *</label>
+                    {openBatches.length === 0 ? (
+                      <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 leading-relaxed">
+                        No open departures for this trip right now.{" "}
+                        <a href={`https://wa.me/919752377323?text=Hi%20Hoppity%2C%20I%27d%20like%20upcoming%20batch%20dates%20for%20${encodeURIComponent(trip.title)}`}
+                          target="_blank" rel="noopener noreferrer" className="font-bold underline text-amber-900">
+                          Ask us about upcoming dates →
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {openBatches.map((b, i) => {
+                          const left   = seatsLeft(b)
+                          const full   = left != null && left <= 0
+                          const active = i === selectedBatchIdx
+                          const dateLabel = b.end_date
+                            ? `${fmtBatchDate(b.start_date, false)} – ${fmtBatchDate(b.end_date)}`
+                            : fmtBatchDate(b.start_date)
+                          return (
+                            <button key={i} type="button" disabled={full} onClick={() => chooseBatch(i, b)}
+                              className={`text-left rounded-xl border p-3 transition ${
+                                active ? "border-violet-500 bg-violet-50 ring-2 ring-violet-100"
+                                : full  ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                                :         "border-violet-100 bg-white hover:border-violet-300 cursor-pointer"
+                              }`}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-bold text-slate-900">{dateLabel}</span>
+                                {active && <CheckCircle2 className="w-4 h-4 text-violet-600 flex-shrink-0" />}
+                              </div>
+                              {left != null && (
+                                <p className={`text-xs mt-1 ${full ? "text-red-500" : left <= 3 ? "text-amber-600" : "text-slate-400"}`}>
+                                  {full ? "Fully booked" : `${left} seat${left > 1 ? "s" : ""} left`}
+                                </p>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {errors.travelDate && <p className="text-xs text-red-500 mt-1">{errors.travelDate}</p>}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="input-label">Preferred Travel Date *</label>
+                    <input type="date" className={`input-field ${errors.travelDate ? "error" : ""}`}
+                      min={new Date().toISOString().split("T")[0]}
+                      value={form.travelDate} onChange={e => setForm({ ...form, travelDate: e.target.value })} />
+                    {errors.travelDate && <p className="text-xs text-red-500 mt-1">{errors.travelDate}</p>}
+                  </div>
+                )}
 
                 <div>
                   <label className="input-label">Special Requests <span className="font-normal text-slate-400">(optional)</span></label>
@@ -517,6 +718,15 @@ export default function Checkout() {
                   <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{trip.location}</span>
                   {trip.rating > 0 && <span className="ml-auto text-amber-600 font-semibold">★ {Number(trip.rating).toFixed(1)}</span>}
                 </div>
+                {/* BATCH: show the chosen departure in the summary card */}
+                {selectedBatch && (
+                  <div className="mt-3 pt-3 border-t border-violet-100 flex items-center gap-1.5 text-xs text-violet-700 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                    Departure: {selectedBatch.end_date
+                      ? `${fmtBatchDate(selectedBatch.start_date, false)} – ${fmtBatchDate(selectedBatch.end_date)}`
+                      : fmtBatchDate(selectedBatch.start_date)}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -553,6 +763,45 @@ export default function Checkout() {
                     </div>
                   )}
 
+                  {/* ─── COUPON: input / applied state ─────────────────────── */}
+                  {pricing.hasPricing && (
+                    <div className="pt-1">
+                      {coupon ? (
+                        <div className="flex items-center justify-between rounded-xl bg-green-50 border border-green-200 px-3 py-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-xs font-bold text-green-800 truncate">{coupon.code}</span>
+                            <span className="text-xs text-green-700">applied</span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-sm font-bold text-green-700">−{formatINR(pricing.couponDiscount)}</span>
+                            <button onClick={removeCoupon} title="Remove coupon"
+                              className="text-green-700 hover:text-green-900 cursor-pointer">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex gap-2">
+                            <input
+                              className={`input-field !py-2.5 !text-sm uppercase ${couponError ? "error" : ""}`}
+                              placeholder="Coupon code"
+                              value={couponCode}
+                              onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null) }}
+                              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); applyCoupon() } }}
+                            />
+                            <button onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()}
+                              className={`px-4 rounded-xl text-sm font-bold text-white transition ${couponLoading || !couponCode.trim() ? "bg-violet-300 cursor-not-allowed" : "bg-violet-600 hover:bg-violet-700 cursor-pointer"}`}>
+                              {couponLoading ? "…" : "Apply"}
+                            </button>
+                          </div>
+                          {couponError && <p className="text-xs text-red-500 mt-1">{couponError}</p>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="border-t border-violet-100 pt-3 flex justify-between">
                     <span className="text-slate-500 text-xs">Total (incl. taxes)</span>
                     <span className="font-black text-slate-900">{formatINR(pricing.grandTotal)}</span>
@@ -564,6 +813,7 @@ export default function Checkout() {
                   <div className="mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 p-4">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-violet-700">Pay Now</span>
+                      {coupon && <span className="text-xs font-bold text-green-700">Coupon applied 🎉</span>}
                     </div>
                     <div className="flex items-end justify-between">
                       <div className="text-3xl font-black" style={{

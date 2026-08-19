@@ -1,24 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft, Waves, Utensils, Compass, Droplets, Home, Users,
-  MapPin, Car, ShieldCheck, Phone, ChevronLeft, ChevronRight, Info
+  MapPin, Car, ShieldCheck, Phone, ChevronLeft, ChevronRight, Info,
+  Volume2, VolumeX
 } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 import Navbar from '../components/Navbar';
 import { setPageSEO, buildTourLD } from '../lib/seo';
 import { PhoneCall } from "lucide-react";
 
+// True for any media URL ending in a video extension (mirrors Stays' isVideo)
+const isVideo = (url) =>
+  /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(String(url || '').split('?')[0]);
+
+// Highlight the LAST word of the title in purple. Cleans stray spaces inside
+// parentheses first, so "Snows (Spiti )" highlights "(Spiti)" and not just ")".
+function renderTitle(raw) {
+  const clean = String(raw || '')
+    .replace(/\(\s+/g, '(')   // "( Spiti"  -> "(Spiti"
+    .replace(/\s+\)/g, ')')   // "Spiti )"  -> "Spiti)"
+    .replace(/\s+/g, ' ')     // collapse any double spaces
+    .trim();
+  if (!clean) return null;
+  const parts = clean.split(' ');
+  if (parts.length === 1) return <span className="gradient-text">{clean}</span>;
+  const last = parts.pop();
+  return <>{parts.join(' ')} <span className="gradient-text">{last}</span></>;
+}
+
 // ── Normalise Supabase row ────────────────────────────────────────────
 function normalise(row) {
   if (!row) return null;
+  const images = row.images?.length
+    ? row.images
+    : row.cover_image_url
+      ? [row.cover_image_url]
+      : [];
+  // Gallery media = all photos + the feature video (if not already in images)
+  const media = [
+    ...images,
+    ...(row.video_url && !images.includes(row.video_url) ? [row.video_url] : []),
+  ];
   return {
     ...row,
-    image: row.images?.length
-      ? row.images
-      : row.cover_image_url
-        ? [row.cover_image_url]
-        : [],
+    image:      images,
+    media,
     cityStops:  row.city_stops    || [],
     itinerary:  row.itinerary_days || [],
     highlights: row.highlights    || [],
@@ -34,6 +61,7 @@ export default function TripDetails() {
   const [trip, setTrip]         = useState(null);
   const [loading, setLoading]   = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
+  const [muted, setMuted]       = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -51,20 +79,43 @@ export default function TripDetails() {
       });
   }, [slug]);
 
-  // Preload all images so slider feels instant
+  // Preload all photos so slider feels instant (skip video URLs)
   useEffect(() => {
-  if (!trip?.image?.length) return;
-  trip.image.forEach((src) => {
+  if (!trip?.media?.length) return;
+  trip.media.forEach((src) => {
+    if (isVideo(src)) return;
     const img = new Image();
     img.src = src;
   });
   }, [trip]);
 
+  // Every time the slide changes, reset the sound indicator to muted — a fresh
+  // video always mounts muted (browsers require muted for autoplay).
+  useEffect(() => { setMuted(true); }, [currentImage]);
+
   const nextImage = () => {
-    if (trip?.image?.length > 1) setCurrentImage(p => (p + 1) % trip.image.length);
+    if (trip?.media?.length > 1) setCurrentImage(p => (p + 1) % trip.media.length);
   };
   const prevImage = () => {
-    if (trip?.image?.length > 1) setCurrentImage(p => p === 0 ? trip.image.length - 1 : p - 1);
+    if (trip?.media?.length > 1) setCurrentImage(p => p === 0 ? trip.media.length - 1 : p - 1);
+  };
+
+  // Stable ref callback (identity never changes, so re-renders don't re-fire it
+  // and clobber an unmute). Forces muted + kicks off autoplay the moment the
+  // video mounts — i.e. the instant the user slides onto the video slide.
+  const attachVideo = useCallback((node) => {
+    if (!node) return;
+    node.muted = true;
+    const p = node.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  }, []);
+
+  // Tap the video to toggle sound (Instagram-reel behaviour). Uses the tapped
+  // element directly, so it works for whichever gallery (mobile/desktop) is shown.
+  const toggleMute = (e) => {
+    const v = e.currentTarget;
+    v.muted = !v.muted;
+    setMuted(v.muted);
   };
 
   // ── Loading ─────────────────────────────────────────────────────────
@@ -114,8 +165,6 @@ export default function TripDetails() {
     </div>
   );
 
-  const hasImages      = trip.image.length > 0;
-  const hasVideo       = Boolean(trip.video_url && String(trip.video_url).trim());
   const hasItinerary   = trip.itinerary.length > 0;
   const hasHighlights  = trip.highlights.length > 0;
   const hasInEx        = trip.inclusions.length > 0 || trip.exclusions.length > 0;
@@ -126,32 +175,62 @@ export default function TripDetails() {
     ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')} / person`
     : (trip.price || 'On Request');
 
-  const videoPoster    = trip.image?.[0] || trip.cover_image_url || undefined;
+  const currentIsVideo = isVideo(trip.media[currentImage]);
 
   /* ── Gallery markup, reused for mobile + desktop ────────────────────
      A plain function (not a component) so React keeps the same DOM node
      between renders — a nested component would remount and flash the
-     image every time you tap an arrow.                                 */
+     image every time you tap an arrow.
+
+     Loops trip.media (photos + feature video). isVideo() decides whether
+     each slide renders as <video> or <img>. The video autoplays muted +
+     loops with no controls (reel style); tap to unmute. object-contain on
+     a dark backdrop keeps it sharp (no crop-upscale blur) at any aspect.  */
   const renderGallery = (aspect) => (
     <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl shadow-violet-200/50">
-      {hasImages ? (
+      {trip.media.length > 0 ? (
         <div className={`${aspect} bg-slate-900 relative`}>
-          <img src={trip.image[currentImage]} alt={trip.title}
-            className="w-full h-full object-cover transition duration-500" />
+          {currentIsVideo ? (
+            <video
+              key={trip.media[currentImage]}
+              ref={attachVideo}
+              src={trip.media[currentImage]}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              onClick={toggleMute}
+              className="w-full h-full object-contain cursor-pointer"
+            />
+          ) : (
+            <img src={trip.media[currentImage]} alt={trip.title}
+              className="w-full h-full object-cover transition duration-500" />
+          )}
 
-          {trip.image.length > 1 && (
+          {/* Sound indicator — reel style. Purely visual; tap the video to toggle. */}
+          {currentIsVideo && (
+            <div className="absolute bottom-3 right-3 z-20 pointer-events-none flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur px-2.5 py-1.5">
+              {muted
+                ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />}
+              {muted && <span className="text-white text-[10px] font-medium leading-none">Tap for sound</span>}
+            </div>
+          )}
+
+          {trip.media.length > 1 && (
             <>
-              <button onClick={prevImage} aria-label="Previous photo"
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition">
+              <button onClick={prevImage} aria-label="Previous"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition z-20">
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <button onClick={nextImage} aria-label="Next photo"
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition">
+              <button onClick={nextImage} aria-label="Next"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur rounded-full p-1.5 sm:p-2 shadow cursor-pointer hover:bg-white/80 transition z-20">
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
-                {trip.image.map((_, i) => (
-                  <button key={i} onClick={() => setCurrentImage(i)} aria-label={`Photo ${i + 1}`}
+              <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
+                {trip.media.map((src, i) => (
+                  <button key={i} onClick={() => setCurrentImage(i)} aria-label={`Media ${i + 1}`}
                     className={`h-1.5 sm:h-2 rounded-full transition-all ${i === currentImage ? 'w-5 sm:w-6 bg-white' : 'w-1.5 sm:w-2 bg-white/50'}`} />
                 ))}
               </div>
@@ -253,10 +332,7 @@ export default function TripDetails() {
 
               {/* Title */}
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold leading-tight fade-up" style={{animationDelay:'0.1s'}}>
-                {trip.title.split(' ').length > 1
-                  ? <>{trip.title.split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{trip.title.split(' ').pop()}</span></>
-                  : <span className="gradient-text">{trip.title}</span>
-                }
+                {renderTitle(trip.title)}
               </h1>
 
               {/* Blurb + stats */}
@@ -318,7 +394,7 @@ export default function TripDetails() {
               </div>
             </div>
 
-            {/* Right — Image slider, desktop only (mobile copy sits above the title) */}
+            {/* Right — Media slider, desktop only (mobile copy sits above the title) */}
             <div className="relative scale-in hidden lg:block" style={{animationDelay:'0.2s'}}>
               {renderGallery('aspect-[4/5]')}
             </div>
@@ -326,37 +402,6 @@ export default function TripDetails() {
           </div>
         </div>
       </section>
-
-      {/* ── Feature video ───────────────────────────────────────────────
-           Renders trip.video_url (single video column). object-contain +
-           height cap so vertical app-feed reels AND landscape clips both
-           display without cropping.                                       */}
-      {hasVideo && (
-        <section className="py-12 sm:py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-5 sm:px-6">
-            <div className="text-center mb-6 sm:mb-8 opacity-0 fade-up">
-              <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-2">
-                Watch the <span className="gradient-text">Journey</span>
-              </h2>
-              <p className="text-sm sm:text-base text-gray-500">
-                A glimpse of what awaits{trip.location ? ` in ${trip.location}` : ''}
-              </p>
-            </div>
-            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl shadow-violet-200/50 scale-in">
-              <div className="bg-slate-900 flex justify-center">
-                <video
-                  src={trip.video_url}
-                  poster={videoPoster}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="w-auto max-w-full max-h-[75vh]"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── Day-by-day itinerary ─────────────────────────────────────── */}
       {hasItinerary ? (

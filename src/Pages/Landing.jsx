@@ -12,6 +12,7 @@ import diwakarImg  from "../assets/diwakar.jpeg"
 import poojaImg    from "../assets/pooja.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
+import satpuragraphic from "../graphics/satpura.jpeg"
 import { setPageSEO } from '../lib/seo'
 
 function normaliseLanding(row) {
@@ -36,7 +37,7 @@ const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}
    Add / remove entries freely; the carousel adapts.
    ───────────────────────────────────────────────────────────── */
 const UPCOMING_TRIPS = [
-  {}
+  {image: satpuragraphic, slug: 'satpura-on-foot-an-intimate-walk-into-the-forest-with-asim', title: 'Satpura Wildlife Safari', eyebrow: 'Just launched' },
 ]
 
 const VIBE_CHIPS = [
@@ -147,15 +148,15 @@ function UpcomingTripsCarousel({
   }
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 pt-2 pb-8 sm:pb-10">
-    {/*  <div className="mb-4 sm:mb-6">
+    <section className="mx-auto w-full max-w-4xl px-5 sm:px-6 lg:px-8 pt-2 pb-8 sm:pb-10">
+      <div className="mb-4 sm:mb-6">
         <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-violet-600 mb-1">
           {eyebrow}
         </p>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
           {title}
         </h2>
-      </div> */}
+      </div>
 
       <div
         role="region"
@@ -241,7 +242,7 @@ function UpcomingTripsCarousel({
           </>
         )}
 
-        {/* Dot indicators
+        {/* Dot indicators */}
         {count > 1 && (
           <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-5 z-10 flex items-center gap-1.5 rounded-full bg-black/15 px-2 py-1.5 backdrop-blur-sm">
             {trips.map((_, i) => (
@@ -257,7 +258,7 @@ function UpcomingTripsCarousel({
               />
             ))}
           </div>
-        )} */}
+        )}
       </div>
     </section>
   )
@@ -345,10 +346,9 @@ export default function LandingPage() {
     { quote: "During our Northeast trip, the Hoppity team helped us find a beautiful property just two hours before we arrived. What stood out most was how supportive the team was.", author: "Pallavi Gondane", image: pallaviImg, rating: 5, location: "Pune" },
     { quote: "Working with Hoppity has been a great experience as a creator. They gave me the freedom to present my storytelling in my own style.", author: "Divyansh Gupta", image: divyanshImg, rating: 5, location: "Delhi" },
     {
-      quote: "Our Coorg trip with Hoppity was smoothly planned with seamless bookings, excellent coordination and wonderful support, making our family vacation stress-free, memorable, and truly enjoyable.", author: "Diwakar Sharma", image: diwakarImg, rating: 5, location: "Bangalore"
-    },
+      quote: "Our Coorg trip with Hoppity was smoothly planned with seamless bookings, excellent coordination and wonderful support, making our family vacation stress-free, memorable, and truly enjoyable.", author: "Diwakar Sharma", image: diwakarImg, rating: 5, location: "Bangalore"},
     {
-      quote:"Our Kerala journey was truly unforgettable. A heartfelt thanks to Hoppity for seamlessly curating every detail across Munnar, Thekkady, Alleppey, Kumarakom, and Kochi. Special thanks to Gaurav for his constant support, care, and hospitality. Looking forward to travelling with Hoppity again!", author: "Pooja Hingroni", image: poojaImg, rating: 5, location: "Mumbai" 
+      quote:"Our Kerala journey was truly unforgettable. A heartfelt thanks to Hoppity for seamlessly curating every detail across Munnar, Thekkady, Alleppey, Kumarakom, and Kochi. Special thanks to Gaurav for his constant support, care, and hospitality. Looking forward to travelling with Hoppity again!", author: "Pooja Hingorani", image: poojaImg, rating: 5, location: "Mumbai" 
     }
   ])
 
@@ -460,10 +460,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── UPCOMING TRIPS CAROUSEL — hidden for now, nothing to show ──── */}
-      {/* <UpcomingTripsCarousel
+       <UpcomingTripsCarousel
         trips={UPCOMING_TRIPS}
         onOpen={(slug) => navigate(tripHref(slug))}
-      /> */}
+      />
 
       {/* ── REVIEWS ───────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-6 lg:px-10 pb-12">
