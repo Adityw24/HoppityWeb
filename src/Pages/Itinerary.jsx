@@ -382,7 +382,7 @@ export default function TripDetails() {
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2.5 sm:gap-3 opacity-0 fade-up" style={{animationDelay:'0.3s'}}>
-                <button onClick={() => navigate(`/booking/${trip.slug}`)}
+                <button onClick={() => navigate(`/checkout/${trip.slug}`)}
                   className="shimmer-button w-full sm:w-auto px-6 py-3 text-sm sm:px-8 sm:py-4 sm:text-base rounded-full font-semibold hover:shadow-xl transition-all cursor-pointer">
                   Book This Trip
                 </button>

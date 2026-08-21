@@ -6,7 +6,6 @@ import Itinerary     from './Pages/Itinerary'
 import Itineraries   from './Pages/Itineraries'
 import AuthPage      from './Pages/Auth'
 import SearchPage    from './Pages/Search'
-import BookingPage   from './Pages/Booking'
 import ProfilePage   from './Pages/Profile'
 import BlogPage      from './Pages/Blog'
 import BlogPostPage    from './Pages/BlogPost'
@@ -53,7 +52,7 @@ const App = () => (
         <Route path="/itineraries"      element={<Itineraries />} />
         <Route path="/auth"             element={<AuthPage />} />
         <Route path="/search"           element={<SearchPage />} />
-        <Route path="/booking/:slug"    element={<CheckoutPage />} />
+        <Route path="/checkout/:slug"    element={<CheckoutPage />} />
         <Route path="/profile"          element={<ProfilePage />} />
         <Route path="/privacy"          element={<Privacy />} />
         <Route path="/blog"              element={<BlogPage />} />

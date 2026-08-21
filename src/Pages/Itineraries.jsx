@@ -5,14 +5,23 @@ import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
 import { setPageSEO } from '../lib/seo'
 
+// Same extension test the rest of the app uses (TripDetails, MediaUpload,
+// the app home-screen carousel) so a URL is classified as video everywhere.
+const VIDEO_RE = /\.(mp4|mov|webm|m4v|avi|mkv|ogv|3gp)(\?|#|$)/i
+const isVideo = (url) => VIDEO_RE.test(String(url || ''))
+
 function normalise(row) {
+  const media = row.images?.length
+    ? row.images.filter(Boolean)
+    : row.cover_image_url
+      ? [row.cover_image_url]
+      : []
   return {
     ...row,
-    image: row.images?.length
-      ? row.images.filter(Boolean)
-      : row.cover_image_url
-        ? [row.cover_image_url]
-        : [],
+    image: media,
+    // First still image for the card — skips a video sitting at images[0],
+    // then falls back to cover_image_url so a video-only gallery still gets a poster.
+    cover: media.find(u => !isVideo(u)) || row.cover_image_url || null,
     cityStops: row.city_stops || [],
     itinerary: row.itinerary_days || [],
     // Normalised to a lowercase array. Handles "Cultural", " cultural ",
@@ -269,7 +278,7 @@ function CategoryFilter({ categories, value, onChange }) {
 }
 
 function TripCard({ trip }) {
-  const hasImage = trip.image?.length > 0 && trip.image[0]
+  const hasImage = !!trip.cover
   const primary = trip.categories?.[0]
   const gradient = CAT_GRADIENTS[primary] || 'from-violet-700 to-purple-900'
   const emoji = CAT_EMOJI[primary] || '🗺️'
@@ -289,7 +298,7 @@ function TripCard({ trip }) {
 
         {hasImage && (
           <img
-            src={trip.image[0]}
+            src={trip.cover}
             alt={trip.title}
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"

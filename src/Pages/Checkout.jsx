@@ -284,10 +284,14 @@ export default function Checkout() {
           tour_id:         trip.id,
           num_persons:     travelers,
           booking_date:    form.travelDate,
-          batch_start:     selectedBatch?.start_date || form.travelDate || null, // ─── BATCH: the chosen departure (server should validate + reserve seats)
+          batch_date:     selectedBatch?.start_date || form.travelDate || null, // ─── BATCH: the chosen departure (server should validate + reserve seats)
           special_request: form.specialReq || null,
           pay_mode:        "full",
           coupon_code:     coupon?.code || null,   // ─── COUPON: server validates + applies + stores it
+          lead_name:       form.name,
+          lead_phone:      form.phone,
+          lead_email:      form.email,
+          travellers:      [{ name: form.name, email: form.email, phone: form.phone }],
         }),
       })
 
