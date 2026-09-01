@@ -63,6 +63,13 @@ export default function TripDetails() {
   const [currentImage, setCurrentImage] = useState(0);
   const [muted, setMuted]       = useState(true);
 
+  // Back to wherever they came from. /itineraries is only the floor for a deep
+  // link (WhatsApp, Google, a shared URL) where the tab has no history to pop.
+  const goBack = () => {
+    if (window.history.length > 2) navigate(-1);
+    else navigate('/itineraries');
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!slug) { setLoading(false); return; }
@@ -306,15 +313,16 @@ export default function TripDetails() {
 
             {/* Left */}
             <div className="space-y-4 sm:space-y-7">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
-                <Link to="/itineraries" className="hover:text-violet-700 transition flex items-center gap-1.5 font-semibold">
-                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Itineraries
-                </Link>
-                {trip.category && (
-                  <><span className="text-slate-300">/</span>
-                  <span className="text-slate-500">{trip.category}</span></>
-                )}
+              {/* Back — returns to wherever the visitor came from */}
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-500">
+                <button
+                  onClick={goBack}
+                  aria-label="Go back"
+                  className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-white/70 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white hover:text-violet-700 cursor-pointer sm:h-10 sm:w-10"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                {trip.category && <span className="text-slate-500">{trip.category}</span>}
               </div>
 
               {/* Tag pill */}

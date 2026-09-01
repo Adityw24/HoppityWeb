@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   MapPin, Star, ArrowRight, ChevronLeft, ChevronRight, Clock, BedDouble,
   ShieldCheck, Users, Compass, Headphones,
@@ -46,6 +46,7 @@ const FEATURED_SLUGS = [
   'nagaland-hornbill-festival-tour-dimapur-kohima',
   'ayodhya-prayagraj-varanasi-a-spiritual-journey-dev-deepawali-experience',
   'andaman-experience-by-hoppity',
+  // 'your-fourth-best-trip-slug',
   // 'your-fifth-best-trip-slug',
 ]
 const SLIDE_MS = 6000
@@ -169,6 +170,7 @@ export default function LandingPage() {
   const [stays, setStays] = useState([])
   const [loadingTrips, setLoadingTrips] = useState(true)
   const [loadingStays, setLoadingStays] = useState(true)
+  const [loadingFeatured, setLoadingFeatured] = useState(FEATURED_SLUGS.length > 0)
   const [slide, setSlide] = useState(0)
   const [paused, setPaused] = useState(false)
 
@@ -202,17 +204,21 @@ export default function LandingPage() {
        of rating or of what the grid below happens to be showing. */
     const loadFeatured = async () => {
       if (FEATURED_SLUGS.length === 0) return
-      const { data, error } = await supabase
-        .from('Itineraries')
-        .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating')
-        .in('slug', FEATURED_SLUGS)
-        .eq('is_active', true)
-      if (error || cancelled) return
-      const bySlug = new Map((data || []).map(normaliseTrip).map(t => [t.slug, t]))
-      // Keep the order written in FEATURED_SLUGS, drop misses and coverless trips.
-      setFeaturedTrips(
-        FEATURED_SLUGS.map(slug => bySlug.get(slug)).filter(t => t?.cover).slice(0, MAX_FEATURED)
-      )
+      try {
+        const { data, error } = await supabase
+          .from('Itineraries')
+          .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating')
+          .in('slug', FEATURED_SLUGS)
+          .eq('is_active', true)
+        if (error || cancelled) return
+        const bySlug = new Map((data || []).map(normaliseTrip).map(t => [t.slug, t]))
+        // Keep the order written in FEATURED_SLUGS, drop misses and coverless trips.
+        setFeaturedTrips(
+          FEATURED_SLUGS.map(slug => bySlug.get(slug)).filter(t => t?.cover).slice(0, MAX_FEATURED)
+        )
+      } finally {
+        if (!cancelled) setLoadingFeatured(false)
+      }
     }
 
     /* select('*') on purpose — Properties has changed shape more than once
@@ -264,6 +270,37 @@ export default function LandingPage() {
 
   const go = (dir) => setSlide(s => (s + dir + featured.length) % featured.length)
 
+  /* Swipe on the masthead. A horizontal drag changes slide; a vertical one is
+     left alone so the page still scrolls. `swiped` blocks the click that would
+     otherwise fire on the full-panel link when the finger lifts. */
+  const touchX = useRef(null)
+  const touchY = useRef(null)
+  const dragX = useRef(0)
+  const swiped = useRef(false)
+
+  const onTouchStart = (e) => {
+    touchX.current = e.touches[0].clientX
+    touchY.current = e.touches[0].clientY
+    dragX.current = 0
+    swiped.current = false
+  }
+  const onTouchMove = (e) => {
+    if (touchX.current == null) return
+    const dx = e.touches[0].clientX - touchX.current
+    const dy = e.touches[0].clientY - touchY.current
+    if (Math.abs(dy) > Math.abs(dx)) return      // vertical scroll wins
+    dragX.current = dx
+    if (Math.abs(dx) > 8) swiped.current = true
+  }
+  const onTouchEnd = () => {
+    if (featured.length > 1 && Math.abs(dragX.current) > 45) {
+      go(dragX.current < 0 ? 1 : -1)
+    }
+    touchX.current = null
+    touchY.current = null
+    dragX.current = 0
+  }
+
   const [testimonials, setTestimonials] = useState([
     { quote: "They found us a peaceful, off-beat place that wasn't crowded. Cozy, well maintained, close to the beach. I'd absolutely recommend Hoppity.", author: "Subhag Dholke", image: subhagImg, rating: 5, location: "Mumbai" },
     { quote: "During our Northeast trip the team found us a beautiful property two hours before we arrived. What stood out was how supportive they were.", author: "Pallavi Gondane", image: pallaviImg, rating: 5, location: "Pune" },
@@ -279,7 +316,7 @@ export default function LandingPage() {
       .gte('rating', 4)
       .not('review_text', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(6)
+      .limit(12)
       .then(({ data, error }) => {
         if (error || !data || data.length < 3) return
         setTestimonials(data.map(r => ({
@@ -312,6 +349,30 @@ export default function LandingPage() {
     } catch (_) {}
     setSubmitted(true)
   }
+
+  /* Reviews are one swipeable rail at every width, so every traveller's
+     words are reachable instead of only the first three. */
+  const reviewsRef = useRef(null)
+  const scrollReviews = (dir) => {
+    const el = reviewsRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * Math.round(el.clientWidth * 0.85), behavior: 'smooth' })
+  }
+
+  /* Cards sitting in view lift to full size and opacity; the ones drifting off
+     the edges shrink back. Watching intersection against the rail itself is
+     cheaper than reading scroll offsets on every frame. */
+  useEffect(() => {
+    const el = reviewsRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const cards = Array.from(el.querySelectorAll('[data-review]'))
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => e.target.classList.toggle('is-active', e.isIntersecting)),
+      { root: el, threshold: 0.85 }
+    )
+    cards.forEach(c => io.observe(c))
+    return () => io.disconnect()
+  }, [testimonials])
 
   const goSearch = (q) => navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
   const offerImage = withCover[1]?.cover || withCover[0]?.cover || null
@@ -352,8 +413,22 @@ export default function LandingPage() {
         .tile-grid > *:nth-child(4) { animation-delay: 180ms }
         .tile-grid > *:nth-child(5) { animation-delay: 240ms }
 
+        /* Review rail — keep cards fully visible with no soft fade or blur */
+        .review-card {
+          transform: none;
+          opacity: 1;
+          transition: none;
+        }
+        .review-card.is-active { transform: none; opacity: 1; }
+
+        .review-rail {
+          -webkit-mask-image: none;
+                  mask-image: none;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .hero-copy > *, .hero-kenburns, .tile-grid > * { animation: none !important; }
+          .review-card { transform: none !important; opacity: 1 !important; transition: none !important; }
         }
       `}</style>
 
@@ -362,11 +437,14 @@ export default function LandingPage() {
       <main className="relative">
 
         {/* ═══ FOLD 1 — the masthead IS the featured trip ═════════════ */}
-        <section className="px-3 pt-20 sm:px-5 sm:pt-24">
+        <section className="px-3 pt-24 sm:px-5 sm:pt-28">
           <div
-            className="relative mx-auto w-full max-w-[1500px] overflow-hidden rounded-[2rem] bg-violet-950"
+            className="relative mx-auto w-full max-w-[1500px] touch-pan-y select-none overflow-hidden rounded-[2rem] bg-violet-950"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
 {/* Only real trips are ever painted here. Until they arrive the panel
                 holds a violet wash, so no placeholder photo flashes on load. */}
@@ -391,70 +469,98 @@ export default function LandingPage() {
               </div>
             ))}
 
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-slate-950/25" />
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/90 to-transparent" />
+            {/* Side wash is desktop-only. On a phone the copy sits at the
+                bottom, so a full-panel scrim just hides the photograph. */}
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-slate-950/25 sm:block" />
+            <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent sm:h-1/2 sm:via-slate-950/40" />
 
             {/* The whole masthead opens the trip; the buttons sit above it */}
             {active && (
               <Link to={tripHref(active.slug)} aria-label={`Open ${active.title}`}
+                onClick={(e) => { if (swiped.current) { e.preventDefault(); swiped.current = false } }}
                 className="absolute inset-0 z-0" />
             )}
 
-            <div className="pointer-events-none relative z-10 flex min-h-[calc(100svh-7rem)] flex-col justify-end px-6 pb-8 pt-24 sm:px-10 lg:px-14 lg:pb-10">
+            <div className="pointer-events-none relative z-10 flex min-h-[30rem] flex-col justify-end px-5 pb-7 pt-24 sm:min-h-[calc(100svh-9rem)] sm:px-10 sm:pb-8 lg:px-14 lg:pb-10">
               {/* key = the trip, so the copy replays its entrance on every change */}
+              {/* While the featured query is in flight we show bars, not copy.
+                  The old placeholder tagline used to flash here on every
+                  refresh before the real trip arrived. Kept commented in case
+                  you ever want a static hero back:
+                  'The trips you remember forever are rarely the ones
+                   everyone else is taking.' */}
+              {!active && loadingFeatured ? (
+                <div className="max-w-2xl animate-pulse">
+                  <div className="h-7 w-56 rounded-full bg-white/20" />
+                  <div className="mt-4 h-8 w-[85%] rounded-lg bg-white/25 sm:h-10" />
+                  <div className="mt-2.5 h-8 w-[60%] rounded-lg bg-white/20 sm:h-10" />
+                  <div className="mt-4 h-4 w-48 rounded bg-white/15" />
+                  <div className="mt-6 flex gap-2 sm:gap-3">
+                    <div className="h-12 w-32 rounded-full bg-white/25" />
+                    <div className="h-12 w-32 rounded-full bg-white/15" />
+                  </div>
+                </div>
+              ) : (
               <div key={active?.id || 'hero'} className="hero-copy max-w-2xl">
-                <span className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/25 backdrop-blur">
-                  <span className="h-2 w-2 rounded-full bg-fuchsia-300" />
-                  {active?.tag || 'Featured departure'} · Discover Real India
+                <span className="pointer-events-auto inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/25 backdrop-blur sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+                  <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-300 sm:h-2 sm:w-2" />
+                  <span className="truncate">{active?.tag || 'Featured departure'} · Discover Real India</span>
                 </span>
 
-                <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-tight text-white drop-shadow-lg sm:text-4xl lg:text-5xl">
-                  {active ? active.title : 'The trips you remember forever are rarely the ones everyone else is taking.'}
+                <h1 className="mt-3 line-clamp-3 text-2xl font-black leading-[1.12] tracking-tight text-white drop-shadow-lg sm:mt-5 sm:line-clamp-none sm:text-4xl sm:leading-[1.08] lg:text-5xl">
+                  {active ? active.title : 'Journeys across India, planned by people who have been there.'}
                 </h1>
 
                 {active && (
-                  <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/85">
-                    <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-violet-300" />{active.location || 'India'}</span>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/85 sm:mt-4 sm:gap-x-5 sm:gap-y-2 sm:text-sm">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-violet-300 sm:h-4 sm:w-4" />
+                      <span className="truncate">{active.location || 'India'}</span>
+                    </span>
                     {(active.duration_display || active.duration) && (
-                      <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-violet-300" />{active.duration_display || active.duration}</span>
+                      <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-violet-300 sm:h-4 sm:w-4" />{active.duration_display || active.duration}</span>
                     )}
                     {active.rating > 0 && (
-                      <span className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-yellow-300 text-yellow-300" />{Number(active.rating).toFixed(1)}</span>
+                      <span className="flex items-center gap-1.5"><Star className="h-3.5 w-3.5 fill-yellow-300 text-yellow-300 sm:h-4 sm:w-4" />{Number(active.rating).toFixed(1)}</span>
                     )}
                     {heroPrice && (
-                      <span className="rounded-full bg-white/15 px-3 py-1 font-bold text-white ring-1 ring-white/25">
-                        {heroPrice} <span className="font-medium text-white/70">per person</span>
+                      <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-bold text-white ring-1 ring-white/25 sm:px-3 sm:py-1">
+                        {heroPrice} <span className="font-medium text-white/70">pp</span>
                       </span>
                     )}
                   </div>
                 )}
 
-                <p className="mt-4 line-clamp-2 max-w-lg text-base leading-relaxed text-white/80">
+                <p className="mt-4 hidden max-w-lg text-base leading-relaxed text-white/80 sm:line-clamp-2 sm:block">
                   {active?.blurb || 'Small-group journeys and hand-picked places to stay, planned by people who have actually been there.'}
                 </p>
 
-                <div className="pointer-events-auto mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="pointer-events-auto mt-5 flex items-center gap-2 sm:mt-7 sm:gap-3">
                   <Link to={active ? tripHref(active.slug) : '/itineraries'}
-                    className="rounded-full bg-white px-7 py-4 text-center text-base font-bold text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-violet-50">
+                    className="flex-1 rounded-full bg-white px-4 py-3 text-center text-sm font-bold text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-violet-50 sm:flex-none sm:px-7 sm:py-4 sm:text-base">
                     Book now
                   </Link>
                   <a href="#explore"
-                    className="rounded-full bg-white/15 px-7 py-4 text-center text-base font-bold text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/25">
-                    See all trips &amp; stays
+                    className="flex-1 rounded-full bg-white/15 px-4 py-3 text-center text-sm font-bold text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/25 sm:flex-none sm:px-7 sm:py-4 sm:text-base">
+                    <span className="sm:hidden">Explore</span>
+                    <span className="hidden sm:inline">See all trips &amp; stays</span>
                   </a>
                 </div>
               </div>
+              )}
 
               {/* Why us — inside the hero, so fold one holds the whole pitch */}
-              <div className="mt-9 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/15 pt-5 lg:grid-cols-4">
+              {/* Desktop only — on a phone this buried the photograph and the
+                  same points are covered further down the page. */}
+              <div className="mt-6 hidden grid-cols-2 gap-x-3 gap-y-2.5 border-t border-white/15 pt-4 sm:mt-9 sm:grid sm:gap-x-5 sm:gap-y-4 sm:pt-5 lg:grid-cols-4">
                 {PROMISES.map(({ icon: Icon, title, blurb }) => (
-                  <div key={title} className="flex items-start gap-2.5">
-                    <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/25">
-                      <Icon className="h-4 w-4" />
+                  <div key={title} className="flex items-center gap-2 sm:items-start sm:gap-2.5">
+                    <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/25 sm:h-9 sm:w-9">
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white">{title}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-white/70">{blurb}</p>
+                      <p className="truncate text-[11px] font-bold text-white sm:whitespace-normal sm:text-sm">{title}</p>
+                      <p className="mt-0.5 hidden text-xs leading-relaxed text-white/70 sm:block">{blurb}</p>
                     </div>
                   </div>
                 ))}
@@ -465,14 +571,14 @@ export default function LandingPage() {
             {featured.length > 1 && (
               <>
                 <button type="button" onClick={() => go(-1)} aria-label="Previous featured trip"
-                  className="absolute left-3 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer">
+                  className="absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer sm:grid">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button type="button" onClick={() => go(1)} aria-label="Next featured trip"
-                  className="absolute right-3 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer">
+                  className="absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer sm:grid">
                   <ChevronRight className="h-5 w-5" />
                 </button>
-                <div className="absolute bottom-4 right-5 z-20 flex items-center gap-1.5">
+                <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 sm:bottom-4 sm:right-5">
                   {featured.map((t, i) => (
                     <button key={t.id} type="button" onClick={() => setSlide(i)}
                       aria-label={`Featured trip ${i + 1}`} aria-current={i === slide}
@@ -492,7 +598,7 @@ export default function LandingPage() {
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {VIBES.map(v => (
               <button key={v.q} onClick={() => goSearch(v.q)}
-                className="whitespace-nowrap rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white hover:ring-violet-300 cursor-pointer">
+                className="whitespace-nowrap rounded-full bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white hover:ring-violet-300 cursor-pointer sm:px-4 sm:py-2 sm:text-sm">
                 {v.label}
               </button>
             ))}
@@ -566,18 +672,34 @@ export default function LandingPage() {
         {/* ═══ FOLD 3 — proof, then the ask ═══════════════════════════ */}
         <section className="mx-auto w-full max-w-[1500px] px-5 pb-12 pt-14 sm:px-8 lg:px-10">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Travellers on their trips</h2>
-            <div className="flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-2 ring-1 ring-violet-200/70 backdrop-blur">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-bold text-slate-950">4.9</span>
-              <span className="text-sm text-slate-500">from real travellers</span>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Travellers on their trips</h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 ring-1 ring-violet-200/70">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm font-bold text-slate-950">4.9</span>
+                <span className="hidden text-sm text-slate-500 sm:inline">from real travellers</span>
+              </div>
+
+              {/* Arrows on pointer devices; phones just swipe */}
+              <button type="button" onClick={() => scrollReviews(-1)} aria-label="Previous reviews"
+                className="hidden h-10 w-10 place-items-center rounded-full bg-white text-slate-600 ring-1 ring-violet-200/70 transition hover:bg-white hover:text-violet-700 cursor-pointer md:grid">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => scrollReviews(1)} aria-label="More reviews"
+                className="hidden h-10 w-10 place-items-center rounded-full bg-white text-slate-600 ring-1 ring-violet-200/70 transition hover:bg-white hover:text-violet-700 cursor-pointer md:grid">
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {testimonials.slice(0, 3).map((item, i) => (
-              <figure key={i}
-                className="flex w-[85%] shrink-0 snap-start flex-col rounded-2xl bg-white/80 p-4 ring-1 ring-violet-200/60 backdrop-blur sm:w-[55%] md:w-auto">
+          <div ref={reviewsRef}
+            className="review-rail flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {testimonials.map((item, i) => (
+              <figure key={i} data-review
+                className="review-card flex w-[85%] shrink-0 snap-start flex-col rounded-2xl bg-white p-4 ring-1 ring-violet-200/60 sm:w-[48%] lg:w-[32%] xl:w-[24%]">
                 <div className="mb-2 text-sm text-yellow-400">{"★".repeat(item.rating)}</div>
                 <blockquote className="flex-1 text-sm leading-relaxed text-slate-700">{item.quote}</blockquote>
                 <figcaption className="mt-3 flex items-center gap-3 border-t border-violet-100 pt-3">

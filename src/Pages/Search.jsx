@@ -248,6 +248,9 @@ export default function SearchPage() {
 
   const filterActive = budget > 0 || sort !== 'relevance'
 
+  /* Two across on a phone, four on a wide screen — same shape everywhere. */
+  const GRID = 'grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4'
+
   return (
     /* One continuous surface for the whole page — the only "walls" are the
        trip photographs themselves. */
@@ -260,7 +263,7 @@ export default function SearchPage() {
 
       <main className="relative">
         {/* ── Search band — no card, no border, sits straight on the page ── */}
-        <div className="sticky top-0 z-30 pt-24 pb-3">
+        <div className="sticky top-0 z-30 pb-3 pt-20 sm:pt-24">
           {/* Soft fade instead of a hard rule, so nothing reads as a box edge */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#f7f1ff] via-[#f7f1ff]/95 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_75%,transparent)]" />
 
@@ -269,27 +272,27 @@ export default function SearchPage() {
               <button
                 onClick={goBack}
                 aria-label="Go back"
-                className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700 cursor-pointer"
+                className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700 cursor-pointer sm:h-11 sm:w-11"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
 
               <div className="relative flex-1">
                 {mode === 'ai'
-                  ? <Sparkles className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-500" />
-                  : <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-400" />}
+                  ? <Sparkles className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-500 sm:left-5" />
+                  : <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-400 sm:left-5" />}
                 <input
                   ref={inputRef}
                   value={query}
                   onChange={e => onQueryChange(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  placeholder={mode === 'ai' ? 'Describe your dream trip…' : 'Where to? Meghalaya, Spiti, wildlife…'}
+                  placeholder={mode === 'ai' ? 'Describe your trip…' : 'Where to? Meghalaya, Spiti…'}
                   aria-label="Search trips"
-                  className="w-full rounded-full bg-white/60 py-3.5 pl-12 pr-11 text-base font-medium tracking-tight text-slate-900 outline-none ring-1 ring-violet-200/70 backdrop-blur-xl transition placeholder:font-normal placeholder:text-slate-400 focus:bg-white/85 focus:ring-2 focus:ring-violet-400 sm:text-lg"
+                  className="w-full rounded-full bg-white/60 py-2.5 pl-10 pr-10 text-sm font-medium tracking-tight text-slate-900 outline-none ring-1 ring-violet-200/70 backdrop-blur-xl transition placeholder:font-normal placeholder:text-slate-400 focus:bg-white/85 focus:ring-2 focus:ring-violet-400 sm:py-3.5 sm:pl-12 sm:pr-11 sm:text-lg"
                 />
                 {query && (
                   <button onClick={clearSearch} aria-label="Clear search"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700 cursor-pointer">
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700 cursor-pointer sm:right-4">
                     <X className="h-4 w-4" />
                   </button>
                 )}
@@ -299,7 +302,7 @@ export default function SearchPage() {
                 onClick={() => handleSearch()}
                 disabled={loading || !query.trim()}
                 aria-label="Search"
-                className={`grid h-11 w-11 flex-shrink-0 place-items-center rounded-full text-white shadow-md transition cursor-pointer disabled:opacity-40 ${
+                className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-full text-white shadow-md transition cursor-pointer disabled:opacity-40 sm:h-11 sm:w-11 ${
                   mode === 'ai' ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500' : 'bg-slate-950 hover:bg-violet-800'
                 }`}
               >
@@ -310,15 +313,15 @@ export default function SearchPage() {
             </div>
 
             {/* Mode + filters — outlined pills, not raised boxes */}
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-2.5 flex items-center gap-2 sm:mt-3">
               <button onClick={() => switchMode('fts')}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer sm:px-3.5 sm:text-xs ${
                   mode === 'fts' ? 'bg-slate-950 text-white' : 'text-slate-600 ring-1 ring-violet-200/70 hover:bg-white/60'
                 }`}>
                 <Search className="h-3 w-3" /> Search
               </button>
               <button onClick={() => switchMode('ai')}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer sm:px-3.5 sm:text-xs ${
                   mode === 'ai' ? 'bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white' : 'text-slate-600 ring-1 ring-violet-200/70 hover:bg-white/60'
                 }`}>
                 <Sparkles className="h-3 w-3" /> Ask AI
@@ -326,7 +329,7 @@ export default function SearchPage() {
               </button>
 
               <button onClick={() => setShowFilters(o => !o)} aria-expanded={showFilters}
-                className={`ml-auto flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                className={`ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer sm:px-3.5 sm:text-xs ${
                   showFilters || filterActive ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300' : 'text-slate-600 ring-1 ring-violet-200/70 hover:bg-white/60'
                 }`}>
                 <SlidersHorizontal className="h-3 w-3" /> Filters
@@ -339,7 +342,7 @@ export default function SearchPage() {
                   value={budget}
                   onChange={e => { setBudget(Number(e.target.value)); if (query.trim()) handleSearch(query, mode) }}
                   aria-label="Budget"
-                  className="cursor-pointer rounded-full bg-white/60 px-3.5 py-1.5 text-xs font-semibold text-slate-700 outline-none ring-1 ring-violet-200/70 backdrop-blur focus:ring-violet-400"
+                  className="cursor-pointer rounded-full bg-white/60 px-3 py-1.5 text-[11px] font-semibold text-slate-700 outline-none ring-1 ring-violet-200/70 backdrop-blur focus:ring-violet-400 sm:px-3.5 sm:text-xs"
                 >
                   {BUDGETS.map((b, i) => <option key={b.label} value={i}>{b.label}</option>)}
                 </select>
@@ -347,7 +350,7 @@ export default function SearchPage() {
                   value={sort}
                   onChange={e => setSort(e.target.value)}
                   aria-label="Sort results"
-                  className="cursor-pointer rounded-full bg-white/60 px-3.5 py-1.5 text-xs font-semibold text-slate-700 outline-none ring-1 ring-violet-200/70 backdrop-blur focus:ring-violet-400"
+                  className="cursor-pointer rounded-full bg-white/60 px-3 py-1.5 text-[11px] font-semibold text-slate-700 outline-none ring-1 ring-violet-200/70 backdrop-blur focus:ring-violet-400 sm:px-3.5 sm:text-xs"
                 >
                   {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                 </select>
@@ -361,7 +364,7 @@ export default function SearchPage() {
 
           {!searched && (
             <div className="mx-auto max-w-5xl pt-4 sm:pt-8">
-              <h1 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+              <h1 className="text-xl font-black tracking-tight text-slate-950 sm:text-3xl">
                 {mode === 'ai' ? 'Tell us the trip you have in mind.' : 'Find your next journey.'}
               </h1>
               <p className="mt-2 text-sm text-slate-500">
@@ -371,10 +374,10 @@ export default function SearchPage() {
               </p>
 
               {mode === 'ai' && (
-                <div className="mt-7 flex flex-wrap gap-2">
+                <div className="mt-6 flex flex-wrap gap-2 sm:mt-7">
                   {VIBE_CHIPS.map(chip => (
                     <button key={chip.q} onClick={() => { setQuery(chip.q); handleSearch(chip.q, 'ai') }}
-                      className="flex items-center gap-1.5 rounded-full bg-white/55 px-4 py-2 text-sm font-semibold text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/90 hover:ring-violet-300 cursor-pointer">
+                      className="flex items-center gap-1.5 rounded-full bg-white/55 px-3 py-1.5 text-xs font-semibold text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/90 hover:ring-violet-300 cursor-pointer sm:px-4 sm:py-2 sm:text-sm">
                       <span>{chip.emoji}</span> {chip.label}
                     </button>
                   ))}
@@ -382,14 +385,14 @@ export default function SearchPage() {
               )}
 
               {recentSearches.length > 0 && (
-                <div className="mt-9">
+                <div className="mt-7 sm:mt-9">
                   <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                     <Clock className="h-3 w-3" /> Recent
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {recentSearches.map(s => (
                       <button key={s} onClick={() => { setQuery(s); handleSearch(s) }}
-                        className="rounded-full px-3.5 py-1.5 text-sm text-slate-600 ring-1 ring-violet-200/60 transition hover:bg-white/70 hover:text-violet-800 cursor-pointer">
+                        className="rounded-full px-3 py-1.5 text-xs text-slate-600 ring-1 ring-violet-200/60 transition hover:bg-white/70 hover:text-violet-800 cursor-pointer sm:px-3.5 sm:text-sm">
                         {s}
                       </button>
                     ))}
@@ -397,14 +400,14 @@ export default function SearchPage() {
                 </div>
               )}
 
-              <div className="mt-9">
+              <div className="mt-7 sm:mt-9">
                 <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                   <TrendingUp className="h-3 w-3" /> Popular right now
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {TRENDING.map(t => (
                     <button key={t} onClick={() => { setQuery(t); handleSearch(t) }}
-                      className="rounded-full bg-white/55 px-4 py-2 text-sm font-medium text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/90 hover:ring-violet-300 cursor-pointer">
+                      className="rounded-full bg-white/55 px-3 py-1.5 text-xs font-medium text-violet-800 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/90 hover:ring-violet-300 cursor-pointer sm:px-4 sm:py-2 sm:text-sm">
                       {t}
                     </button>
                   ))}
@@ -415,7 +418,7 @@ export default function SearchPage() {
 
           {/* AI note — tinted glass, no hard card */}
           {aiReply && (
-            <div className="mb-6 flex items-start gap-3 rounded-3xl bg-violet-100/50 px-5 py-4 ring-1 ring-violet-200/70 backdrop-blur">
+            <div className="mb-5 flex items-start gap-3 rounded-2xl bg-violet-100/50 px-4 py-3.5 ring-1 ring-violet-200/70 backdrop-blur sm:mb-6 sm:rounded-3xl sm:px-5 sm:py-4">
               <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
@@ -438,16 +441,16 @@ export default function SearchPage() {
           {searched && !loading && (
             sorted.length > 0 ? (
               <>
-                <p className="mb-4 text-sm text-slate-500">
+                <p className="mb-3 text-xs text-slate-500 sm:mb-4 sm:text-sm">
                   {sorted.length} trip{sorted.length !== 1 ? 's' : ''}
                   {query && <> for <span className="font-semibold text-slate-800">{query}</span></>}
                 </p>
-                <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                <div className={GRID}>
                   {sorted.map(tour => <TourCard key={tour.id} tour={tour} />)}
                 </div>
               </>
             ) : (
-              <div className="mx-auto max-w-md py-20 text-center">
+              <div className="mx-auto max-w-md py-16 text-center sm:py-20">
                 <h3 className="text-lg font-bold text-slate-900">Nothing matches that yet</h3>
                 <p className="mx-auto mb-5 mt-2 text-sm leading-relaxed text-slate-500">
                   Try a destination on its own — Meghalaya, Spiti, Coorg — or widen the budget.
@@ -475,9 +478,9 @@ export default function SearchPage() {
           )}
 
           {loading && (
-            <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={GRID}>
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="aspect-[4/5] animate-pulse rounded-3xl bg-violet-200/40" />
+                <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-violet-200/40 sm:rounded-3xl" />
               ))}
             </div>
           )}
@@ -488,7 +491,8 @@ export default function SearchPage() {
 }
 
 /* Photo-led tile: the image is the card. No white panel, so the page reads as
-   one surface with pictures cut into it. */
+   one surface with pictures cut into it. Text steps down on phones, where two
+   of these sit side by side. */
 function TourCard({ tour }) {
   const img = tour.cover || tour.cover_image_url || (Array.isArray(tour.images) ? tour.images.find(u => !isVideo(u)) : null)
   const amount = Number(tour.price_per_person ?? tour.price ?? 0)
@@ -497,7 +501,7 @@ function TourCard({ tour }) {
   return (
     <Link
       to={`/itinerary/${tour.slug}`}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-3xl bg-violet-200/40 ring-1 ring-violet-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+      className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-violet-200/40 ring-1 ring-violet-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:rounded-3xl"
     >
       {img
         ? <img src={img} alt={tour.title} loading="lazy" decoding="async"
@@ -507,26 +511,26 @@ function TourCard({ tour }) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
       {tour.rating > 0 && (
-        <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/35 px-2 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
-          <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" />{Number(tour.rating).toFixed(1)}
+        <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm sm:right-3 sm:top-3 sm:py-1 sm:text-[11px]">
+          <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300 sm:h-3 sm:w-3" />{Number(tour.rating).toFixed(1)}
         </span>
       )}
       {(tour.tag || tour.category) && (
-        <span className="absolute left-3 top-3 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm">
+        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
           {tour.tag || tour.category}
         </span>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <p className="flex items-center gap-1 text-[11px] font-medium text-white/75">
-          <MapPin className="h-3 w-3" />
+      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+        <p className="flex min-w-0 items-center gap-1 text-[10px] font-medium text-white/75 sm:text-[11px]">
+          <MapPin className="h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3" />
           <span className="truncate">{tour.location}</span>
           {tour.duration_display && <><span className="text-white/40">·</span><span className="truncate">{tour.duration_display}</span></>}
         </p>
-        <h3 className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug text-white">{tour.title}</h3>
-        <p className="mt-2 text-sm font-black text-white">
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight text-white sm:text-[15px] sm:leading-snug">{tour.title}</h3>
+        <p className="mt-1.5 text-[13px] font-black text-white sm:mt-2 sm:text-sm">
           {price}
-          {amount > 0 && <span className="text-[11px] font-medium text-white/60"> / person</span>}
+          {amount > 0 && <span className="text-[10px] font-medium text-white/60 sm:text-[11px]"> / person</span>}
         </p>
       </div>
     </Link>

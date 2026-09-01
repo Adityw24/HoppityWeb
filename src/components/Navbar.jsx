@@ -107,7 +107,7 @@ export default function Navbar() {
         <Link to="/" className="flex flex-shrink-0 items-center gap-2.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
           <img src={logo} alt="Hoppity" className="h-9 w-9 sm:h-10 sm:w-10" />
           <div className="min-w-0">
-            <p className={`text-base font-black leading-none tracking-tight sm:text-lg ${solid ? 'text-slate-950' : 'text-white'}`}>Hoppity</p>
+            <p className={`text-base font-bold leading-none tracking-tight sm:text-lg ${solid ? 'text-slate-950' : 'text-white'}`}>Hoppity</p>
             {/* Tagline only from sm up — on phones the bar also carries Sign In and the menu button */}
             <p className={`mt-0.5  text-[11px] font-medium sm:block ${solid ? 'text-slate-500' : 'text-white/70'}`}>Discover Real India</p>
           </div>

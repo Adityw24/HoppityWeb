@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, ArrowLeft, Star, ChevronDown, Check, SlidersHorizontal, X, MapPin, Clock } from "lucide-react"
+import { ArrowLeft, Star, ChevronDown, Check, SlidersHorizontal, X, MapPin } from "lucide-react"
 import { useEffect, useState, useMemo, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
@@ -36,9 +36,11 @@ function toCategoryList(raw) {
   return parts.map(c => String(c).trim().toLowerCase()).filter(Boolean)
 }
 
-// Canonical display order. Anything outside this list still shows — appended,
-// so a new category in the DB never silently disappears from the filter.
+// Canonical display order. Categories outside this list can still make the
+// cut, but only if they beat a canonical one on trip count — the filter is
+// capped so the popover stays scannable.
 const CANONICAL = ['Cultural', 'Wildlife', 'Adventure', 'Trekking', 'Heritage', 'Spiritual', 'Culinary']
+const MAX_FILTERS = 7          // plus "All journeys" = 8 options total
 
 const CAT_GRADIENTS = {
   cultural:   'from-amber-700 to-orange-900',
@@ -103,11 +105,23 @@ export default function Itineraries() {
       for (const c of t.categories) counts.set(c, (counts.get(c) || 0) + 1)
     }
     const canonical = CANONICAL.map(c => c.toLowerCase()).filter(c => counts.has(c))
-    const extras = [...counts.keys()].filter(c => !canonical.includes(c)).sort()
+    // Anything not in CANONICAL still competes, biggest first.
+    const extras = [...counts.keys()]
+      .filter(c => !canonical.includes(c))
+      .sort((a, b) => counts.get(b) - counts.get(a))
+
+    // Keep the canonical order, then top up with extras, then cut to the cap
+    // by dropping the thinnest categories — a filter with two trips behind it
+    // is noise on a phone.
+    const shortlist = [...canonical, ...extras]
+    const kept = shortlist.length > MAX_FILTERS
+      ? [...shortlist].sort((a, b) => counts.get(b) - counts.get(a)).slice(0, MAX_FILTERS)
+      : shortlist
+    const ordered = shortlist.filter(c => kept.includes(c))
 
     return [
       { key: 'all', label: 'All journeys', count: trips.length },
-      ...[...canonical, ...extras].map(c => ({ key: c, label: titleCase(c), count: counts.get(c) })),
+      ...ordered.map(c => ({ key: c, label: titleCase(c), count: counts.get(c) })),
     ]
   }, [trips])
 
@@ -162,9 +176,10 @@ export default function Itineraries() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right-aligned on every width, including phones */}
+          <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
             {!loading && (
-              <p className="hidden text-sm text-slate-400 sm:block">
+              <p className="text-sm text-slate-400">
                 {filtered.length} journey{filtered.length !== 1 ? 's' : ''}
               </p>
             )}
@@ -174,16 +189,9 @@ export default function Itineraries() {
 
         {/* ── Grid ───────────────────────────────────────────────── */}
         {loading ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="animate-pulse overflow-hidden rounded-[1.5rem] bg-white/50 ring-1 ring-violet-200/50">
-                <div className="aspect-[4/3] w-full bg-violet-200/50" />
-                <div className="space-y-2 p-4">
-                  <div className="h-3 w-1/3 rounded bg-violet-200/50" />
-                  <div className="h-3 w-full rounded bg-violet-100/70" />
-                  <div className="h-3 w-2/3 rounded bg-violet-100/70" />
-                </div>
-              </div>
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-violet-200/40 sm:rounded-3xl" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -197,7 +205,7 @@ export default function Itineraries() {
             </button>
           </div>
         ) : (
-          <div key={filter} className="trips-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div key={filter} className="trips-grid grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map(trip => <TripCard key={trip.id} trip={trip} />)}
           </div>
         )}
@@ -235,8 +243,8 @@ function CategoryFilter({ categories, value, onChange }) {
   return (
     <div className="relative flex items-center gap-2" ref={wrapRef}>
       {isFiltered && (
-        <button onClick={() => pick('all')}
-          className="flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-slate-700 cursor-pointer">
+        <button onClick={() => pick('all')} aria-label="Clear filter"
+          className="flex flex-shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-400 transition hover:text-slate-700 cursor-pointer sm:text-xs">
           <X className="h-3.5 w-3.5" /> Clear
         </button>
       )}
@@ -245,23 +253,23 @@ function CategoryFilter({ categories, value, onChange }) {
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full py-2 pl-4 pr-3 text-sm font-semibold transition cursor-pointer ${
+        className={`flex max-w-[52vw] items-center gap-1.5 rounded-full py-1.5 pl-3 pr-2 text-xs font-semibold transition cursor-pointer sm:max-w-none sm:gap-2 sm:py-2 sm:pl-4 sm:pr-3 sm:text-sm ${
           isFiltered
             ? 'bg-slate-950 text-white shadow-md'
             : 'bg-white/60 text-slate-700 ring-1 ring-violet-200/70 backdrop-blur hover:bg-white/90 hover:text-violet-800'
         }`}>
         {isFiltered
-          ? <span>{CAT_EMOJI[active.key] ? `${CAT_EMOJI[active.key]} ` : ''}{active.label}</span>
-          : <><SlidersHorizontal className="h-4 w-4" /><span>Filter</span></>}
-        <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-          isFiltered ? 'bg-white/20 text-white' : 'bg-violet-100 text-violet-600'
-        }`}>{active.count}</span>
-        <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+          ? <span className="truncate">{CAT_EMOJI[active.key] ? `${CAT_EMOJI[active.key]} ` : ''}{active.label}</span>
+          : <>
+              <SlidersHorizontal className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
+              <span>Filter</span>
+            </>}
+        <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div role="listbox"
-          className="filter-pop absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-2xl bg-white/90 p-2 shadow-xl shadow-violet-950/10 ring-1 ring-violet-200/70 backdrop-blur-xl">
+          className="filter-pop absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-56 max-w-[calc(100vw-2.5rem)] overflow-y-auto sm:w-64 rounded-2xl bg-white/90 p-2 shadow-xl shadow-violet-950/10 ring-1 ring-violet-200/70 backdrop-blur-xl">
           {categories.map(cat => {
             const selected = cat.key === value
             return (
@@ -288,7 +296,9 @@ function CategoryFilter({ categories, value, onChange }) {
   )
 }
 
-/* ── Trip card — photo carries the name, glass strip carries the facts ── */
+/* ── Trip card — the photograph IS the card, same as the search page.
+   Category gradient + emoji stays as the fallback when a cover is missing
+   or 404s, so a trip without artwork still reads as its category. ────── */
 function TripCard({ trip }) {
   const [imgFailed, setImgFailed] = useState(false)
   const primary = trip.categories?.[0]
@@ -299,76 +309,53 @@ function TripCard({ trip }) {
   const showImage = trip.cover && !imgFailed
 
   return (
-    <Link to={`/itinerary/${trip.slug}`}
-      className="group flex flex-col overflow-hidden rounded-[1.5rem] bg-white/70 ring-1 ring-violet-200/60 backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-xl hover:shadow-violet-950/10 cursor-pointer">
-
-      <div className="relative aspect-[4/3] flex-shrink-0 overflow-hidden">
-        <div className={`absolute inset-0 grid place-items-center bg-gradient-to-br ${gradient}`}>
-          <span className="text-6xl opacity-40">{emoji}</span>
-        </div>
-
-        {showImage && (
-          <img
-            src={trip.cover}
-            alt={trip.title}
-            loading="lazy"
-            decoding="async"
-            onError={() => setImgFailed(true)}
-            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
-          />
-        )}
-
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-
-        {trip.tag && (
-          <span className="absolute left-3 top-3 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm">
-            {trip.tag}
-          </span>
-        )}
-
-        {trip.rating > 0 && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
-            <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" />
-            {Number(trip.rating).toFixed(1)}
-          </span>
-        )}
-
-        <div className="absolute inset-x-0 bottom-0 p-4">
-          {trip.location && (
-            <p className="mb-1 flex items-center gap-1 text-[11px] font-medium text-white/75">
-              <MapPin className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">{trip.location}</span>
-            </p>
-          )}
-          <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
-            {trip.title}
-          </h3>
-        </div>
+    <Link
+      to={`/itinerary/${trip.slug}`}
+      className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-violet-200/40 ring-1 ring-violet-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:rounded-3xl"
+    >
+      <div className={`absolute inset-0 grid place-items-center bg-gradient-to-br ${gradient}`}>
+        <span className="text-5xl opacity-40 sm:text-6xl">{emoji}</span>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between gap-2">
-          {duration
-            ? <span className="flex items-center gap-1 text-xs text-slate-500">
-                <Clock className="h-3.5 w-3.5 text-violet-500" />{duration}
-              </span>
-            : <span />}
-          <span className="text-sm font-black text-slate-950">
-            {price || 'On request'}
-            {price && <span className="text-[11px] font-medium text-slate-400"> / person</span>}
-          </span>
-        </div>
+      {showImage && (
+        <img
+          src={trip.cover}
+          alt={trip.title}
+          loading="lazy"
+          decoding="async"
+          onError={() => setImgFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+        />
+      )}
 
-        {trip.blurb && (
-          <p className="mt-2.5 line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">
-            {trip.blurb}
-          </p>
-        )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
-        <div className="mt-3 flex items-center gap-1.5 border-t border-violet-100 pt-3 text-xs font-bold text-violet-700">
-          Explore this trip
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </div>
+      {trip.tag && (
+        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
+          {trip.tag}
+        </span>
+      )}
+
+      {trip.rating > 0 && (
+        <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm sm:right-3 sm:top-3 sm:py-1 sm:text-[11px]">
+          <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300 sm:h-3 sm:w-3" />
+          {Number(trip.rating).toFixed(1)}
+        </span>
+      )}
+
+      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+        <p className="flex min-w-0 items-center gap-1 text-[10px] font-medium text-white/75 sm:text-[11px]">
+          <MapPin className="h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3" />
+          <span className="truncate">{trip.location || 'India'}</span>
+          {duration && <><span className="text-white/40">·</span><span className="truncate">{duration}</span></>}
+        </p>
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight text-white sm:text-[15px] sm:leading-snug">
+          {trip.title}
+        </h3>
+        <p className="mt-1.5 text-[13px] font-black text-white sm:mt-2 sm:text-sm">
+          {price || 'On request'}
+          {price && <span className="text-[10px] font-medium text-white/60 sm:text-[11px]"> / person</span>}
+        </p>
       </div>
     </Link>
   )
