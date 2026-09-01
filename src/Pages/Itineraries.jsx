@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, ArrowLeft, Star, ChevronDown, Check, SlidersHorizontal, X } from "lucide-react"
+import { ArrowRight, ArrowLeft, Star, ChevronDown, Check, SlidersHorizontal, X, MapPin, Clock } from "lucide-react"
 import { useEffect, useState, useMemo, useRef } from "react"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
@@ -56,6 +56,11 @@ const CAT_EMOJI = {
 
 const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
+const inr = (v) => {
+  const n = Number(v)
+  return Number.isFinite(n) && n > 0 ? `₹${n.toLocaleString('en-IN')}` : null
+}
+
 export default function Itineraries() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
@@ -111,25 +116,23 @@ export default function Itineraries() {
     return trips.filter(t => t.categories.includes(filter))
   }, [trips, filter])
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-3 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
-        <p className="text-sm text-slate-500">Loading journeys…</p>
-      </div>
-    </div>
-  )
-
   return (
-    <div className="min-h-screen bg-[#f7f1ff]">
+    /* One continuous surface, same as the home and search pages */
+    <div className="relative min-h-screen bg-[#f7f1ff] text-slate-900">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_0%,rgba(124,58,237,0.12),transparent_70%)]" />
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 h-1/3 bg-[radial-gradient(ellipse_60%_100%_at_50%_100%,rgba(217,70,239,0.07),transparent_70%)]" />
+
       <Navbar />
 
       <style>{`
         @keyframes tripsIn {
-          from { opacity: 0; transform: translateY(6px); }
+          from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: none; }
         }
-        .trips-grid > * { animation: tripsIn 180ms ease-out both; }
+        .trips-grid > * { animation: tripsIn 220ms ease-out both; }
+        .trips-grid > *:nth-child(2) { animation-delay: 30ms }
+        .trips-grid > *:nth-child(3) { animation-delay: 60ms }
+        .trips-grid > *:nth-child(4) { animation-delay: 90ms }
         @keyframes popIn {
           from { opacity: 0; transform: translateY(-4px) scale(.98); }
           to   { opacity: 1; transform: none; }
@@ -140,63 +143,72 @@ export default function Itineraries() {
         }
       `}</style>
 
-      <div className="px-6 pt-24 pb-16 lg:px-10">
-        <div className="max-w-7xl mx-auto mb-6">
-          <Link to="/"
-            aria-label="Back to home"
-            title="Back to home"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#f7f1ff]">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="sr-only">Back to home</span>
-          </Link>
+      <main className="relative mx-auto w-full max-w-[1500px] px-5 pb-20 pt-24 sm:px-8 lg:px-10">
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <Link to="/"
+              aria-label="Back to home"
+              className="mb-5 inline-grid h-11 w-11 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+
+            <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+              All journeys
+            </h1>
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500 sm:text-base">
+              Every trip here is designed to be remembered, not just completed.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {!loading && (
+              <p className="hidden text-sm text-slate-400 sm:block">
+                {filtered.length} journey{filtered.length !== 1 ? 's' : ''}
+              </p>
+            )}
+            <CategoryFilter categories={categories} value={filter} onChange={setFilter} />
+          </div>
         </div>
 
-        {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight">
-            All Journeys
-          </h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Every trip here is designed to be remembered, not just completed.
-          </p>
-        </div>
-
-        {/* One-line control bar: count on the left, filter dropdown on the right */}
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-6">
-          <p className="text-sm text-slate-400">
-            {filtered.length} journey{filtered.length !== 1 ? 's' : ''}
-          </p>
-          <CategoryFilter
-            categories={categories}
-            value={filter}
-            onChange={setFilter}
-          />
-        </div>
-
-        {/* Grid */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">{CAT_EMOJI[filter] || '🗺️'}</div>
+        {/* ── Grid ───────────────────────────────────────────────── */}
+        {loading ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse overflow-hidden rounded-[1.5rem] bg-white/50 ring-1 ring-violet-200/50">
+                <div className="aspect-[4/3] w-full bg-violet-200/50" />
+                <div className="space-y-2 p-4">
+                  <div className="h-3 w-1/3 rounded bg-violet-200/50" />
+                  <div className="h-3 w-full rounded bg-violet-100/70" />
+                  <div className="h-3 w-2/3 rounded bg-violet-100/70" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="mx-auto max-w-md py-24 text-center">
+            <div className="mb-4 text-5xl">{CAT_EMOJI[filter] || '🗺️'}</div>
             <h3 className="text-xl font-bold text-slate-900">Nothing here yet</h3>
-            <p className="text-slate-500 mt-2">Check back soon — more are being added.</p>
+            <p className="mt-2 text-sm text-slate-500">More journeys are being added to this category.</p>
             <button onClick={() => setFilter('all')}
-              className="mt-4 text-violet-600 text-sm font-semibold hover:underline cursor-pointer">
-              See all journeys →
+              className="mt-5 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 cursor-pointer">
+              See all journeys
             </button>
           </div>
         ) : (
-          <div key={filter} className="trips-grid max-w-7xl mx-auto grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div key={filter} className="trips-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map(trip => <TripCard key={trip.id} trip={trip} />)}
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }
 
 /* ── Compact category dropdown ──────────────────────────────────────────
-  Replaces the 8-chip row. Collapses to a single pill that names the
-  active filter; the options live in a popover so they cost no page height.
+  A single pill that names the active filter; the options live in a popover
+  so they cost no page height.
 --------------------------------------------------------------------- */
 function CategoryFilter({ categories, value, onChange }) {
   const [open, setOpen] = useState(false)
@@ -222,11 +234,10 @@ function CategoryFilter({ categories, value, onChange }) {
 
   return (
     <div className="relative flex items-center gap-2" ref={wrapRef}>
-      {/* Clear button, only once something is actually filtered */}
       {isFiltered && (
         <button onClick={() => pick('all')}
-          className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-700 transition cursor-pointer">
-          <X className="w-3.5 h-3.5" /> Clear
+          className="flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-slate-700 cursor-pointer">
+          <X className="h-3.5 w-3.5" /> Clear
         </button>
       )}
 
@@ -234,23 +245,23 @@ function CategoryFilter({ categories, value, onChange }) {
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full border-2 pl-4 pr-3 py-2 text-sm font-semibold transition cursor-pointer ${
+        className={`flex items-center gap-2 rounded-full py-2 pl-4 pr-3 text-sm font-semibold transition cursor-pointer ${
           isFiltered
-            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-            : 'bg-white text-slate-700 border-slate-200 hover:border-violet-300 hover:text-violet-700'
+            ? 'bg-slate-950 text-white shadow-md'
+            : 'bg-white/60 text-slate-700 ring-1 ring-violet-200/70 backdrop-blur hover:bg-white/90 hover:text-violet-800'
         }`}>
         {isFiltered
           ? <span>{CAT_EMOJI[active.key] ? `${CAT_EMOJI[active.key]} ` : ''}{active.label}</span>
-          : <><SlidersHorizontal className="w-4 h-4" /><span>Filter</span></>}
-        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-          isFiltered ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+          : <><SlidersHorizontal className="h-4 w-4" /><span>Filter</span></>}
+        <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
+          isFiltered ? 'bg-white/20 text-white' : 'bg-violet-100 text-violet-600'
         }`}>{active.count}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div role="listbox"
-          className="filter-pop absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-violet-100 shadow-xl shadow-violet-100/50 p-2 z-40 max-h-[70vh] overflow-y-auto">
+          className="filter-pop absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-2xl bg-white/90 p-2 shadow-xl shadow-violet-950/10 ring-1 ring-violet-200/70 backdrop-blur-xl">
           {categories.map(cat => {
             const selected = cat.key === value
             return (
@@ -259,15 +270,15 @@ function CategoryFilter({ categories, value, onChange }) {
                 role="option"
                 aria-selected={selected}
                 onClick={() => pick(cat.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer text-left ${
-                  selected ? 'bg-violet-50 text-violet-800' : 'text-slate-600 hover:bg-slate-50'
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition cursor-pointer ${
+                  selected ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50'
                 }`}>
-                <span className="w-5 text-base flex-shrink-0">
+                <span className="w-5 flex-shrink-0 text-base">
                   {cat.key === 'all' ? '🗺️' : CAT_EMOJI[cat.key] || '•'}
                 </span>
                 <span className="flex-1 truncate">{cat.label}</span>
                 <span className="text-xs font-bold text-slate-400">{cat.count}</span>
-                {selected && <Check className="w-4 h-4 text-violet-700 flex-shrink-0" />}
+                {selected && <Check className="h-4 w-4 flex-shrink-0 text-violet-700" />}
               </button>
             )
           })}
@@ -277,84 +288,86 @@ function CategoryFilter({ categories, value, onChange }) {
   )
 }
 
+/* ── Trip card — photo carries the name, glass strip carries the facts ── */
 function TripCard({ trip }) {
-  const hasImage = !!trip.cover
+  const [imgFailed, setImgFailed] = useState(false)
   const primary = trip.categories?.[0]
   const gradient = CAT_GRADIENTS[primary] || 'from-violet-700 to-purple-900'
   const emoji = CAT_EMOJI[primary] || '🗺️'
   const duration = trip.duration_display || trip.duration || ''
-  const price = trip.price_per_person
-    ? `₹${Number(trip.price_per_person).toLocaleString('en-IN')}`
-    : trip.price || 'On Request'
+  const price = inr(trip.price_per_person) || inr(trip.price)
+  const showImage = trip.cover && !imgFailed
 
   return (
     <Link to={`/itinerary/${trip.slug}`}
-      className="group overflow-hidden rounded-[2rem] border border-violet-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer flex flex-col">
+      className="group flex flex-col overflow-hidden rounded-[1.5rem] bg-white/70 ring-1 ring-violet-200/60 backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-xl hover:shadow-violet-950/10 cursor-pointer">
 
-      <div className="relative h-56 overflow-hidden flex-shrink-0">
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+      <div className="relative aspect-[4/3] flex-shrink-0 overflow-hidden">
+        <div className={`absolute inset-0 grid place-items-center bg-gradient-to-br ${gradient}`}>
           <span className="text-6xl opacity-40">{emoji}</span>
         </div>
 
-        {hasImage && (
+        {showImage && (
           <img
             src={trip.cover}
             alt={trip.title}
             loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-110"
-            onError={e => { e.currentTarget.style.display = 'none' }}
+            decoding="async"
+            onError={() => setImgFailed(true)}
+            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
         {trip.tag && (
-          <div className="absolute top-4 left-4">
-            <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-              {trip.tag}
-            </span>
-          </div>
+          <span className="absolute left-3 top-3 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm">
+            {trip.tag}
+          </span>
         )}
 
         {trip.rating > 0 && (
-          <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-            <span className="text-xs font-bold text-white">{Number(trip.rating).toFixed(1)}</span>
-          </div>
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+            <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" />
+            {Number(trip.rating).toFixed(1)}
+          </span>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-5">
+        <div className="absolute inset-x-0 bottom-0 p-4">
           {trip.location && (
-            <p className="text-xs uppercase tracking-[0.15em] text-violet-200 truncate mb-1">
-              {trip.location}
+            <p className="mb-1 flex items-center gap-1 text-[11px] font-medium text-white/75">
+              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">{trip.location}</span>
             </p>
           )}
-          <h3 className="text-xl font-bold leading-snug text-white line-clamp-2">
+          <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
             {trip.title}
           </h3>
         </div>
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center justify-between text-sm mb-3">
-          <span className="text-slate-500">{duration}</span>
-          <span className="font-semibold text-violet-700">{price}</span>
+      <div className="flex flex-1 flex-col p-4">
+        <div className="flex items-center justify-between gap-2">
+          {duration
+            ? <span className="flex items-center gap-1 text-xs text-slate-500">
+                <Clock className="h-3.5 w-3.5 text-violet-500" />{duration}
+              </span>
+            : <span />}
+          <span className="text-sm font-black text-slate-950">
+            {price || 'On request'}
+            {price && <span className="text-[11px] font-medium text-slate-400"> / person</span>}
+          </span>
         </div>
 
         {trip.blurb && (
-          <p className="text-sm leading-relaxed text-slate-600 line-clamp-3 flex-1">
+          <p className="mt-2.5 line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">
             {trip.blurb}
           </p>
         )}
 
-        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 group-hover:text-violet-700 transition">
-            Explore
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </div>
-          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">
-            Small-group feel
-          </span>
+        <div className="mt-3 flex items-center gap-1.5 border-t border-violet-100 pt-3 text-xs font-bold text-violet-700">
+          Explore this trip
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
     </Link>
