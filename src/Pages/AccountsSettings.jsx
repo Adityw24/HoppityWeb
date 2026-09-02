@@ -55,8 +55,17 @@ export default function AccountSettingsPage() {
       )}
 
       <div className="max-w-3xl mx-auto px-4 pt-28 pb-20">
+        <div className="mb-5 flex justify-start">
+          <Link
+            to="/profile"
+            aria-label="Back to profile"
+            className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white hover:text-violet-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </div>
+
         <div className="w-full flex items-center gap-3 mb-6">
-         
           <div className="min-w-0">
             <h1 className="text-2xl font-black text-slate-900 mb-1">Account settings</h1>
             <p className="text-sm text-slate-500">Manage your details, privacy, and how you sign in.</p>
