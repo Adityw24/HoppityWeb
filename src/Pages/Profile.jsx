@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   LogOut, Camera, MapPin, Calendar, Users, Star,
   Bookmark, MessageSquare, Heart, Clock, Edit3,
-  Check, X, PenSquare, ArrowRight, Award, AlertTriangle
+  Check, X, PenSquare, ArrowRight, Award, AlertTriangle,
+  ArrowLeft
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { AVATAR_BUCKET, avatarPath } from '../lib/storage'
@@ -91,6 +92,11 @@ export default function ProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [toast, setToast] = useState(null) // { msg, type: 'ok'|'err' }
+
+  const goBack = () => {
+    if (window.history.length > 2) navigate(-1)
+    else navigate('/')
+  }
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth')
@@ -384,6 +390,17 @@ export default function ProfilePage() {
       )}
 
       <div className="max-w-3xl mx-auto px-4 pt-28 pb-20">
+        <div className="mb-5 flex justify-start">
+          <Link to="/">
+          <button
+            type="button"
+            aria-label="Back to home"
+            className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white hover:text-violet-700 cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          </Link>
+        </div>
 
         {/* Load errors — never fail silently again */}
         {loadErrors.length > 0 && (

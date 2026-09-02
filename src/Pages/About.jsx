@@ -230,6 +230,18 @@ export default function AboutPage() {
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E\")" }} />
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 text-center text-white">
+          <div className="mb-5 flex justify-start">
+            <Link
+              to="/"
+              aria-label="Back to home"
+              className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/15 hover:text-violet-200"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </Link>
+          </div>
+
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-300 mb-5">Our Story</p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.05] mb-6">
             Built by people who got lost<br className="hidden sm:block" /> in India and loved it.

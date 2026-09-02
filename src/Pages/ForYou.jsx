@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, MapPin, Clock, Star, RefreshCw, ArrowRight, Lock } from 'lucide-react'
+import { Sparkles, MapPin, Clock, Star, RefreshCw, ArrowRight, Lock, ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
@@ -110,13 +110,24 @@ export default function ForYouPage() {
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-20">
 
+
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
+            <Link to="/">
+            <button
+              type="button"
+              aria-label="Go back"
+              className="mb-5 grid h-11 w-11 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700 cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            </Link>
             <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 rounded-full px-4 py-1.5 text-sm font-bold mb-3">
               <Sparkles className="w-4 h-4" />
               {user ? `For ${user.user_metadata?.full_name?.split(' ')[0] || 'You'}` : 'For You'}
             </div>
+
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-950 mb-3">
               Your personalised feed
             </h1>

@@ -165,7 +165,7 @@ export default function Itineraries() {
             <Link to="/"
               aria-label="Back to home"
               className="mb-5 inline-grid h-11 w-11 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700">
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 cursor-pointer" />
             </Link>
 
             <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">

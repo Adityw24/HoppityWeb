@@ -79,13 +79,15 @@ export default function BlogPage() {
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
+            <Link to ="/">
             <button
-              onClick={goBack}
+              type="button"
               aria-label="Go back"
               className="mb-5 grid h-11 w-11 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700 cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
+            </Link>
 
             <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
               Travel stories

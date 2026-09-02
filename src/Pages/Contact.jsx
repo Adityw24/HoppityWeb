@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, MessageSquare, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
+import { Mail, MessageSquare, MapPin, Clock, Send, CheckCircle, ArrowLeft } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
@@ -114,10 +114,21 @@ export default function ContactPage() {
     <div className="min-h-screen bg-[#f7f1ff] text-slate-900">
       <Navbar />
 
+
+
       {/* ── Header — same lilac + violet glow as the rest of the site ── */}
       <section className="relative overflow-hidden pt-24 pb-8 md:pt-28 md:pb-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(124,58,237,0.12),transparent)]" />
         <div className="relative mx-auto max-w-3xl px-6 text-center">
+
+          <Link
+            to="/"
+            aria-label="Go back"
+            className="mb-5 grid h-11 w-11 place-items-center rounded-full bg-white/50 text-slate-600 ring-1 ring-violet-200/70 backdrop-blur transition hover:bg-white/80 hover:text-violet-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-4 py-2 text-xs font-semibold text-violet-800 shadow-sm mb-5">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-600 inline-block" />
             Get in touch
