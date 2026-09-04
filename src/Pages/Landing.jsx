@@ -39,6 +39,11 @@ import { setPageSEO } from '../lib/seo'
      trip never appears twice — delete the filter on HIDE_FEATURED
      below if you'd rather show them in both places.
    • Empty the array and the top-rated live trips take over.
+
+   The masthead is a horizontal strip: a swipe drags the photographs
+   sideways and releases onto the next one, so it reads as a carousel
+   rather than a cross-fade. It clamps at both ends instead of
+   wrapping — wrapping would rewind the whole strip in one frame.
    ───────────────────────────────────────────────────────────── */
 const MAX_FEATURED = 5
 const FEATURED_SLUGS = [
@@ -51,6 +56,11 @@ const FEATURED_SLUGS = [
 ]
 const SLIDE_MS = 6000
 const HIDE_FEATURED_IN_GRID = true    // keep the masthead trips out of the grid below
+
+/* Six tiles, not five: two columns on a phone and three on a tablet both
+   divide into six cleanly, so the last row is never half empty. Desktop
+   still shows one row of five — the sixth tile is hidden there. */
+const GRID_COUNT = 6
 
 /* Detail routes. Change ONLY these two lines if a path ever differs. */
 const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}`
@@ -116,6 +126,11 @@ const PROMISES = [
   { icon: Headphones, title: 'Always reachable', blurb: 'A real person on WhatsApp, all trip.' },
 ]
 
+/* Six across two or three columns; the sixth is dropped on the five-wide
+   desktop row so that layout is untouched. */
+const TILE_GRID = 'tile-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 lg:[&>*:nth-child(6)]:hidden'
+const SKELETONS = [0, 1, 2, 3, 4, 5]
+
 /* ── Compact tile — smaller than before, five to a row on desktop ───── */
 function MediaCard({ href, image, title, place, meta, price, priceSuffix, rating, badge }) {
   const [failed, setFailed] = useState(false)
@@ -173,6 +188,8 @@ export default function LandingPage() {
   const [loadingFeatured, setLoadingFeatured] = useState(FEATURED_SLUGS.length > 0)
   const [slide, setSlide] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [drag, setDrag] = useState(0)          // live finger offset in px
+  const [dragging, setDragging] = useState(false)
 
   useEffect(() => {
     setPageSEO({
@@ -227,7 +244,7 @@ export default function LandingPage() {
       try {
         const { data, error } = await supabase.from('Properties').select('*').limit(12)
         if (error || cancelled) return
-        setStays((data || []).map(normaliseStay).filter(s => s.isLive && s.cover).slice(0, 5))
+        setStays((data || []).map(normaliseStay).filter(s => s.isLive && s.cover).slice(0, GRID_COUNT))
       } finally {
         if (!cancelled) setLoadingStays(false)
       }
@@ -255,50 +272,82 @@ export default function LandingPage() {
 
   useEffect(() => { if (slide >= featured.length) setSlide(0) }, [featured.length, slide])
 
-  // Preload the next cover so the swap never lands on a blank frame.
+  // Preload both neighbours so a swipe either way never lands on a blank frame.
   useEffect(() => {
-    const next = featured[(slide + 1) % (featured.length || 1)]
-    if (next?.cover) { const img = new Image(); img.src = next.cover }
+    ;[featured[slide + 1], featured[slide - 1]].forEach(t => {
+      if (t?.cover) { const img = new Image(); img.src = t.cover }
+    })
   }, [slide, featured])
 
+  /* Autoplay ping-pongs — forward to the last trip, then back. Every step is a
+     single-slide move, so the strip never rewinds across itself. */
+  const slideRef = useRef(0)
+  const dirRef = useRef(1)
+  useEffect(() => { slideRef.current = slide }, [slide])
+
   useEffect(() => {
-    if (featured.length <= 1 || paused) return
+    if (featured.length <= 1 || paused || dragging) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const id = setInterval(() => setSlide(s => (s + 1) % featured.length), SLIDE_MS)
+    const last = featured.length - 1
+    const id = setInterval(() => {
+      let d = dirRef.current
+      if (slideRef.current + d > last) d = -1
+      if (slideRef.current + d < 0) d = 1
+      dirRef.current = d
+      setSlide(s => Math.min(last, Math.max(0, s + d)))
+    }, SLIDE_MS)
     return () => clearInterval(id)
-  }, [featured.length, paused])
+  }, [featured.length, paused, dragging])
 
-  const go = (dir) => setSlide(s => (s + dir + featured.length) % featured.length)
+  const go = (dir) => setSlide(s => Math.min(featured.length - 1, Math.max(0, s + dir)))
 
-  /* Swipe on the masthead. A horizontal drag changes slide; a vertical one is
-     left alone so the page still scrolls. `swiped` blocks the click that would
-     otherwise fire on the full-panel link when the finger lifts. */
+  /* Swipe on the masthead. The axis is locked on the first real movement: a
+     horizontal drag takes the strip with it, a vertical one is handed straight
+     back to the page scroll. `swiped` blocks the click that would otherwise
+     fire on the full-panel link when the finger lifts. */
+  const heroRef = useRef(null)
   const touchX = useRef(null)
   const touchY = useRef(null)
-  const dragX = useRef(0)
+  const axis = useRef(null)
+  const dragRef = useRef(0)
   const swiped = useRef(false)
 
   const onTouchStart = (e) => {
+    if (featured.length <= 1) return
     touchX.current = e.touches[0].clientX
     touchY.current = e.touches[0].clientY
-    dragX.current = 0
+    axis.current = null
+    dragRef.current = 0
     swiped.current = false
   }
+
   const onTouchMove = (e) => {
     if (touchX.current == null) return
     const dx = e.touches[0].clientX - touchX.current
     const dy = e.touches[0].clientY - touchY.current
-    if (Math.abs(dy) > Math.abs(dx)) return      // vertical scroll wins
-    dragX.current = dx
-    if (Math.abs(dx) > 8) swiped.current = true
+    if (!axis.current) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return
+      axis.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      if (axis.current === 'x') setDragging(true)
+    }
+    if (axis.current !== 'x') return
+    swiped.current = true
+    const stuck = (slide === 0 && dx > 0) || (slide === featured.length - 1 && dx < 0)
+    dragRef.current = stuck ? dx * 0.3 : dx     // resistance at the two ends
+    setDrag(dragRef.current)
   }
+
   const onTouchEnd = () => {
-    if (featured.length > 1 && Math.abs(dragX.current) > 45) {
-      go(dragX.current < 0 ? 1 : -1)
+    const w = heroRef.current?.clientWidth || 1
+    if (axis.current === 'x' && Math.abs(dragRef.current) > Math.min(72, w * 0.18)) {
+      go(dragRef.current < 0 ? 1 : -1)
     }
     touchX.current = null
     touchY.current = null
-    dragX.current = 0
+    axis.current = null
+    dragRef.current = 0
+    setDrag(0)
+    setDragging(false)
   }
 
   const [testimonials, setTestimonials] = useState([
@@ -412,6 +461,7 @@ export default function LandingPage() {
         .tile-grid > *:nth-child(3) { animation-delay: 120ms }
         .tile-grid > *:nth-child(4) { animation-delay: 180ms }
         .tile-grid > *:nth-child(5) { animation-delay: 240ms }
+        .tile-grid > *:nth-child(6) { animation-delay: 300ms }
 
         /* Review rail — keep cards fully visible with no soft fade or blur */
         .review-card {
@@ -439,6 +489,7 @@ export default function LandingPage() {
         {/* ═══ FOLD 1 — the masthead IS the featured trip ═════════════ */}
         <section className="px-3 pt-24 sm:px-5 sm:pt-28">
           <div
+            ref={heroRef}
             className="relative mx-auto w-full max-w-[1500px] touch-pan-y select-none overflow-hidden rounded-[2rem] bg-violet-950"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
@@ -446,28 +497,36 @@ export default function LandingPage() {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
-{/* Only real trips are ever painted here. Until they arrive the panel
+            {/* Only real trips are ever painted here. Until they arrive the panel
                 holds a violet wash, so no placeholder photo flashes on load. */}
             <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-violet-800 to-fuchsia-800" />
 
-            {featured.map((t, i) => (
+            {/* One horizontal strip: it tracks the finger during a drag and settles
+                on a slide when released. `flex-none w-full` keeps each panel a full
+                frame wide, so -slide * 100% always lands exactly on a photograph. */}
+            <div className="absolute inset-0 overflow-hidden">
               <div
-                key={t.id}
-                aria-hidden={i !== slide}
-                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-out ${
-                  i === slide ? 'opacity-100' : 'opacity-0'
-                }`}
+                className="flex h-full w-full will-change-transform"
+                style={{
+                  transform: `translate3d(calc(${-slide * 100}% + ${drag}px), 0, 0)`,
+                  transition: dragging ? 'none' : 'transform 620ms cubic-bezier(.22,.68,.36,1)',
+                }}
               >
-                <img
-                  src={t.cover}
-                  alt=""
-                  aria-hidden="true"
-                  fetchpriority={i === 0 ? 'high' : 'auto'}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  className={`h-full w-full object-cover object-center ${i === slide ? 'hero-kenburns' : 'scale-105'}`}
-                />
+                {featured.map((t, i) => (
+                  <div key={t.id} aria-hidden={i !== slide} className="h-full w-full flex-none overflow-hidden">
+                    <img
+                      src={t.cover}
+                      alt=""
+                      aria-hidden="true"
+                      draggable="false"
+                      fetchpriority={i === 0 ? 'high' : 'auto'}
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      className={`h-full w-full object-cover object-center ${i === slide && !dragging ? 'hero-kenburns' : ''}`}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
 
             {/* Side wash is desktop-only. On a phone the copy sits at the
                 bottom, so a full-panel scrim just hides the photograph. */}
@@ -567,15 +626,19 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Slide controls, only when more than one trip is featured */}
+            {/* Slide controls, only when more than one trip is featured.
+                The strip clamps rather than wraps, so the arrows go dim at
+                either end instead of jumping the whole way back. */}
             {featured.length > 1 && (
               <>
                 <button type="button" onClick={() => go(-1)} aria-label="Previous featured trip"
-                  className="absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer sm:grid">
+                  disabled={slide === 0}
+                  className="absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer disabled:cursor-default disabled:opacity-25 sm:grid">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button type="button" onClick={() => go(1)} aria-label="Next featured trip"
-                  className="absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer sm:grid">
+                  disabled={slide === featured.length - 1}
+                  className="absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 cursor-pointer disabled:cursor-default disabled:opacity-25 sm:grid">
                   <ChevronRight className="h-5 w-5" />
                 </button>
                 <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 sm:bottom-4 sm:right-5">
@@ -592,7 +655,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══ FOLD 2 — smaller tiles, five to a row ══════════════════ */}
+        {/* ═══ FOLD 2 — six tiles on a phone, five to a row on desktop ═ */}
         <section id="explore" className="mx-auto w-full max-w-[1500px] scroll-mt-24 px-5 pt-12 sm:px-8 lg:px-10">
 
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -614,10 +677,10 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div key={gridTrips.length} className="tile-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+          <div key={gridTrips.length} className={TILE_GRID}>
             {loadingTrips && gridTrips.length === 0
-              ? [0, 1, 2, 3, 4].map(i => <CardSkeleton key={i} />)
-              : gridTrips.slice(0, 5).map(t => (
+              ? SKELETONS.map(i => <CardSkeleton key={i} />)
+              : gridTrips.slice(0, GRID_COUNT).map(t => (
                   <MediaCard
                     key={t.id}
                     href={tripHref(t.slug)}
@@ -648,9 +711,9 @@ export default function LandingPage() {
                 </Link>
               </div>
 
-              <div key={stays.length} className="tile-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+              <div key={stays.length} className={TILE_GRID}>
                 {loadingStays && stays.length === 0
-                  ? [0, 1, 2, 3, 4].map(i => <CardSkeleton key={i} />)
+                  ? SKELETONS.map(i => <CardSkeleton key={i} />)
                   : stays.map(s => (
                       <MediaCard
                         key={s.id}
