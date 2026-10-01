@@ -53,6 +53,7 @@ const FEATURED_SLUGS = [
   'ziro-festival-2026',
   'nagaland-hornbill-festival-tour-dimapur-kohima',
   'ayodhya-prayagraj-varanasi-a-spiritual-journey-dev-deepawali-experience',
+  'mizoram-all-women-expedition',
   'andaman-experience-by-hoppity',
   // 'your-fourth-best-trip-slug',
   // 'your-fifth-best-trip-slug',
@@ -66,6 +67,9 @@ const HIDE_FEATURED_IN_GRID = true    // keep the masthead trips out of the grid
    divide into six cleanly, so the last row is never half empty. Desktop
    still shows one row of five — the sixth tile is hidden there. */
 const GRID_COUNT = 6
+
+/* Columns fetched for trips — shared by the grid and masthead queries. */
+const TRIP_COLUMNS = 'id,slug,title,location,duration,duration_display,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating,is_women_only'
 
 /* Detail routes. Change ONLY these two lines if a path ever differs. */
 const tripHref = (slug) => `/itinerary/${String(slug || '').replace(/^\/+/, '')}`
@@ -96,6 +100,7 @@ function normaliseTrip(row) {
   const images = row.images?.length ? row.images : (row.cover_image_url ? [row.cover_image_url] : [])
   return {
     ...row,
+    isWomenOnly: Boolean(row.is_women_only),
     cover: images.find(u => !isVideo(u)) || (isVideo(row.cover_image_url) ? null : row.cover_image_url) || null,
   }
 }
@@ -137,7 +142,7 @@ const TILE_GRID = 'tile-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:g
 const SKELETONS = [0, 1, 2, 3, 4, 5]
 
 /* ── Compact tile — smaller than before, five to a row on desktop ───── */
-function MediaCard({ href, image, title, place, meta, price, priceSuffix, rating, badge }) {
+function MediaCard({ href, image, title, place, meta, price, priceSuffix, rating, badge, womenOnly }) {
   const [failed, setFailed] = useState(false)
   const src = failed ? null : image
   return (
@@ -169,6 +174,11 @@ function MediaCard({ href, image, title, place, meta, price, priceSuffix, rating
       )}
 
       <div className="absolute inset-x-0 bottom-0 p-3">
+        {womenOnly && (
+          <span className="women-pill mb-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+            <span aria-hidden="true">♀</span> Women only
+          </span>
+        )}
         <h3 className="line-clamp-2 text-[13px] font-bold leading-tight text-white">{title}</h3>
         <p className="mt-1 flex min-w-0 items-center gap-1 text-[10px] text-white/75">
           {place && <><MapPin className="h-2.5 w-2.5 flex-shrink-0" /><span className="truncate">{place}</span></>}
@@ -212,7 +222,7 @@ export default function LandingPage() {
       try {
         const { data, error } = await supabase
           .from('Itineraries')
-          .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating')
+          .select(TRIP_COLUMNS)
           .eq('is_active', true)
           .order('rating', { ascending: false, nullsFirst: false })
           .limit(12)
@@ -230,7 +240,7 @@ export default function LandingPage() {
       try {
         const { data, error } = await supabase
           .from('Itineraries')
-          .select('id,slug,title,location,duration,duration_display,price,price_per_person,tag,blurb,cover_image_url,images,is_active,rating')
+          .select(TRIP_COLUMNS)
           .in('slug', FEATURED_SLUGS)
           .eq('is_active', true)
         if (error || cancelled) return
@@ -466,6 +476,13 @@ export default function LandingPage() {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_0%,rgba(124,58,237,0.10),transparent_70%)]" />
 
       <style>{`
+        /* Women-only: pink → Hoppity violet (matches TripDetails) */
+        .women-pill {
+          background: linear-gradient(135deg, #ec4899, #a855f7 55%, #7c3aed);
+          color: white;
+          box-shadow: 0 6px 20px rgba(236,72,153,0.30);
+        }
+
         /* Hero copy rises in, one line after another, each time the trip changes */
         @keyframes heroUp {
           from { opacity: 0; transform: translateY(16px); }
@@ -595,10 +612,18 @@ export default function LandingPage() {
                 </div>
               ) : (
               <div key={active?.id || 'hero'} className="hero-copy max-w-2xl">
-                <span className="pointer-events-auto inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/25 backdrop-blur sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
-                  <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-300 sm:h-2 sm:w-2" />
-                  <span className="truncate">{active?.tag || 'Featured departure'} · Discover Real India</span>
-                </span>
+                {/* One row so the staggered entrance (nth-child) stays the same */}
+                <div className="flex max-w-full flex-wrap items-center gap-2">
+                  {active?.isWomenOnly && (
+                    <span className="women-pill pointer-events-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+                      <span aria-hidden="true">♀</span> Women-only trip
+                    </span>
+                  )}
+                  <span className="pointer-events-auto inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/25 backdrop-blur sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-300 sm:h-2 sm:w-2" />
+                    <span className="truncate">{active?.tag || 'Featured departure'} · Discover Real India</span>
+                  </span>
+                </div>
 
                 <h1 className="mt-3 line-clamp-3 text-2xl font-black leading-[1.12] tracking-tight text-white drop-shadow-lg sm:mt-5 sm:line-clamp-none sm:text-4xl sm:leading-[1.08] lg:text-5xl">
                   {active ? active.title : 'Journeys across India, planned by people who have been there.'}
@@ -723,6 +748,7 @@ export default function LandingPage() {
                     priceSuffix=" pp"
                     rating={Number(t.rating) || 0}
                     badge={t.tag}
+                    womenOnly={t.isWomenOnly}
                   />
                 ))}
           </div>

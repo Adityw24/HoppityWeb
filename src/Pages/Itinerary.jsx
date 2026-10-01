@@ -46,6 +46,7 @@ function normalise(row) {
     ...row,
     image:      images,
     media,
+    isWomenOnly: Boolean(row.is_women_only),
     cityStops:  row.city_stops    || [],
     itinerary:  row.itinerary_days || [],
     highlights: row.highlights    || [],
@@ -75,7 +76,7 @@ export default function TripDetails() {
     if (!slug) { setLoading(false); return; }
     supabase
       .from('Itineraries')
-      .select('id,slug,title,location,state,category,difficulty,duration,duration_display,price,price_per_person,tag,blurb,route,city_stops,meeting_point,highlights,inclusions,exclusions,tips,itinerary_days,images,cover_image_url,video_url,rating,review_count,max_group_size,created_at')
+      .select('id,slug,title,location,state,category,difficulty,duration,duration_display,price,price_per_person,tag,blurb,route,city_stops,meeting_point,highlights,inclusions,exclusions,tips,itinerary_days,images,cover_image_url,video_url,rating,review_count,max_group_size,is_women_only,created_at')
       .eq('slug', slug)
       .eq('is_active', true)
       .single()
@@ -215,6 +216,13 @@ export default function TripDetails() {
               className="w-full h-full object-cover transition duration-500" />
           )}
 
+          {/* Women-only ribbon on the gallery corner */}
+          {trip.isWomenOnly && (
+            <div className="women-pill absolute top-3 left-3 z-20 pointer-events-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg">
+              <span aria-hidden="true">♀</span> Women only
+            </div>
+          )}
+
           {/* Sound indicator — reel style. Purely visual; tap the video to toggle. */}
           {currentIsVideo && (
             <div className="absolute bottom-3 right-3 z-20 pointer-events-none flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur px-2.5 py-1.5">
@@ -273,6 +281,22 @@ export default function TripDetails() {
           animation: shimmer 3s linear infinite;
           color: white;
         }
+        /* Women-only: pink → signature violet */
+        .women-pill {
+          background: linear-gradient(135deg, #ec4899, #a855f7 55%, #7c3aed);
+          color: white;
+          box-shadow: 0 6px 20px rgba(236,72,153,0.25);
+        }
+        .women-card {
+          background: linear-gradient(135deg, rgba(236,72,153,0.07), rgba(124,58,237,0.07));
+          border: 1px solid rgba(236,72,153,0.25);
+        }
+        .women-text {
+          background: linear-gradient(135deg, #db2777, #7c3aed);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
         @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
         @keyframes scaleIn  { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
@@ -325,11 +349,21 @@ export default function TripDetails() {
                 {trip.category && <span className="text-slate-500">{trip.category}</span>}
               </div>
 
-              {/* Tag pill */}
-              {trip.tag && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass-card text-xs sm:text-sm fade-up">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 animate-pulse" />
-                  <span className="text-gray-700">{trip.tag}</span>
+              {/* Tag pill + Women-only pill */}
+              {(trip.tag || trip.isWomenOnly) && (
+                <div className="flex flex-wrap items-center gap-2 fade-up">
+                  {trip.isWomenOnly && (
+                    <div className="women-pill inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold">
+                      <span aria-hidden="true">♀</span>
+                      <span>Women-only trip</span>
+                    </div>
+                  )}
+                  {trip.tag && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass-card text-xs sm:text-sm">
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 animate-pulse" />
+                      <span className="text-gray-700">{trip.tag}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -376,7 +410,7 @@ export default function TripDetails() {
                   )}
                   {trip.max_group_size && (
                     <span className="text-[11px] sm:text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1.5">
-                      <Users className="w-3 h-3" /> Max {trip.max_group_size} people
+                      <Users className="w-3 h-3" /> Max {trip.max_group_size} {trip.isWomenOnly ? 'women' : 'people'}
                     </span>
                   )}
                   {trip.rating > 0 && (
@@ -386,6 +420,17 @@ export default function TripDetails() {
                     </span>
                   )}
                 </div>
+
+                {/* Women-only note */}
+                {trip.isWomenOnly && (
+                  <div className="women-card flex items-start gap-3 rounded-2xl px-4 py-3 max-w-lg">
+                    <span aria-hidden="true" className="women-text text-lg font-bold leading-none mt-0.5">♀</span>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                      <span className="font-semibold women-text">All-girls group.</span>{' '}
+                      This trip is exclusively for women travellers, so you'll travel with a women-only group.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* CTAs */}
@@ -588,7 +633,9 @@ export default function TripDetails() {
             Ready to explore <span className="gradient-text">{trip.location}</span>?
           </h2>
           <p className="text-gray-500 text-xs sm:text-sm md:text-base mb-7 sm:mb-8 opacity-0 fade-up">
-            Limited slots available. Reach out to secure your adventure.
+            {trip.isWomenOnly
+              ? 'Limited slots in this women-only group. Reach out to secure your spot.'
+              : 'Limited slots available. Reach out to secure your adventure.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-center opacity-0 fade-up">
             <button onClick={() => navigate(`/booking/${trip.slug}`)}

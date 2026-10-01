@@ -27,6 +27,7 @@ import BudgetProperty from './Pages/BudgetPropertyPage'
 import FlagshipProperty from './Pages/FlagshipProperty'
 import SettingsPage from './Pages/AccountsSettings'
 import Stays from './Pages/Stays'
+import Download from './Pages/Download'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -72,6 +73,7 @@ const App = () => (
         <Route path="/stays/flagship/:slug"   element={<FlagshipProperty />} />
         <Route path ="/settings" element={<SettingsPage />} />
         <Route path="/stays" element={<Stays />} />
+        <Route path="/download" element={<Download />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>
