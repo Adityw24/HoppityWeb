@@ -13,6 +13,7 @@ import poojaImg from "../assets/pooja.jpeg"
 import diwakarImg from "../assets/diwakar.jpeg"
 import startuplogo from "../assets/startuplogo.png"
 import dpiitlogo from "../assets/DPIIT.png"
+import hoppityLogo from "../assets/logo1.png"   // the violet H with the map pin
 import { setPageSEO } from "../lib/seo"
 
 /* ─────────────────────────────────────────────────────────────
@@ -46,6 +47,18 @@ const WHY = [
   { icon: ShieldCheck, label: 'Final price before you pay' },
   { icon: Headphones, label: 'A real person on WhatsApp' },
 ]
+
+/* ── The logo as an app icon: white rounded tile, violet H inside.
+   `className` sets the size; the corner radius scales with it. ── */
+function AppIcon({ className = 'h-10 w-10', shadow = true }) {
+  return (
+    <span className={`inline-grid flex-shrink-0 place-items-center rounded-[22%] bg-white ring-1 ring-violet-200/70 ${
+      shadow ? 'shadow-lg shadow-violet-900/20' : ''
+    } ${className}`}>
+      <img src={hoppityLogo} alt="" aria-hidden="true" draggable="false" className="h-[78%] w-[78%] object-contain" />
+    </span>
+  )
+}
 
 /* ── Store badge — black, like the official ones ──────────────── */
 function StoreBadge({ href, icon: Icon, small, big }) {
@@ -225,13 +238,16 @@ export default function Download() {
 
                 {/* 1 — Discover */}
                 <Panel>
-                  <div className="relative z-10 flex items-center justify-center gap-1.5 pt-5 text-[11px] font-black text-violet-700">
-                    <span className="grid h-5 w-5 place-items-center rounded-md bg-violet-600 text-[10px] text-white">H</span> Hoppity
+                  <div className="relative z-10 flex items-center justify-center gap-1.5 pt-5 text-[12px] font-black text-violet-700">
+                    <img src={hoppityLogo} alt="" aria-hidden="true" className="h-6 w-6 object-contain" /> Hoppity
                   </div>
                   <div className="-mt-2"><PanelHead title="Discover" accent="Real India" sub="Northeast festivals, Himalayan treks, wildlife and slow coastal stays." /></div>
                   <div className="relative z-10 mx-auto mt-auto w-[62%] translate-y-6">
                     <Phone>
                       <div className="p-2 pt-7">
+                        <div className="mb-1.5 flex items-center gap-1 text-[9px] font-black text-violet-700">
+                          <img src={hoppityLogo} alt="" className="h-3.5 w-3.5 object-contain" /> Hoppity
+                        </div>
                         <div className="flex items-center gap-1 rounded-full bg-white px-2 py-1.5 text-[8px] text-slate-400 ring-1 ring-violet-200/60">
                           <Search className="h-2.5 w-2.5" /> Where to next?
                         </div>
@@ -255,7 +271,10 @@ export default function Download() {
                   <div className="bob relative z-10 mx-auto mt-auto w-[62%] translate-y-6" style={{ '--r': '-4deg' }}>
                     <Phone>
                       <div className="p-2 pt-7">
-                        <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400">Booking summary</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400">Booking summary</p>
+                          <img src={hoppityLogo} alt="" className="h-3.5 w-3.5 object-contain" />
+                        </div>
                         <div className="mt-1.5 overflow-hidden rounded-xl bg-white ring-1 ring-violet-200/60">
                           <div className="aspect-[16/9] bg-violet-200">
                             {t(1)?.cover && <img src={t(1).cover} alt="" className="h-full w-full object-cover" />}
@@ -291,7 +310,7 @@ export default function Download() {
                         <div className="mt-3 space-y-1.5">
                           {[t(2), t(3), t(4)].map((trip, i) => (
                             <div key={i} className="flex gap-1.5 rounded-xl bg-white/90 p-1.5 backdrop-blur">
-                              <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-md bg-violet-600 text-[8px] font-black text-white">H</span>
+                              <AppIcon className="h-5 w-5" shadow={false} />
                               <div className="min-w-0">
                                 <p className="text-[7px] font-bold text-slate-900">{i === 0 ? 'Seats just opened' : i === 1 ? 'Only 3 seats left' : 'New for this season'}</p>
                                 <p className="truncate text-[7px] text-slate-600">{trip?.title || 'A new Hoppity trip'}</p>
@@ -309,7 +328,10 @@ export default function Download() {
 
                 {/* 4 — Why us */}
                 <Panel variant="brand">
-                  <PanelHead dark title="Why travellers" accent="choose Hoppity" />
+                  <div className="relative z-10 flex justify-center pt-5">
+                    <AppIcon className="h-11 w-11" />
+                  </div>
+                  <div className="-mt-3"><PanelHead dark title="Why travellers" accent="choose Hoppity" /></div>
                   <div className="relative z-10 mt-1 flex justify-center gap-0.5 text-yellow-300">
                     {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
                   </div>
@@ -346,16 +368,22 @@ export default function Download() {
                     </div>
                     <span className="text-[10px] font-semibold text-slate-700">Join our travellers</span>
                   </div>
-                  <div className="relative z-10 mt-auto p-4">
-                    <p className="line-clamp-2 text-sm font-black leading-tight text-white">{t(3)?.title || 'Your next journey'}</p>
-                    <p className="mt-1 flex items-center gap-1 text-[10px] text-white/80"><MapPin className="h-3 w-3" />{t(3)?.location || 'India'}</p>
+                  <div className="relative z-10 mt-auto flex items-end gap-2.5 p-4">
+                    <AppIcon className="h-10 w-10" />
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 text-sm font-black leading-tight text-white">{t(3)?.title || 'Your next journey'}</p>
+                      <p className="mt-1 flex items-center gap-1 text-[10px] text-white/80"><MapPin className="h-3 w-3" />{t(3)?.location || 'India'}</p>
+                    </div>
                   </div>
                 </Panel>
               </div>
 
               {/* ── Title block under the screens, like the reference ── */}
               <div className="dl-title relative mt-10 px-5 text-center sm:mt-14">
-                <h1 className="text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+                <div className="flex justify-center">
+                  <AppIcon className="h-20 w-20 shadow-2xl shadow-violet-600/30 sm:h-24 sm:w-24" />
+                </div>
+                <h1 className="mt-5 text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
                   <span className="bg-gradient-to-r from-violet-700 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">Hoppity</span>{' '}
                   <span className="text-slate-950">App</span>
                 </h1>
@@ -368,9 +396,13 @@ export default function Download() {
                 <p className="mt-4 text-xs text-slate-400">Free to download · iOS &amp; Android</p>
               </div>
 
-              {/* Floating brand discs, standing in for the reference's coins */}
-              <span aria-hidden="true" className="bob pointer-events-none absolute bottom-24 left-[8%] hidden h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xl font-black text-white shadow-xl shadow-violet-500/40 lg:grid" style={{ '--r': '-14deg' }}>H</span>
-              <span aria-hidden="true" className="bob pointer-events-none absolute bottom-44 right-[10%] hidden h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-fuchsia-500 to-violet-600 text-sm font-black text-white shadow-xl shadow-fuchsia-500/40 lg:grid" style={{ '--r': '18deg', animationDelay: '1.2s' }}>H</span>
+              {/* Floating logo tiles, standing in for the reference's coins */}
+              <span aria-hidden="true" className="bob pointer-events-none absolute bottom-24 left-[8%] hidden lg:block" style={{ '--r': '-14deg' }}>
+                <AppIcon className="h-16 w-16 shadow-xl shadow-violet-500/30" />
+              </span>
+              <span aria-hidden="true" className="bob pointer-events-none absolute bottom-44 right-[10%] hidden lg:block" style={{ '--r': '16deg', animationDelay: '1.2s' }}>
+                <AppIcon className="h-11 w-11 shadow-xl shadow-fuchsia-500/30" />
+              </span>
             </div>
           </div>
         </section>
@@ -381,14 +413,21 @@ export default function Download() {
             {hero?.cover && <img src={hero.cover} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-violet-950/88 to-fuchsia-900/75" />
             <div className="relative flex flex-col gap-6 p-6 text-white sm:p-9 lg:flex-row lg:items-center lg:justify-between lg:p-10">
-              <div>
-                <h2 className="text-2xl font-black leading-tight tracking-tight sm:text-3xl">Rather use the browser?</h2>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-violet-200">Every trip and stay is on the website too.</p>
+              <div className="flex items-center gap-4 sm:gap-5">
+                <AppIcon className="h-16 w-16 sm:h-20 sm:w-20" />
+                <div>
+                  <h2 className="text-2xl font-black leading-tight tracking-tight sm:text-3xl">Take Hoppity with you</h2>
+                  <p className="mt-1.5 max-w-md text-sm leading-relaxed text-violet-200">
+                    Free on iPhone and Android.{' '}
+                    <Link to="/itineraries" className="inline-flex items-center gap-1 font-semibold text-white underline-offset-4 hover:underline">
+                      Or browse on the web <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </p>
+                </div>
               </div>
-              <Link to="/itineraries"
-                className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-7 py-3.5 text-base font-bold text-slate-950 shadow transition hover:-translate-y-0.5 hover:bg-violet-50">
-                Browse trips <ArrowRight className="h-4 w-4" />
-              </Link>
+              <div className="flex flex-wrap gap-3">
+                {stores.map(s => <StoreBadge key={s.key} {...s} />)}
+              </div>
             </div>
           </div>
         </section>
