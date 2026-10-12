@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import logo from '../assets/logo1.png'
@@ -15,14 +15,17 @@ const getAuthRedirectUrl = () => {
 export default function AuthPage() {
   const [tab, setTab] = useState('signin')
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
+  const requestedReturnTo = location.state?.returnTo || new URLSearchParams(location.search).get('next') || '/'
+  const returnTo = requestedReturnTo.startsWith('/') && !requestedReturnTo.startsWith('//') ? requestedReturnTo : '/'
 
   // If already signed in, redirect to the homepage.
   useEffect(() => {
-    if (user) navigate('/', { replace: true })
-  }, [user, navigate])
+    if (user) navigate(returnTo, { replace: true })
+  }, [user, navigate, returnTo])
 
-  const onSuccess = () => navigate('/', { replace: true })
+  const onSuccess = () => navigate(returnTo, { replace: true })
 
   return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center px-4 py-12">
@@ -38,7 +41,7 @@ export default function AuthPage() {
 
           {/* Google — most prominent, top of card */}
           <div className="p-6 pb-4">
-            <GoogleButton />
+            <GoogleButton returnTo={returnTo} />
           </div>
 
           {/* Divider */}
@@ -86,7 +89,7 @@ export default function AuthPage() {
 }
 
 // ── Google ────────────────────────────────────────────────────────────
-function GoogleButton() {
+function GoogleButton({ returnTo }) {
   const [loading, setLoading] = useState(false)
 
   const signIn = async () => {
@@ -94,7 +97,7 @@ function GoogleButton() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: getAuthRedirectUrl(),
+        redirectTo: `${getAuthRedirectUrl()}/auth?next=${encodeURIComponent(returnTo)}`,
         queryParams: { prompt: 'select_account' },
       },
     })

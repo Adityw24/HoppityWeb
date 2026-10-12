@@ -630,7 +630,7 @@ export default function TripDetails() {
       <section className="py-14 sm:py-20 bg-[#f8f5ff]">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 text-center">
           <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-4 opacity-0 fade-up">
-            Ready to explore <span className="gradient-text">{trip.location}</span>?
+            Ready to explore <span className="gradient-text">{trip.title}</span>?
           </h2>
           <p className="text-gray-500 text-xs sm:text-sm md:text-base mb-7 sm:mb-8 opacity-0 fade-up">
             {trip.isWomenOnly
@@ -638,7 +638,7 @@ export default function TripDetails() {
               : 'Limited slots available. Reach out to secure your adventure.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-center opacity-0 fade-up">
-            <button onClick={() => navigate(`/booking/${trip.slug}`)}
+            <button onClick={() => navigate(`/checkout/${trip.slug}`)}
               className="shimmer-button w-full sm:w-auto px-6 py-3 text-sm sm:px-10 sm:py-4 sm:text-base rounded-full font-semibold shadow-xl cursor-pointer">
               Book Your Adventure
             </button>

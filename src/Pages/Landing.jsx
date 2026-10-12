@@ -7,6 +7,7 @@ import {
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa"
 import { supabase } from "../lib/supabase"
 import Navbar from "../components/Navbar"
+import PartnerDecisionBanner from "../components/PartnerDecisionBanner"
 import subhagImg from "../assets/subhag.jpeg"
 import pallaviImg from "../assets/pallavi1.jpeg"
 import divyanshImg from "../assets/divyansh.jpeg"
@@ -533,6 +534,9 @@ export default function LandingPage() {
       `}</style>
 
       <Navbar />
+
+      {/* "Your partner application was approved / needs an update" — signed-in users only */}
+      <PartnerDecisionBanner />
 
       <main className="relative">
 

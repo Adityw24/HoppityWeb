@@ -102,7 +102,7 @@ export default function Checkout() {
     window.scrollTo(0, 0)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        navigate("/login?redirect=/checkout/" + slug)
+        navigate('/auth', { state: { returnTo: `/checkout/${slug}` } })
         return
       }
     })
@@ -110,7 +110,7 @@ export default function Checkout() {
 
     supabase
       .from("Itineraries")
-      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,blurb,max_group_size,images,cover_image_url,rating,review_count,inclusions,batches")
+      .select("id,slug,title,location,state,duration,duration_display,price,price_per_person,tag,blurb,max_group_size,images,cover_image_url,rating,review_count,inclusions,batches, gst_included")
       .eq("slug", slug)
       .eq("is_active", true)
       .single()
@@ -163,9 +163,9 @@ export default function Checkout() {
     if (!trip) return null
     const basePerPerson = Number(trip.price_per_person) || 0
     const baseTotal     = basePerPerson * travelers
-
+    const gstIncluded   = Boolean(trip.gst_included)
     const platformFee   = Math.round((baseTotal * PLATFORM_FEE_PERCENT) / 100)
-    const gst           = Math.round((baseTotal * GST_PERCENT) / 100)
+    const gst           = gstIncluded ? 0 : Math.round((baseTotal * GST_PERCENT) / 100)
     const hasPricing    = basePerPerson > 0
     const taxesAndFees  = gst
 
@@ -182,7 +182,7 @@ export default function Checkout() {
       platformFee, gst, taxesAndFees,
       couponDiscount,
       grandTotal,
-      hasPricing,
+      hasPricing, gstIncluded,
     }
   }, [trip, travelers, coupon])
 
@@ -745,26 +745,36 @@ export default function Checkout() {
                     <span className="font-semibold text-slate-800">{formatINR(pricing.baseTotal)}</span>
                   </div>
 
-                  <button onClick={() => setShowBreakdown(b => !b)}
-                    className="w-full flex items-center justify-between text-xs text-violet-600 font-semibold py-1 hover:opacity-80 transition cursor-pointer">
-                    <span>Taxes & fees</span>
-                    <span className="flex items-center gap-1">
-                      {formatINR(pricing.taxesAndFees)}
-                      {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </span>
-                  </button>
-
-                  {showBreakdown && (
-                    <div className="bg-[#f8f5ff] rounded-xl p-3 space-y-2 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">GST</span>
-                        <span className="text-slate-700">{formatINR(pricing.gst)}</span>
-                      </div>
-                  {/*    <div className="flex justify-between">
-                        <span className="text-slate-500">Platform fee</span>
-                        <span className="text-slate-700">{formatINR(pricing.platformFee)}</span>
-                      </div> */}
+                  {pricing.gstIncluded ? (
+                    <div className="flex items-center justify-between text-xs py-1">
+                      <span className="text-slate-500">Taxes & fees</span>
+                      <span className="font-semibold text-green-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> GST included
+                      </span>
                     </div>
+                  ) : (
+                    <>
+                      <button onClick={() => setShowBreakdown(b => !b)}
+                        className="w-full flex items-center justify-between text-xs text-violet-600 font-semibold py-1 hover:opacity-80 transition cursor-pointer">
+                        <span>Taxes & fees</span>
+                        <span className="flex items-center gap-1">
+                          {formatINR(pricing.taxesAndFees)}
+                          {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        </span>
+                      </button>
+                      {showBreakdown && (
+                        <div className="bg-[#f8f5ff] rounded-xl p-3 space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">GST</span>
+                            <span className="text-slate-700">{formatINR(pricing.gst)}</span>
+                          </div>
+                    {/*    <div className="flex justify-between">
+                            <span className="text-slate-500">Platform fee</span>
+                            <span className="text-slate-700">{formatINR(pricing.platformFee)}</span>
+                          </div> */}
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* ─── COUPON: input / applied state ─────────────────────── */}
@@ -807,7 +817,9 @@ export default function Checkout() {
                   )}
 
                   <div className="border-t border-violet-100 pt-3 flex justify-between">
-                    <span className="text-slate-500 text-xs">Total (incl. taxes)</span>
+                    <span className="text-slate-500 text-xs">
+                      {pricing.gstIncluded ? "Total (GST included)" : "Total (incl. taxes)"}
+                    </span>
                     <span className="font-black text-slate-900">{formatINR(pricing.grandTotal)}</span>
                   </div>
                 </div>

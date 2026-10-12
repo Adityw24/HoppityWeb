@@ -131,7 +131,7 @@ const teamMembers = [
     gradient: 'from-teal-600 to-emerald-700',
     accentColor: '#0d9488',
   },
-  {
+ /* {
     name: 'Gourav Sharma',
     role: 'Founder\'s Office',
     bio: 'Gourav works closely with the founder at Hoppity, managing daily administrative work and handling incoming sales queries. He keeps day-to-day operations running smoothly while taking care of client requests..',
@@ -160,7 +160,7 @@ const teamMembers = [
     photo: diyaphoto,
     gradient: 'from-sky-600 to-blue-700',
     accentColor: '#0284c7',
-  },
+  },*/
   {
     name: 'Suzain Khan',
     role: 'Marketing Associate',
@@ -176,7 +176,7 @@ const teamMembers = [
     gradient: 'from-sky-600 to-blue-700',
     accentColor: '#0284c7',
   },
-  {
+ /* {
     name: 'Riya Maheshwari',
     role: 'Business Development',
     bio: 'As Hoppity’s BD Lead, Riya connect our incredible global partners directly to your travel bucket list to bring your dream trips to life. From boutique stays to wild adventures anywhere on the map. If you can dream it, consider her your go-to person to make it happen!.',
@@ -205,7 +205,7 @@ const teamMembers = [
     photo: bibhuphoto,
     gradient: 'from-emerald-600 to-green-700',
     accentColor: '#16a34a',
-  }
+  } */
 ]
 
 export default function AboutPage() {

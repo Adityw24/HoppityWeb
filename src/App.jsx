@@ -4,6 +4,8 @@ import { AuthProvider } from './hooks/useAuth'
 import LandingPage   from './Pages/Landing'
 import Itinerary     from './Pages/Itinerary'
 import Itineraries   from './Pages/Itineraries'
+import ItineraryForm from './Pages/ItineraryForm'
+import BookingPage from './Pages/Booking'
 import AuthPage      from './Pages/Auth'
 import SearchPage    from './Pages/Search'
 import ProfilePage   from './Pages/Profile'
@@ -28,6 +30,9 @@ import FlagshipProperty from './Pages/FlagshipProperty'
 import SettingsPage from './Pages/AccountsSettings'
 import Stays from './Pages/Stays'
 import Download from './Pages/Download'
+import Partner from './Pages/PartnerApply'
+import PropertyApplication from './Pages/PropertyApplication'
+import Discover from './Pages/Discover'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
@@ -51,6 +56,9 @@ const App = () => (
         <Route path="/"                 element={<LandingPage />} />
         <Route path="/itinerary/:slug"  element={<Itinerary />} />
         <Route path="/itineraries"      element={<Itineraries />} />
+        <Route path="/itineraries/new" element={<ItineraryForm />} />
+        <Route path="/itineraries/:id/edit" element={<ItineraryForm />} />
+        <Route path="/booking/:slug" element={<BookingPage />} />
         <Route path="/auth"             element={<AuthPage />} />
         <Route path="/search"           element={<SearchPage />} />
         <Route path="/checkout/:slug"    element={<CheckoutPage />} />
@@ -74,6 +82,9 @@ const App = () => (
         <Route path ="/settings" element={<SettingsPage />} />
         <Route path="/stays" element={<Stays />} />
         <Route path="/download" element={<Download />} />
+        <Route path="/partner" element={<Partner />} />
+        <Route path="/property-application" element={<PropertyApplication />} />
+        <Route path="/discover" element={<Discover />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>

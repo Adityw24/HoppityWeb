@@ -4,13 +4,17 @@ import {
   LogOut, Camera, MapPin, Calendar, Users, Star,
   Bookmark, MessageSquare, Heart, Clock, Edit3,
   Check, X, PenSquare, ArrowRight, Award, AlertTriangle,
-  ArrowLeft
+  ArrowLeft, BadgeCheck, Handshake, ShieldCheck, Crown, Film
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { AVATAR_BUCKET, avatarPath } from '../lib/storage'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import Navbar from '../components/Navbar'
+import AdminApplications from '../components/AdminApplications'
+import ReelsGrid from '../components/ReelsGrid'
+import ReelUploadModal from '../components/ReelUploadModal'
+import { REEL_COLS, byCreator, hydrateReels, fetchCanPostReels } from '../lib/reels'
 
 function badgeColors(tier) {
   switch (tier) {
@@ -64,6 +68,8 @@ const BOOKING_COLS = [
 
 const TOUR_COLS = 'id,title,cover_image_url,category,location,duration_display,slug'
 
+const POST_COLS = 'id,title,slug,status,category,cover_image_url,likes_count,comments_count,views_count,published_at,created_at,admin_notes'
+
 // PostgrestBuilder is a thenable, not a real Promise — `.catch()` on it is not
 // dependable. Wrap it so a throwing RPC can never take the whole load down.
 const safe = (builder, fallback = { data: null, error: null }) =>
@@ -79,12 +85,21 @@ export default function ProfilePage() {
   const [searchParams] = useSearchParams()
   const avatarInputRef = useRef(null)
 
-  const [tab, setTab] = useState(searchParams.get('tab') || 'trips')
+  // Old links (?tab=reels / ?tab=stories) keep working after the rename.
+  const [tab, setTab] = useState(() => {
+    const t = searchParams.get('tab')
+    return ({ reels: 'content', stories: 'blogs' })[t] || t || 'content'
+  })
   const [bookings, setBookings]     = useState([])
   const [savedTours, setSavedTours] = useState([])
   const [reviews, setReviews]       = useState([])
   const [badges, setBadges]         = useState([])
   const [myPosts, setMyPosts]       = useState([])
+  const [partner, setPartner]       = useState({ roles: [], applications: [] })
+  const [adminInfo, setAdminInfo]   = useState(null)   // { is_founder } when this user is in public.admins
+  const [myReels, setMyReels]       = useState([])
+  const [canPostReels, setCanPostReels] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [loading, setLoading]       = useState(true)
   const [loadErrors, setLoadErrors] = useState([])   // surfaced, not swallowed
   const [editing, setEditing]       = useState(false)
@@ -139,8 +154,29 @@ export default function ProfilePage() {
 
       safe(
         supabase.from('Blog_Posts')
-          .select('id,title,slug,status,category,cover_image_url,likes_count,comments_count,views_count,published_at,created_at,admin_notes')
+          .select(POST_COLS)
           .eq('author_id', uid)
+          .order('created_at', { ascending: false })
+      ),
+
+      // Partner programme (creator / curator / property) — drives the CTA card
+      safe(supabase.from('user_roles').select('role,suspended_at').eq('user_id', uid)),
+      safe(
+        supabase.from('partner_applications')
+          .select('id,role,status,admin_notes,created_at')
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false })
+      ),
+
+      // Admin badge — RLS only returns a row if this user is in public.admins
+      safe(supabase.from('admins').select('is_founder').eq('user_id', uid).maybeSingle()),
+
+      // Reels this user posted (own hidden ones included — RLS allows creator_id = me)
+      safe(
+        supabase.from('Reels')
+          .select(REEL_COLS)
+          .or(byCreator(uid))
+          .not('video_url', 'is', null)
           .order('created_at', { ascending: false })
       ),
     ])
@@ -169,6 +205,10 @@ export default function ProfilePage() {
     const revRows     = unwrap(3, 'Reviews') || []
     const badgeRows   = unwrap(4, 'Badges') || []
     const postRows    = unwrap(5, 'Stories') || []
+    const roleRows    = unwrap(6, 'Partner roles') || []
+    const appRows     = unwrap(7, 'Partner applications') || []
+    const adminRow    = unwrap(8, 'Admin status')
+    const reelRows    = unwrap(9, 'Reels') || []
 
     // ── Hydrate tours for the bookings, one round-trip ─────────────────────
     // Bookings.tour_id is bigint, Itineraries.id is bigint, Bookings.id is uuid.
@@ -206,6 +246,10 @@ export default function ProfilePage() {
     setReviews(revRows)
     setBadges(badgeRows)
     setMyPosts(postRows)
+    setPartner({ roles: roleRows.filter(r => !r.suspended_at), applications: appRows })
+    setAdminInfo(adminRow || null)
+    setMyReels(await hydrateReels(reelRows, uid))
+    fetchCanPostReels(uid).then(setCanPostReels)
 
     // ── Saved tours ───────────────────────────────────────────────────────
     const savedIds = savedRows.map(s => s.tour_id)
@@ -354,6 +398,23 @@ export default function ProfilePage() {
     setMyPosts(p => p.filter(x => x.id !== pid))
   }
 
+  // My Blogs: everything this user has written (drafts, in review, published…).
+  // Re-pulled whenever the tab is opened and when the browser tab regains focus,
+  // so a post written in /write shows up here without a manual refresh.
+  const refreshPosts = async () => {
+    if (!user) return
+    const { data, error } = await supabase.from('Blog_Posts')
+      .select(POST_COLS).eq('author_id', user.id).order('created_at', { ascending: false })
+    if (error) console.error('refreshPosts:', error)
+    else setMyPosts(data || [])
+  }
+  useEffect(() => { if (user && tab === 'blogs') refreshPosts() }, [tab, user])
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) refreshPosts() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [user])
+
   if (authLoading || !user) return (
     <div className="min-h-screen bg-[#f7f1ff] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-violet-300 border-t-violet-700 rounded-full animate-spin" />
@@ -370,11 +431,12 @@ export default function ProfilePage() {
   const tripsCount = bookings.length
 
   const TABS = [
-    { id: 'trips',   label: 'Trips',    count: tripsCount },
-    { id: 'saved',   label: 'Saved',    count: savedTours.length },
-    { id: 'reviews', label: 'Reviews',  count: reviews.length },
-    { id: 'stories', label: 'Stories',  count: myPosts.length },
-    { id: 'badges',  label: 'Badges',   count: badges.length },
+    { id: 'content', label: 'My Content', count: myReels.length },
+    { id: 'blogs',   label: 'My Blogs',   count: myPosts.length },
+    { id: 'trips',   label: 'Trips',      count: tripsCount },
+    { id: 'saved',   label: 'Saved',      count: savedTours.length },
+    { id: 'reviews', label: 'Reviews',    count: reviews.length },
+    { id: 'badges',  label: 'Badges',     count: badges.length },
   ]
 
   return (
@@ -472,8 +534,8 @@ export default function ProfilePage() {
                 <>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-xl font-black text-slate-900">{displayName}</h2>
-                    {profile?.is_creator && <span className="bg-violet-700 text-white text-[10px] font-bold px-2 py-0.5 rounded">★ CREATOR</span>}
                   </div>
+                  <RoleBadges profile={profile} partner={partner} adminInfo={adminInfo} />
                   {profile?.location && (
                     <p className="flex items-center gap-1 text-xs text-slate-400 mt-1">
                       <MapPin className="w-3 h-3" />{profile.location}
@@ -517,11 +579,17 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Admins & founders: partner application review queue.
+            Everyone else: become a creator / curator / property partner. */}
+        {!loading && (adminInfo
+          ? <AdminApplications isFounder={!!adminInfo.is_founder} onToast={showToast} />
+          : <PartnerCard partner={partner} />)}
+
         {/* Write CTA */}
         <Link to="/write" className="flex items-center gap-3 bg-violet-700 text-white rounded-2xl px-5 py-4 mb-5 hover:bg-violet-800 transition group shadow-sm">
           <PenSquare className="w-5 h-5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="font-bold text-sm">Write a story</p>
+            <p className="font-bold text-sm">Write a blog</p>
             <p className="text-violet-200 text-xs">Share your travel experience with the community</p>
           </div>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition flex-shrink-0" />
@@ -557,16 +625,35 @@ export default function ProfilePage() {
             {tab === 'reviews' && (reviews.length === 0
               ? <EmptyState icon="⭐" title="No reviews yet" sub="Complete a tour to leave a verified review" cta="/itineraries" ctaLabel="Browse tours" />
               : <div className="space-y-3">{reviews.map(r => <ReviewCard key={r.id} review={r} />)}</div>)}
-            {tab === 'stories' && (
+            {/* My Content — Instagram-style grid of this user's reels */}
+            {tab === 'content' && (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-700">Your Stories</h3>
+                  <h3 className="text-sm font-bold text-slate-700">My Content</h3>
+                  {canPostReels && (
+                    <button onClick={() => setUploadOpen(true)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl hover:bg-violet-100 transition cursor-pointer">
+                      <Film className="w-3.5 h-3.5" /> Upload reel
+                    </button>
+                  )}
+                </div>
+                <ReelsGrid reels={myReels} setReels={setMyReels} user={user} isOwner
+                  emptyAction={canPostReels
+                    ? <button onClick={() => setUploadOpen(true)} className="inline-block mt-5 text-sm font-bold text-violet-700 hover:underline cursor-pointer">Upload your first reel →</button>
+                    : <Link to="/partner" className="inline-block mt-5 text-sm font-bold text-violet-700 hover:underline">Become a creator to post reels →</Link>} />
+              </>
+            )}
+            {/* My Blogs — everything this user has written, with its review status */}
+            {tab === 'blogs' && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-slate-700">My Blogs</h3>
                   <Link to="/write" className="flex items-center gap-1.5 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl hover:bg-violet-100 transition">
-                    <PenSquare className="w-3.5 h-3.5" /> New story
+                    <PenSquare className="w-3.5 h-3.5" /> New blog
                   </Link>
                 </div>
                 {myPosts.length === 0
-                  ? <EmptyState icon="✍️" title="No stories yet" sub="Write your first travel story" cta="/write" ctaLabel="Write a story" />
+                  ? <EmptyState icon="✍️" title="No blogs yet" sub="Everything you write shows up here" cta="/write" ctaLabel="Write a blog" />
                   : <div className="space-y-3">{myPosts.map(p => <StoryCard key={p.id} post={p} onDelete={() => deletePost(p.id)} />)}</div>}
               </>
             )}
@@ -574,7 +661,134 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      {uploadOpen && (
+        <ReelUploadModal user={user} onClose={() => setUploadOpen(false)}
+          onUploaded={async (row) => {
+            const [hit] = await hydrateReels([row], user.id)
+            setMyReels(l => [hit, ...l])
+            setTab('content')
+            showToast('Reel posted ✓')
+          }} />
+      )}
     </div>
+  )
+}
+
+const ROLE_LABEL = { creator: 'creator', curator: 'curator', property: 'property partner' }
+
+// Role badges under the name.
+//   verified roles  → solid badge   (user_roles, falling back to the legacy Users flags)
+//   pending/on hold → outlined chip (partner_applications)
+//   admin           → dark badge    (public.admins; founders get a crown)
+const ROLE_BADGE = {
+  creator:  { label: 'Creator',          Icon: Star,       solid: 'bg-violet-700 text-white',  soft: 'border-violet-300 text-violet-700 bg-violet-50' },
+  curator:  { label: 'Curator',          Icon: BadgeCheck, solid: 'bg-emerald-600 text-white', soft: 'border-emerald-300 text-emerald-700 bg-emerald-50' },
+  property: { label: 'Property Partner', Icon: Handshake,  solid: 'bg-amber-600 text-white',   soft: 'border-amber-300 text-amber-700 bg-amber-50' },
+}
+
+function RoleBadges({ profile, partner, adminInfo }) {
+  const verified = new Set(partner.roles.map(r => r.role))
+  if (profile?.is_creator) verified.add('creator')
+  if (profile?.is_curator) verified.add('curator')
+  if (profile?.is_host)    verified.add('property')
+
+  const inReview = partner.applications
+    .filter(a => (a.status === 'pending' || a.status === 'on_hold') && !verified.has(a.role))
+
+  if (!adminInfo && verified.size === 0 && inReview.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+      {adminInfo && (
+        <span className="inline-flex items-center gap-1 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded"
+          title={adminInfo.is_founder ? 'Hoppity founder' : 'Hoppity admin'}>
+          {adminInfo.is_founder ? <Crown className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+          {adminInfo.is_founder ? 'Founder' : 'Admin'}
+        </span>
+      )}
+      {['creator', 'curator', 'property'].filter(r => verified.has(r)).map(r => {
+        const b = ROLE_BADGE[r]
+        return (
+          <span key={r} title={`Verified ${b.label.toLowerCase()}`}
+            className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${b.solid}`}>
+            <b.Icon className="w-3 h-3" /> {b.label}
+          </span>
+        )
+      })}
+      {inReview.map(a => {
+        const b = ROLE_BADGE[a.role]
+        return (
+          <Link key={a.id} to="/partner" title={a.status === 'on_hold' ? 'Needs an update' : 'Under review'}
+            className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border border-dashed ${b.soft}`}>
+            <Clock className="w-3 h-3" /> {b.label} · {a.status === 'on_hold' ? 'action needed' : 'in review'}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+const joinRoles = (list) => list.map(r => ROLE_LABEL[r]).join(' & ')
+
+function PartnerCard({ partner }) {
+  const granted = partner.roles.map(r => r.role)
+  const onHold  = partner.applications.filter(a => a.status === 'on_hold')
+  const pending = partner.applications.filter(a => a.status === 'pending')
+  const openRoles = new Set([...granted, ...onHold.map(a => a.role), ...pending.map(a => a.role)])
+  const canApplyMore = ['creator', 'curator', 'property'].some(r => !openRoles.has(r))
+
+  // 1. Something needs the user's attention
+  if (onHold.length > 0) return (
+    <Link to="/partner" className="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-2xl px-5 py-4 mb-5 hover:bg-orange-100 transition group">
+      <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-sm text-orange-900">Your {joinRoles(onHold.map(a => a.role))} application needs an update</p>
+        {onHold[0].admin_notes && <p className="text-xs text-orange-800 mt-0.5 line-clamp-2">{onHold[0].admin_notes}</p>}
+      </div>
+      <ArrowRight className="w-4 h-4 text-orange-700 group-hover:translate-x-1 transition flex-shrink-0 mt-0.5" />
+    </Link>
+  )
+
+  // 2. Waiting on Hoppity
+  if (pending.length > 0) return (
+    <Link to="/partner" className="flex items-center gap-3 bg-white border border-amber-200 rounded-2xl px-5 py-4 mb-5 hover:border-amber-300 transition group">
+      <Clock className="w-5 h-5 text-amber-600 flex-shrink-0" />
+      <div className="flex-1">
+        <p className="font-bold text-sm text-slate-900">Your {joinRoles(pending.map(a => a.role))} application is under review</p>
+        <p className="text-xs text-slate-500">We'll notify you as soon as it's reviewed.</p>
+      </div>
+      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition flex-shrink-0" />
+    </Link>
+  )
+
+  // 3. Already a verified partner
+  if (granted.length > 0) return (
+    <div className="flex items-center gap-3 bg-white border border-green-200 rounded-2xl px-5 py-4 mb-5">
+      <BadgeCheck className="w-5 h-5 text-green-600 flex-shrink-0" />
+      <div className="flex-1">
+        <p className="font-bold text-sm text-slate-900">Verified {joinRoles(granted)}</p>
+        <p className="text-xs text-slate-500">Studio is opening soon — you'll publish content and listings from there.</p>
+      </div>
+      {canApplyMore && (
+        <Link to="/partner" className="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl hover:bg-violet-100 transition flex-shrink-0">
+          Add a role
+        </Link>
+      )}
+    </div>
+  )
+
+  // 4. Not a partner yet — the main CTA
+  return (
+    <Link to="/partner" className="block rounded-2xl px-5 py-4 mb-5 bg-gradient-to-br from-violet-700 to-purple-600 text-white shadow-sm hover:shadow-md transition group">
+      <div className="flex items-center gap-3">
+        <Handshake className="w-6 h-6 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="font-bold text-sm">Become a creator, curator or partner</p>
+          <p className="text-violet-100 text-xs">Share trips you love, run your own itineraries or list your property — and earn on every booking.</p>
+        </div>
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition flex-shrink-0" />
+      </div>
+    </Link>
   )
 }
 

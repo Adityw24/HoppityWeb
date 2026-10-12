@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Search, User, LogOut, Menu, X, Sparkles, Settings } from 'lucide-react'
+import { Search, User, LogOut, Menu, X, Sparkles, Settings, Clapperboard } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import logo from '../assets/logo1.png'
@@ -88,6 +88,7 @@ export default function Navbar() {
   const NAV_LINKS = [
     { to: '/itineraries', label: 'Itineraries' },
     { to: '/stays',       label: 'Stays' },
+    { to: '/discover',    label: 'Discover', icon: Clapperboard },
     { to: '/about',       label: 'About' },
     { to: '/blog',        label: 'Blog' },
     { to: '/for-you',     label: 'For You', icon: Sparkles },
@@ -256,6 +257,7 @@ export default function Navbar() {
             {[
               { to: '/itineraries', label: '🗺️ Itineraries' },
               { to: '/stays',       label: '🏡 Stays' },
+              { to: '/discover',    label: '🎬 Discover' },
               { to: '/about',       label: '🌿 About Us' },
               { to: '/blog',        label: '📝 Blog' },
               { to: '/for-you',     label: '⭐ For You' },
