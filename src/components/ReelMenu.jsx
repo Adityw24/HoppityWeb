@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MoreHorizontal, Link2, MapPin } from 'lucide-react'
-import { reelUrl, copyText } from '../lib/reelShare'
+import { reelUrl, copyText } from '../lib/reelshare'
 
 // Three-dots button for the action rail. Opens a small menu to the left of the rail.
 // (Deleting reels is intentionally NOT here. Creators manage their reels on their profile page.)
