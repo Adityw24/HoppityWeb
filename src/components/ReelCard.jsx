@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Heart, MessageCircle, Send, Bookmark, Volume2, VolumeX, Play, MapPin, Ticket } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { fmtCount, timeAgo } from '../lib/reels'
-import { shareReel } from '../lib/reelShare'
+import { shareReel } from '../lib/reelshare'
 import ReelMenu from './ReelMenu'
 
 // Same look for every rail button. On mobile they sit on the video (dark pill),
