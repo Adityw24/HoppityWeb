@@ -33,13 +33,14 @@ import Download from './Pages/Download'
 import Partner from './Pages/PartnerApply'
 import PropertyApplication from './Pages/PropertyApplication'
 import Discover from './Pages/Discover'
+import CreatorProfile from './Pages/CreatorProfile'
 
 const TRACKING_ID = 'G-2Q8G6TX2EE'
 
 const AnalyticsTracker = () => {
   const location = useLocation()
   React.useEffect(() => {
-    if (typeof window.gtag !== 'function') return
+    if (typeof window.gtag !== 'function') returnfff
     window.gtag('config', TRACKING_ID, {
       page_path: `${location.pathname}${location.search}${location.hash}`,
     })
@@ -85,6 +86,7 @@ const App = () => (
         <Route path="/partner" element={<Partner />} />
         <Route path="/property-application" element={<PropertyApplication />} />
         <Route path="/discover" element={<Discover />} />
+        <Route path="/creator/:id" element={<CreatorProfile />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>

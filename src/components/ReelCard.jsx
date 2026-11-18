@@ -93,6 +93,33 @@ export default function ReelCard({
   useEffect(() => { if (videoRef.current) videoRef.current.muted = muted }, [muted])
 
   useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    let raf = 0
+    const paint = () => {
+      if (barRef.current && v.duration) {
+        barRef.current.style.transform = `scaleX(${v.currentTime / v.duration})`
+      }
+    }
+    const tick = () => { paint(); raf = requestAnimationFrame(tick) }
+    const start = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick) }
+    const stop = () => { cancelAnimationFrame(raf); paint() }
+
+    v.addEventListener('play', start)
+    v.addEventListener('pause', stop)
+    v.addEventListener('ended', stop)
+    v.addEventListener('seeked', paint)
+    if (!v.paused) start()
+    return () => {
+      cancelAnimationFrame(raf)
+      v.removeEventListener('play', start)
+      v.removeEventListener('pause', stop)
+      v.removeEventListener('ended', stop)
+      v.removeEventListener('seeked', paint)
+    }
+  }, [])
+
+  useEffect(() => {
     const el = wrapRef.current, v = videoRef.current
     if (!el || !v || !autoPlay) return
     const io = new IntersectionObserver(([e]) => {
@@ -131,11 +158,6 @@ export default function ReelCard({
   }
   useEffect(() => () => clearTimeout(tapTimer.current), [])
 
-  const onTime = () => {
-    const v = videoRef.current
-    if (v && barRef.current && v.duration) barRef.current.style.width = `${(v.currentTime / v.duration) * 100}%`
-  }
-
   const handleShare = async () => {
     const r = await shareReel(reel)
     if (r === 'copied') flash('Link copied')
@@ -146,6 +168,8 @@ export default function ReelCard({
     onSave?.(reel)
     flash(saved ? 'Removed from saved' : 'Saved')
   }
+
+  
 
   const infoProps = {
     reel, name, creator: c, expanded, onBook,
@@ -165,7 +189,7 @@ export default function ReelCard({
         ) : (
           <video ref={videoRef} src={reel.video_url} poster={reel.thumbnail_url || undefined}
             loop playsInline muted={muted} preload="metadata"
-            onTimeUpdate={onTime} onError={() => setFailed(true)}
+            onError={() => setFailed(true)}
             className="absolute inset-0 h-full w-full object-cover" />
         )}
 
@@ -191,7 +215,7 @@ export default function ReelCard({
         </div>
 
         <div className="absolute inset-x-0 bottom-0 z-30 h-[3px] bg-white/20">
-          <div ref={barRef} className="h-full w-0 bg-white" />
+          <div ref={barRef} className="h-full w-full origin-left bg-white" style={{ transform: 'scaleX(0)' }} />
         </div>
       </div>
 
@@ -222,8 +246,11 @@ export default function ReelCard({
 
         <button type="button" onClick={handleSave} aria-pressed={!!saved} aria-label={saved ? 'Unsave' : 'Save'}
           className="cursor-pointer">
-          <span className={RAIL_BTN}>
-            <Bookmark className={`h-6 w-6 transition ${saved ? 'fill-white' : ''}`} />
+          <span className={
+            RAIL_BTN +
+            (saved ? ' bg-amber-400/25! ring-1 ring-amber-300/70 scale-110' : '')
+          }>
+            <Bookmark className={`h-6 w-6 transition ${saved ? 'fill-amber-400 text-amber-400' : ''}`} />
           </span>
         </button>
 
@@ -238,7 +265,8 @@ export default function ReelCard({
       </div>
 
       {note && (
-        <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/90 px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg">
+        <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2 flex items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-900/90 px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg">
+          {note.includes('saved') && !note.startsWith('Removed') && <Bookmark className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
           {note}
         </div>
       )}

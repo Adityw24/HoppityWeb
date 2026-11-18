@@ -15,6 +15,7 @@ import diyaphoto from '../assets/diya.jpeg'
 import suzainphoto from '../assets/suzain.jpeg'
 import riyaPhoto from '../assets/riya.jpeg'
 import bibhuphoto from '../assets/bibhu.jpeg'
+import palakphoto from '../assets/palak.jpeg'
 // import dipakPhoto from '../assets/dipak.jpg'
 // Then set photo: sabyPhoto, photo: ajayPhoto, photo: dipakPhoto below
 
@@ -173,6 +174,21 @@ const teamMembers = [
     linkedin: 'https://www.linkedin.com/in/suzain-khan-a09351309/',
     avatar: 'SK',
     photo: suzainphoto,
+    gradient: 'from-sky-600 to-blue-700',
+    accentColor: '#0284c7',
+  },
+   {
+    name: 'Palak',
+    role: 'Full stack marketing intern',
+    bio: 'Palak is a Journalism student and Full Stack Marketing Intern at Hoppity, passionate about digital marketing, content creation, social media management, and brand promotions.',
+    credentials: [
+      'Credential or highlight one',
+      'Credential or highlight two',
+      'Credential or highlight three',
+    ],
+    linkedin: '',
+    avatar: '',
+    photo: palakphoto,
     gradient: 'from-sky-600 to-blue-700',
     accentColor: '#0284c7',
   },
